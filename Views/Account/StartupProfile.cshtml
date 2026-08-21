@@ -1,0 +1,76 @@
+﻿@@model TechNova.Models.Startup
+
+@{
+    ViewData["Title"] = "Startup Profile";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+
+<div class="profile-page">
+
+    <div class="profile-card">
+
+        <div class="profile-header">
+            <div class="profile-avatar">🚀</div>
+
+            <h1>@Model.CompanyName</h1>
+
+            <p>Startup Profile</p>
+        </div>
+
+        <div class="profile-info">
+
+            <div class="info-item">
+                <strong>Company Name:</strong>
+                <span>@Model.CompanyName</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Email:</strong>
+                <span>@Model.Email</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Description:</strong>
+                <span>@Model.Description</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Website:</strong>
+                <span>@Model.Website</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Funding Required:</strong>
+                <span>@Model.FundingRequired</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Business Stage:</strong>
+                <span>@Model.BusinessStage</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Verification Status:</strong>
+                <span class="status-pending">
+                    @Model.VerificationStatus
+                </span>
+            </div>
+
+        </div>
+
+        <form asp-controller="Account"
+              asp-action="Logout"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit" class="profile-button">
+                Logout
+            </button>
+
+        </form>
+
+    </div>
+
+</div>

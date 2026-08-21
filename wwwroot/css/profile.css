@@ -1,0 +1,64 @@
+﻿.profile-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.profile-card {
+    width: 100%;
+    max-width: 650px;
+    background: white;
+    padding: 40px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-avatar {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+.profile-header p {
+    color: #666;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+    .info-item span {
+        text-align: right;
+    }
+
+.status-pending {
+    padding: 4px 12px;
+    border-radius: 15px;
+    border: 1px solid #888;
+}
+
+.profile-button {
+    width: 100%;
+    margin-top: 30px;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #333;
+    color: white;
+    cursor: pointer;
+}
