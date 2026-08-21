@@ -146,4 +146,30 @@
     .register-buttons {
         flex-direction: column;
     }
+
+}
+
+/* =========================
+   REGISTRATION PAGES
+========================= */
+
+.register-card {
+    max-width: 600px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    border-radius: 6px;
+}
+
+.validation-error {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #dc3545;
 }
