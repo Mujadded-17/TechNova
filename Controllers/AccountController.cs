@@ -106,7 +106,6 @@ namespace TechNova.Controllers
             return View();
         }
 
-
         // ============================
         // STARTUP REGISTRATION
         // ============================
@@ -120,29 +119,20 @@ namespace TechNova.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterStartup(
-            Startup model,
-            string password)
+            RegisterStartup model)
         {
-            if (string.IsNullOrWhiteSpace(password))
+            if (!ModelState.IsValid)
             {
-                ViewBag.Error = "Password is required.";
                 return View(model);
             }
 
-            if (string.IsNullOrWhiteSpace(model.Email))
-            {
-                ViewBag.Error = "Email is required.";
-                return View(model);
-            }
+            string email = model.Email.Trim();
 
             // Check duplicate email
             bool emailExists =
-                await _context.Startups.AnyAsync(
-                    s => s.Email == model.Email) ||
-                await _context.Investors.AnyAsync(
-                    i => i.Email == model.Email) ||
-                await _context.Admins.AnyAsync(
-                    a => a.Email == model.Email);
+                await _context.Startups.AnyAsync(s => s.Email == email) ||
+                await _context.Investors.AnyAsync(i => i.Email == email) ||
+                await _context.Admins.AnyAsync(a => a.Email == email);
 
             if (emailExists)
             {
@@ -150,19 +140,31 @@ namespace TechNova.Controllers
                 return View(model);
             }
 
-            model.PasswordHash =
-                _passwordHasher.HashPassword(
+            // Create Startup object
+            var startup = new Startup
+            {
+                CompanyName = model.CompanyName,
+                Email = email,
+
+                PasswordHash = _passwordHasher.HashPassword(
                     new object(),
-                    password);
+                    model.Password),
 
-            model.VerificationStatus = "Pending";
+                Description = model.Description,
+                Website = model.Website,
+                FundingRequired = model.FundingRequired,
+                BusinessStage = model.BusinessStage,
 
-            _context.Startups.Add(model);
+                // New startups must be verified by Admin
+                VerificationStatus = "Pending"
+            };
+
+            _context.Startups.Add(startup);
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Login");
         }
-
 
         // ============================
         // INVESTOR REGISTRATION
@@ -177,29 +179,20 @@ namespace TechNova.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterInvestor(
-            Investor model,
-            string password)
+            RegisterInvestor model)
         {
-            if (string.IsNullOrWhiteSpace(password))
+            if (!ModelState.IsValid)
             {
-                ViewBag.Error = "Password is required.";
                 return View(model);
             }
 
-            if (string.IsNullOrWhiteSpace(model.Email))
-            {
-                ViewBag.Error = "Email is required.";
-                return View(model);
-            }
+            string email = model.Email.Trim();
 
             // Check duplicate email
             bool emailExists =
-                await _context.Startups.AnyAsync(
-                    s => s.Email == model.Email) ||
-                await _context.Investors.AnyAsync(
-                    i => i.Email == model.Email) ||
-                await _context.Admins.AnyAsync(
-                    a => a.Email == model.Email);
+                await _context.Startups.AnyAsync(s => s.Email == email) ||
+                await _context.Investors.AnyAsync(i => i.Email == email) ||
+                await _context.Admins.AnyAsync(a => a.Email == email);
 
             if (emailExists)
             {
@@ -207,19 +200,31 @@ namespace TechNova.Controllers
                 return View(model);
             }
 
-            model.PasswordHash =
-                _passwordHasher.HashPassword(
+            // Create Investor object
+            var investor = new Investor
+            {
+                Name = model.Name,
+                CompanyName = model.CompanyName,
+                Email = email,
+                Phone = model.Phone,
+
+                PasswordHash = _passwordHasher.HashPassword(
                     new object(),
-                    password);
+                    model.Password),
 
-            model.VerificationStatus = "Pending";
+                Preference = model.Preference,
+                InvestmentRange = model.InvestmentRange,
 
-            _context.Investors.Add(model);
+                // New investors must be verified by Admin
+                VerificationStatus = "Pending"
+            };
+
+            _context.Investors.Add(investor);
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Login");
         }
-
 
         // ============================
         // LOGOUT
