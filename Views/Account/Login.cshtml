@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<link rel="stylesheet" href="~/css/account.css" />
+
+<div class="login-page">
+    <div class="login-card">
+
+        <div class="login-header">
+            <h1>TechNova</h1>
+            <p>Welcome back</p>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="login-error">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form asp-controller="Account"
+              asp-action="Login"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label for="email">Email</label>
+
+                <input type="email"
+                       id="email"
+                       name="email"
+                       placeholder="Enter your email"
+                       required />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                <input type="password"
+                       id="password"
+                       name="password"
+                       placeholder="Enter your password"
+                       required />
+            </div>
+
+            <button type="submit" class="login-button">
+                Login
+            </button>
+
+        </form>
+
+        <div class="register-section">
+
+            <p>Don't have an account?</p>
+
+            <div class="register-buttons">
+
+                <a asp-controller="Account"
+                   asp-action="RegisterStartup"
+                   class="register-button startup-button">
+                    Register as Startup
+                </a>
+
+                <a asp-controller="Account"
+                   asp-action="RegisterInvestor"
+                   class="register-button investor-button">
+                    Register as Investor
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
