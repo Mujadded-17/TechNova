@@ -6,58 +6,15 @@
 
 <link rel="stylesheet" href="~/css/profile.css" />
 
-<div class="profile-page">
+<div class="profile-navbar">
 
-    <div class="profile-card">
+    <div class="profile-nav-content">
 
-        <div class="profile-header">
-            <div class="profile-avatar">💼</div>
-
-            <h1>@Model.Name</h1>
-
-            <p>Investor Profile</p>
-        </div>
-
-        <div class="profile-info">
-
-            <div class="info-item">
-                <strong>Name:</strong>
-                <span>@Model.Name</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Company:</strong>
-                <span>@Model.CompanyName</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Email:</strong>
-                <span>@Model.Email</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Phone:</strong>
-                <span>@Model.Phone</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Investment Preference:</strong>
-                <span>@Model.Preference</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Investment Range:</strong>
-                <span>@Model.InvestmentRange</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Verification Status:</strong>
-                <span class="status-pending">
-                    @Model.VerificationStatus
-                </span>
-            </div>
-
-        </div>
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="profile-logo">
+            TechNova
+        </a>
 
         <form asp-controller="Account"
               asp-action="Logout"
@@ -65,11 +22,177 @@
 
             @Html.AntiForgeryToken()
 
-            <button type="submit" class="profile-button">
+            <button type="submit" class="logout-button">
                 Logout
             </button>
 
         </form>
+
+    </div>
+
+</div>
+
+
+<div class="profile-wrapper">
+
+    <!-- COVER AND PROFILE HEADER -->
+
+    <div class="profile-header-card">
+
+        <div class="cover-photo"></div>
+
+        <div class="profile-header-content">
+
+            <div class="profile-avatar investor-avatar">
+                💼
+            </div>
+
+            <div class="profile-title">
+
+                <h1>@Model.Name</h1>
+
+                @if (!string.IsNullOrEmpty(Model.CompanyName))
+                {
+                    <p class="profile-subtitle">
+                        @Model.CompanyName
+                    </p>
+                }
+
+                <p class="profile-email">
+                    @Model.Email
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="profile-layout">
+
+        <!-- MAIN PROFILE -->
+
+        <main class="profile-main">
+
+            <!-- INVESTMENT PREFERENCES -->
+
+            <section class="profile-section">
+
+                <h2>Investment Preferences</h2>
+
+                <p class="profile-description">
+
+                    @if (!string.IsNullOrEmpty(Model.Preference))
+                    {
+                        @Model.Preference
+                    }
+                    else
+                    {
+                        <span>No investment preferences added yet.</span>
+                    }
+
+                </p>
+
+            </section>
+
+
+            <!-- INVESTMENT INFORMATION -->
+
+            <section class="profile-section">
+
+                <h2>Investment Information</h2>
+
+                <div class="info-grid">
+
+                    <div class="info-box">
+
+                        <span class="info-label">
+                            Investment Range
+                        </span>
+
+                        <strong>
+                            @if (Model.InvestmentRange.HasValue)
+                            {
+                                @Model.InvestmentRange.Value.ToString("N2")
+                            }
+                            else
+                            {
+                                <span>Not specified</span>
+                            }
+                        </strong>
+
+                    </div>
+
+                    <div class="info-box">
+
+                        <span class="info-label">
+                            Investment Focus
+                        </span>
+
+                        <strong>
+                            @if (!string.IsNullOrEmpty(Model.Preference))
+                            {
+                                @Model.Preference
+                            }
+                            else
+                            {
+                                <span>Not specified</span>
+                            }
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- SIDEBAR -->
+
+        <aside class="profile-sidebar">
+
+            <section class="sidebar-card">
+
+                <h3>Contact Information</h3>
+
+                <div class="sidebar-item">
+
+                    <span>Email</span>
+
+                    <strong>@Model.Email</strong>
+
+                </div>
+
+
+                <div class="sidebar-item">
+
+                    <span>Phone</span>
+
+                    <strong>
+                        @(string.IsNullOrEmpty(Model.Phone)
+                            ? "Not provided"
+                            : Model.Phone)
+                    </strong>
+
+                </div>
+
+
+                <div class="sidebar-item">
+
+                    <span>Verification</span>
+
+                    <strong class="status-pending">
+                        @Model.VerificationStatus
+                    </strong>
+
+                </div>
+
+            </section>
+
+        </aside>
 
     </div>
 
