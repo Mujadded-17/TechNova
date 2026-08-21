@@ -9,7 +9,7 @@ using TechNova.Models;
 
 namespace TechNova.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : Controller, IDisposable
     {
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<object> _passwordHasher;
@@ -79,8 +79,10 @@ namespace TechNova.Controllers
                     startup.Email,
                     "Startup",
                     startup.CompanyName);
-
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(
+                    "StartupProfile",
+                    new { id = startup.StartupID }
+                );
             }
 
             // ----------------------------
@@ -99,7 +101,10 @@ namespace TechNova.Controllers
                     "Investor",
                     investor.Name);
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(
+     "InvestorProfile",
+     new { id = investor.InvestorID }
+ );
             }
 
             ViewBag.Error = "Invalid email or password.";
@@ -130,9 +135,9 @@ namespace TechNova.Controllers
 
             // Check duplicate email
             bool emailExists =
-                await _context.Startups.AnyAsync(s => s.Email == email) ||
-                await _context.Investors.AnyAsync(i => i.Email == email) ||
-                await _context.Admins.AnyAsync(a => a.Email == email);
+                await _context.Startups.AnyAsync(s => s.Email == email)||
+                await _context.Investors.AnyAsync(i => i.Email == email); //||
+                //await _context.Admins.AnyAsync(a => a.Email == email);
 
             if (emailExists)
             {
@@ -224,6 +229,40 @@ namespace TechNova.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Login");
+        }
+        // ============================
+        // STARTUP PROFILE
+        // ============================
+
+        [HttpGet]
+        public async Task<IActionResult> StartupProfile(int id)
+        {
+            var startup = await _context.Startups
+                .FirstOrDefaultAsync(s => s.StartupID == id);
+
+            if (startup == null)
+            {
+                return NotFound();
+            }
+
+            return View(startup);
+        }
+        // ============================
+        // INVESTOR PROFILE
+        // ============================
+
+        [HttpGet]
+        public async Task<IActionResult> InvestorProfile(int id)
+        {
+            var investor = await _context.Investors
+                .FirstOrDefaultAsync(i => i.InvestorID == id);
+
+            if (investor == null)
+            {
+                return NotFound();
+            }
+
+            return View(investor);
         }
 
         // ============================
