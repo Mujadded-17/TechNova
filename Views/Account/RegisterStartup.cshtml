@@ -1,0 +1,154 @@
+﻿@model TechNova.Models.RegisterStartup
+
+@{
+    ViewData["Title"] = "Register Startup";
+}
+
+<link rel="stylesheet" href="~/css/account.css" />
+
+<div class="login-page">
+
+    <div class="login-card register-card">
+
+        <div class="login-header">
+            <h1>TechNova</h1>
+            <p>Build your startup profile and connect with investors</p>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="login-error">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form asp-controller="Account"
+              asp-action="RegisterStartup"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="CompanyName"></label>
+
+                <input asp-for="CompanyName"
+                       placeholder="Enter your startup name" />
+
+                <span asp-validation-for="CompanyName"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+
+                <input asp-for="Email"
+                       type="email"
+                       placeholder="Enter your business email" />
+
+                <span asp-validation-for="Email"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+
+                <input asp-for="Password"
+                       type="password"
+                       placeholder="Create a password" />
+
+                <span asp-validation-for="Password"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ConfirmPassword"></label>
+
+                <input asp-for="ConfirmPassword"
+                       type="password"
+                       placeholder="Confirm your password" />
+
+                <span asp-validation-for="ConfirmPassword"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description"></label>
+
+                <textarea asp-for="Description"
+                          rows="4"
+                          placeholder="What problem does your startup solve?"></textarea>
+
+                <span asp-validation-for="Description"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Website"></label>
+
+                <input asp-for="Website"
+                       placeholder="https://yourstartup.com" />
+
+                <span asp-validation-for="Website"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="FundingRequired"></label>
+
+                <input asp-for="FundingRequired"
+                       type="number"
+                       step="0.01"
+                       placeholder="Example: 500000" />
+
+                <span asp-validation-for="FundingRequired"
+                      class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="BusinessStage"></label>
+
+                <select asp-for="BusinessStage">
+
+                    <option value="">Select business stage</option>
+                    <option value="Idea">Idea Stage</option>
+                    <option value="Prototype">Prototype</option>
+                    <option value="MVP">MVP</option>
+                    <option value="Early Stage">Early Stage</option>
+                    <option value="Growth">Growth Stage</option>
+                    <option value="Established">Established</option>
+
+                </select>
+
+                <span asp-validation-for="BusinessStage"
+                      class="validation-error"></span>
+            </div>
+
+            <button type="submit" class="login-button">
+                Register as Startup
+            </button>
+
+        </form>
+
+        <div class="register-section">
+
+            <p>Already have an account?</p>
+
+            <div class="register-buttons">
+
+                <a asp-controller="Account"
+                   asp-action="Login"
+                   class="register-button startup-button">
+                    Login
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
