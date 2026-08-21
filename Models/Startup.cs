@@ -9,6 +9,10 @@ namespace TechNova.Models
 
         public string CompanyName { get; set; } = string.Empty;
 
+        public string Email { get; set; } = string.Empty;
+
+        public string PasswordHash { get; set; } = string.Empty;
+
         public string Description { get; set; } = string.Empty;
 
         public string? Website { get; set; }
