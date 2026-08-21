@@ -1,4 +1,4 @@
-﻿@@model TechNova.Models.Startup
+﻿@model TechNova.Models.Startup
 
 @{
     ViewData["Title"] = "Startup Profile";
@@ -6,58 +6,13 @@
 
 <link rel="stylesheet" href="~/css/profile.css" />
 
-<div class="profile-page">
-
-    <div class="profile-card">
-
-        <div class="profile-header">
-            <div class="profile-avatar">🚀</div>
-
-            <h1>@Model.CompanyName</h1>
-
-            <p>Startup Profile</p>
-        </div>
-
-        <div class="profile-info">
-
-            <div class="info-item">
-                <strong>Company Name:</strong>
-                <span>@Model.CompanyName</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Email:</strong>
-                <span>@Model.Email</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Description:</strong>
-                <span>@Model.Description</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Website:</strong>
-                <span>@Model.Website</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Funding Required:</strong>
-                <span>@Model.FundingRequired</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Business Stage:</strong>
-                <span>@Model.BusinessStage</span>
-            </div>
-
-            <div class="info-item">
-                <strong>Verification Status:</strong>
-                <span class="status-pending">
-                    @Model.VerificationStatus
-                </span>
-            </div>
-
-        </div>
+<div class="profile-navbar">
+    <div class="profile-nav-content">
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="profile-logo">
+            TechNova
+        </a>
 
         <form asp-controller="Account"
               asp-action="Logout"
@@ -65,11 +20,132 @@
 
             @Html.AntiForgeryToken()
 
-            <button type="submit" class="profile-button">
+            <button type="submit" class="logout-button">
                 Logout
             </button>
 
         </form>
+    </div>
+</div>
+
+
+<div class="profile-wrapper">
+
+    <!-- COVER AND PROFILE HEADER -->
+
+    <div class="profile-header-card">
+
+        <div class="cover-photo"></div>
+
+        <div class="profile-header-content">
+
+            <div class="profile-avatar startup-avatar">
+                🚀
+            </div>
+
+            <div class="profile-title">
+
+                <h1>@Model.CompanyName</h1>
+
+                <p class="profile-email">
+                    @Model.Email
+                </p>
+
+                @if (!string.IsNullOrEmpty(Model.Website))
+                {
+                    <a href="@Model.Website"
+                       target="_blank"
+                       class="website-link">
+                        @Model.Website
+                    </a>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="profile-layout">
+
+        <!-- LEFT SIDE -->
+
+        <main class="profile-main">
+
+            <!-- ABOUT -->
+
+            <section class="profile-section">
+
+                <h2>About</h2>
+
+                <p class="profile-description">
+                    @Model.Description
+                </p>
+
+            </section>
+
+
+            <!-- BUSINESS INFORMATION -->
+
+            <section class="profile-section">
+
+                <h2>Business Information</h2>
+
+                <div class="info-grid">
+
+                    <div class="info-box">
+                        <span class="info-label">
+                            Business Stage
+                        </span>
+
+                        <strong>
+                            @Model.BusinessStage
+                        </strong>
+                    </div>
+
+
+                    <div class="info-box">
+                        <span class="info-label">
+                            Funding Required
+                        </span>
+
+                        <strong>
+                            @Model.FundingRequired.ToString("N2")
+                        </strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- RIGHT SIDEBAR -->
+
+        <aside class="profile-sidebar">
+
+            <section class="sidebar-card">
+
+                <h3>Startup Information</h3>
+
+                <div class="sidebar-item">
+                    <span>Email</span>
+                    <strong>@Model.Email</strong>
+                </div>
+
+                <div class="sidebar-item">
+                    <span>Verification</span>
+
+                    <strong class="status-pending">
+                        @Model.VerificationStatus
+                    </strong>
+                </div>
+
+            </section>
+
+        </aside>
 
     </div>
 
