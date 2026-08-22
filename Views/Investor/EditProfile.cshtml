@@ -1,0 +1,154 @@
+@model TechNova.Models.Investor
+
+@{
+	ViewData["Title"] = "Edit Investor Profile";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+	<div class="row">
+		<div class="col-md-10">
+			<h1 class="mb-4">Edit Your Profile</h1>
+
+			<form method="post" asp-action="EditProfile" asp-controller="Investor" class="needs-validation">
+				@Html.AntiForgeryToken()
+				@Html.HiddenFor(m => m.InvestorID)
+
+				<!-- Personal Information -->
+				<div class="card mb-4">
+					<div class="card-header bg-light">
+						<h5 class="mb-0">Personal Information</h5>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label for="Name" class="form-label">Full Name</label>
+								<input type="text" class="form-control" id="Name" asp-for="Name" required>
+								<span asp-validation-for="Name" class="invalid-feedback d-block"></span>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label for="Phone" class="form-label">Phone</label>
+								<input type="tel" class="form-control" id="Phone" asp-for="Phone" placeholder="+1 (555) 123-4567">
+							</div>
+						</div>
+
+						<div class="mb-3">
+							<label for="Bio" class="form-label">Bio</label>
+							<textarea class="form-control" id="Bio" asp-for="Bio" rows="3" placeholder="Tell us about yourself and your investment experience"></textarea>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label for="Location" class="form-label">Location</label>
+								<input type="text" class="form-control" id="Location" asp-for="Location" placeholder="City, Country">
+							</div>
+							<div class="col-md-6 mb-3">
+								<label for="Website" class="form-label">Personal Website</label>
+								<input type="url" class="form-control" id="Website" asp-for="Website" placeholder="https://www.example.com">
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Professional Information -->
+				<div class="card mb-4">
+					<div class="card-header bg-light">
+						<h5 class="mb-0">Professional Information</h5>
+					</div>
+					<div class="card-body">
+						<div class="mb-3">
+							<label for="CompanyName" class="form-label">Company/Organization Name</label>
+							<input type="text" class="form-control" id="CompanyName" asp-for="CompanyName">
+						</div>
+
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label for="InvestorType" class="form-label">Investor Type</label>
+								<select class="form-select" id="InvestorType" asp-for="InvestorType">
+									<option value="">Select type...</option>
+									<option value="Angel">Angel Investor</option>
+									<option value="Venture Capital">Venture Capital</option>
+									<option value="Private Equity">Private Equity</option>
+									<option value="Institution">Institution</option>
+									<option value="Family Office">Family Office</option>
+									<option value="Corporate">Corporate</option>
+									<option value="Other">Other</option>
+								</select>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label for="Preference" class="form-label">Investment Preference</label>
+								<input type="text" class="form-control" id="Preference" asp-for="Preference" placeholder="e.g., Early-stage, Recurring revenue">
+							</div>
+						</div>
+
+						<div class="mb-3">
+							<label for="InvestedIndustries" class="form-label">Industries of Interest</label>
+							<input type="text" class="form-control" id="InvestedIndustries" asp-for="InvestedIndustries" placeholder="e.g., FinTech, HealthTech, AI (comma-separated)">
+							<small class="text-muted">Separate multiple industries with commas</small>
+						</div>
+					</div>
+				</div>
+
+				<!-- Investment Details -->
+				<div class="card mb-4">
+					<div class="card-header bg-light">
+						<h5 class="mb-0">Investment Details</h5>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label for="MinInvestmentAmount" class="form-label">Min Investment Amount ($)</label>
+								<input type="number" class="form-control" id="MinInvestmentAmount" asp-for="MinInvestmentAmount" step="1000" min="0" placeholder="10000">
+							</div>
+							<div class="col-md-6 mb-3">
+								<label for="MaxInvestmentAmount" class="form-label">Max Investment Amount ($)</label>
+								<input type="number" class="form-control" id="MaxInvestmentAmount" asp-for="MaxInvestmentAmount" step="1000" min="0" placeholder="1000000">
+							</div>
+						</div>
+
+						<div class="mb-3">
+							<label for="InvestmentRange" class="form-label">Typical Investment Range ($)</label>
+							<input type="number" class="form-control" id="InvestmentRange" asp-for="InvestmentRange" step="1000" min="0" placeholder="250000">
+							<small class="text-muted">Your typical investment amount per opportunity</small>
+						</div>
+					</div>
+				</div>
+
+				<!-- Notification Preferences -->
+				<div class="card mb-4">
+					<div class="card-header bg-light">
+						<h5 class="mb-0">Notification Preferences</h5>
+					</div>
+					<div class="card-body">
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="ReceiveNotifications" asp-for="ReceiveNotifications">
+							<label class="form-check-label" for="ReceiveNotifications">
+								Receive email notifications about new startups matching your preferences
+							</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Submit -->
+				<div class="d-flex gap-2 mb-4">
+					<button type="submit" class="btn btn-primary">Save Changes</button>
+					<a href="@Url.Action("Dashboard", "Investor")" class="btn btn-outline-secondary">Cancel</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<style>
+	.card {
+		border: 1px solid #e3e7ea;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	}
+	.card-header {
+		border-bottom: 1px solid #e3e7ea;
+	}
+	.form-label {
+		font-weight: 500;
+		color: #0a0c0e;
+	}
+</style>
