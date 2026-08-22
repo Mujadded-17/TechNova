@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using TechNova.Data;
@@ -79,10 +80,7 @@ namespace TechNova.Controllers
                     startup.Email,
                     "Startup",
                     startup.CompanyName);
-                return RedirectToAction(
-                    "StartupProfile",
-                    new { id = startup.StartupID }
-                );
+                return RedirectToAction("Dashboard", "Startup");
             }
 
             // ----------------------------
@@ -101,10 +99,7 @@ namespace TechNova.Controllers
                     "Investor",
                     investor.Name);
 
-                return RedirectToAction(
-     "InvestorProfile",
-     new { id = investor.InvestorID }
- );
+                return RedirectToAction("Dashboard", "Investor");
             }
 
             ViewBag.Error = "Invalid email or password.";
@@ -230,41 +225,6 @@ namespace TechNova.Controllers
 
             return RedirectToAction("Login");
         }
-        // ============================
-        // STARTUP PROFILE
-        // ============================
-
-        [HttpGet]
-        public async Task<IActionResult> StartupProfile(int id)
-        {
-            var startup = await _context.Startups
-                .FirstOrDefaultAsync(s => s.StartupID == id);
-
-            if (startup == null)
-            {
-                return NotFound();
-            }
-
-            return View(startup);
-        }
-        // ============================
-        // INVESTOR PROFILE
-        // ============================
-
-        [HttpGet]
-        public async Task<IActionResult> InvestorProfile(int id)
-        {
-            var investor = await _context.Investors
-                .FirstOrDefaultAsync(i => i.InvestorID == id);
-
-            if (investor == null)
-            {
-                return NotFound();
-            }
-
-            return View(investor);
-        }
-
         // ============================
         // LOGOUT
         // ============================
