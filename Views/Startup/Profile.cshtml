@@ -1,0 +1,311 @@
+@model TechNova.Models.Startup
+
+@{
+	ViewData["Title"] = "Startup Profile";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+	<!-- Cover Section -->
+	@if (!string.IsNullOrEmpty(Model.CoverImagePath))
+	{
+		<div class="row mb-4">
+			<div class="col-12">
+				<div class="startup-cover" style="background-image: url('@Model.CoverImagePath'); height: 300px; background-size: cover; background-position: center; border-radius: 8px;"></div>
+			</div>
+		</div>
+	}
+
+	<!-- Header Section -->
+	<div class="row mb-5">
+		<div class="col-md-3 mb-4">
+			@if (!string.IsNullOrEmpty(Model.LogoPath))
+			{
+				<img src="@Model.LogoPath" alt="@Model.CompanyName Logo" class="img-fluid rounded" style="max-width: 200px;">
+			}
+			else
+			{
+				<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 200px; height: 200px; font-size: 3rem; color: #ccc;">
+					📦
+				</div>
+			}
+		</div>
+		<div class="col-md-9">
+			<h1 class="mb-2">@Model.CompanyName</h1>
+			@if (!string.IsNullOrEmpty(Model.Tagline))
+			{
+				<p class="lead text-muted mb-3">@Model.Tagline</p>
+			}
+
+			<div class="mb-4">
+				@if (!string.IsNullOrEmpty(Model.Industry))
+				{
+					<span class="badge bg-info me-2">@Model.Industry</span>
+				}
+				@if (!string.IsNullOrEmpty(Model.Location))
+				{
+					<span class="badge bg-info me-2">📍 @Model.Location</span>
+				}
+				@if (Model.FoundedYear.HasValue)
+				{
+					<span class="badge bg-secondary">Founded @Model.FoundedYear</span>
+				}
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					<button class="btn btn-primary btn-lg me-2">Express Interest</button>
+				</div>
+				<div class="col-md-6 text-end">
+					@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Investor"))
+					{
+						<button class="btn btn-outline-primary btn-lg" onclick="toggleFavorite(@Model.StartupID)">♡ Save</button>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- About Section -->
+	<div class="row">
+		<div class="col-md-8">
+			<!-- Description -->
+			@if (!string.IsNullOrEmpty(Model.Description))
+			{
+				<div class="card mb-4">
+					<div class="card-header">
+						<h5>About @Model.CompanyName</h5>
+					</div>
+					<div class="card-body">
+						<p>@Model.Description</p>
+					</div>
+				</div>
+			}
+
+			<!-- Problem & Solution -->
+			<div class="row mb-4">
+				@if (!string.IsNullOrEmpty(Model.ProblemStatement))
+				{
+					<div class="col-md-6 mb-3">
+						<div class="card h-100">
+							<div class="card-header">
+								<h6 class="mb-0">Problem</h6>
+							</div>
+							<div class="card-body">
+								<p>@Model.ProblemStatement</p>
+							</div>
+						</div>
+					</div>
+				}
+				@if (!string.IsNullOrEmpty(Model.Solution))
+				{
+					<div class="col-md-6 mb-3">
+						<div class="card h-100">
+							<div class="card-header">
+								<h6 class="mb-0">Solution</h6>
+							</div>
+							<div class="card-body">
+								<p>@Model.Solution</p>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<!-- Key Information -->
+			@if (!string.IsNullOrEmpty(Model.TargetMarket) || !string.IsNullOrEmpty(Model.CompetitiveAdvantage) || !string.IsNullOrEmpty(Model.Traction))
+			{
+				<div class="card mb-4">
+					<div class="card-header">
+						<h5>Key Information</h5>
+					</div>
+					<div class="card-body">
+						@if (!string.IsNullOrEmpty(Model.TargetMarket))
+						{
+							<div class="mb-3">
+								<h6 class="text-muted">Target Market</h6>
+								<p>@Model.TargetMarket</p>
+							</div>
+						}
+						@if (!string.IsNullOrEmpty(Model.CompetitiveAdvantage))
+						{
+							<div class="mb-3">
+								<h6 class="text-muted">Competitive Advantage</h6>
+								<p>@Model.CompetitiveAdvantage</p>
+							</div>
+						}
+						@if (!string.IsNullOrEmpty(Model.Traction))
+						{
+							<div>
+								<h6 class="text-muted">Current Traction</h6>
+								<p>@Model.Traction</p>
+							</div>
+						}
+					</div>
+				</div>
+			}
+
+			<!-- Business Model -->
+			@if (!string.IsNullOrEmpty(Model.BusinessModel))
+			{
+				<div class="card mb-4">
+					<div class="card-header">
+						<h5>Business Model</h5>
+					</div>
+					<div class="card-body">
+						<p>@Model.BusinessModel</p>
+					</div>
+				</div>
+			}
+		</div>
+
+		<!-- Sidebar -->
+		<div class="col-md-4">
+			<!-- Funding Card -->
+			<div class="card mb-4">
+				<div class="card-header bg-light">
+					<h5 class="mb-0">Funding Details</h5>
+				</div>
+				<div class="card-body">
+					<div class="funding-stat mb-3">
+						<span class="label">Funding Goal:</span>
+						<span class="value">${@Model.FundingRequired:N0}</span>
+					</div>
+					<div class="funding-stat mb-3">
+						<span class="label">Amount Raised:</span>
+						<span class="value">${@Model.AmountRaised:N0}</span>
+					</div>
+					<div class="progress mb-3" style="height: 25px;">
+						@{
+							var percentage = Model.FundingRequired > 0 ? (Model.AmountRaised / Model.FundingRequired) * 100 : 0;
+						}
+						<div class="progress-bar" role="progressbar" style="width: @(Math.Min(percentage, 100))%;" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100">
+							@percentage.ToString("F0")%
+						</div>
+					</div>
+					@if (Model.MinimumInvestment.HasValue)
+					{
+						<div class="funding-stat mb-3">
+							<span class="label">Min Investment:</span>
+							<span class="value">${@Model.MinimumInvestment:N0}</span>
+						</div>
+					}
+					@if (Model.EquityOffered.HasValue)
+					{
+						<div class="funding-stat mb-3">
+							<span class="label">Equity Offered:</span>
+							<span class="value">@Model.EquityOffered.Value.ToString("F1")%</span>
+						</div>
+					}
+					@if (Model.FundingDeadline.HasValue)
+					{
+						<div class="funding-stat">
+							<span class="label">Investment Deadline:</span>
+							<span class="value">@Model.FundingDeadline.Value.ToString("MMM dd, yyyy")</span>
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- Company Stats -->
+			<div class="card mb-4">
+				<div class="card-header bg-light">
+					<h5 class="mb-0">Company Stats</h5>
+				</div>
+				<div class="card-body">
+					@if (Model.NumberOfEmployees.HasValue)
+					{
+						<div class="stat-row mb-3">
+							<span>Team Size:</span>
+							<strong>@Model.NumberOfEmployees employees</strong>
+						</div>
+					}
+					@if (Model.FoundedYear.HasValue)
+					{
+						<div class="stat-row mb-3">
+							<span>Founded:</span>
+							<strong>@Model.FoundedYear</strong>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.BusinessStage))
+					{
+						<div class="stat-row">
+							<span>Stage:</span>
+							<strong>@Model.BusinessStage</strong>
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- Contact -->
+			@if (!string.IsNullOrEmpty(Model.ContactPerson) || !string.IsNullOrEmpty(Model.ContactPhone) || !string.IsNullOrEmpty(Model.Website))
+			{
+				<div class="card">
+					<div class="card-header bg-light">
+						<h5 class="mb-0">Contact Information</h5>
+					</div>
+					<div class="card-body">
+						@if (!string.IsNullOrEmpty(Model.ContactPerson))
+						{
+							<div class="mb-2">
+								<strong>Contact:</strong> @Model.ContactPerson
+							</div>
+						}
+						@if (!string.IsNullOrEmpty(Model.ContactPhone))
+						{
+							<div class="mb-2">
+								<strong>Phone:</strong> <a href="tel:@Model.ContactPhone">@Model.ContactPhone</a>
+							</div>
+						}
+						@if (!string.IsNullOrEmpty(Model.Website))
+						{
+							<div>
+								<strong>Website:</strong> <a href="@Model.Website" target="_blank">@Model.Website</a>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>
+
+<style>
+	.funding-stat, .stat-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid #f0f0f0;
+	}
+
+	.funding-stat .label, .stat-row span {
+		color: #626d78;
+		font-weight: 500;
+	}
+
+	.funding-stat .value, .stat-row strong {
+		color: #0a0c0e;
+		font-weight: 600;
+	}
+</style>
+
+<script>
+	async function toggleFavorite(startupId) {
+		try {
+			const response = await fetch('@Url.Action("ToggleFavorite", "Investor")', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ startupId: startupId })
+			});
+
+			const data = await response.json();
+			if (data.success) {
+				alert(data.action === 'added' ? 'Added to favorites' : 'Removed from favorites');
+			}
+		} catch (error) {
+			console.error('Error:', error);
+		}
+	}
+</script>

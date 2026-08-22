@@ -1,0 +1,136 @@
+@model TechNova.Models.Startup
+
+@{
+	ViewData["Title"] = "Startup Dashboard";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+	<div class="row mb-4">
+		<div class="col-md-8">
+			<h1 class="mb-2">@Model.CompanyName Dashboard</h1>
+			<p class="text-muted">Manage your startup profile and investment opportunities</p>
+		</div>
+		<div class="col-md-4 text-end">
+			<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary me-2">
+				Edit Profile
+			</a>
+			<a href="@Url.Action("CreateOpportunity", "Startup")" class="btn btn-primary">
+				New Opportunity
+			</a>
+		</div>
+	</div>
+
+	<!-- Quick Stats -->
+	<div class="row mb-4">
+		<div class="col-md-3 mb-3">
+			<div class="card">
+				<div class="card-body text-center">
+					<strong class="text-muted d-block mb-2">Funding Goal</strong>
+					<h4 class="text-primary">${@Model.FundingRequired:N0}</h4>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3 mb-3">
+			<div class="card">
+				<div class="card-body text-center">
+					<strong class="text-muted d-block mb-2">Amount Raised</strong>
+					<h4 class="text-success">${@Model.AmountRaised:N0}</h4>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3 mb-3">
+			<div class="card">
+				<div class="card-body text-center">
+					<strong class="text-muted d-block mb-2">Opportunities</strong>
+					<h4>—</h4>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3 mb-3">
+			<div class="card">
+				<div class="card-body text-center">
+					<strong class="text-muted d-block mb-2">Profile Status</strong>
+					<h4>@Model.IsPublished</h4>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Funding Progress -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Funding Progress</h5>
+					<div class="progress" style="height: 25px;">
+						@{
+							var progress = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
+						}
+						<div class="progress-bar bg-success" style="width: @progress%">
+							@progress%
+						</div>
+					</div>
+					<small class="text-muted mt-2 d-block">
+						${@Model.AmountRaised:N0} of ${@Model.FundingRequired:N0} raised
+					</small>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Investment Opportunities -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h3>Investment Opportunities</h3>
+				<a href="@Url.Action("CreateOpportunity", "Startup")" class="btn btn-sm btn-primary">
+					Create
+				</a>
+			</div>
+			<div id="opportunitiesList">
+				<p class="text-muted">Loading opportunities...</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Investment Requests -->
+	<div class="row">
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h3>Investment Requests</h3>
+				<a href="@Url.Action("InvestmentRequests", "Startup")" class="btn btn-sm btn-outline-primary">
+					View All
+				</a>
+			</div>
+			<div class="table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>Investor</th>
+							<th>Amount Requested</th>
+							<th>Status</th>
+							<th>Date</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td colspan="5" class="text-center text-muted">No requests yet</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.card {
+		border: 1px solid #e3e7ea;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	}
+	.card-body {
+		padding: 1.5rem;
+	}
+</style>

@@ -1,0 +1,112 @@
+@model List<TechNova.Models.StartupInvestmentOpportunity>
+
+@{
+	ViewData["Title"] = "My Investment Opportunities";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+	<div class="row mb-4">
+		<div class="col-md-8">
+			<h1 class="mb-2">Investment Opportunities</h1>
+			<p class="text-muted">Manage your startup investment opportunities</p>
+		</div>
+		<div class="col-md-4 text-end">
+			<a href="@Url.Action("CreateOpportunity", "Startup")" class="btn btn-primary">+ Create Opportunity</a>
+		</div>
+	</div>
+
+	@if (TempData["Success"] != null)
+	{
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			@TempData["Success"]
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+	@if (Model.Count == 0)
+	{
+		<div class="alert alert-info" role="alert">
+			<h4 class="alert-heading">No Opportunities Yet</h4>
+			<p>You haven't created any investment opportunities yet. <a href="@Url.Action("CreateOpportunity", "Startup")">Create your first opportunity</a>.</p>
+		</div>
+	}
+	else
+	{
+		<div class="row">
+			@foreach (var opportunity in Model)
+			{
+				<div class="col-md-6 mb-4">
+					<div class="card h-100">
+						<div class="card-body">
+							<div class="d-flex justify-content-between align-items-start mb-3">
+								<div>
+									<h5 class="card-title">@opportunity.Title</h5>
+									<p class="card-text text-muted small">@opportunity.FundingStage • @opportunity.Industry</p>
+								</div>
+								@if (opportunity.IsPublished)
+								{
+									<span class="badge bg-success">Published</span>
+								}
+								else
+								{
+									<span class="badge bg-secondary">Draft</span>
+								}
+							</div>
+
+							<p class="card-text small mb-3">@(opportunity.Description?.Substring(0, Math.Min(150, opportunity.Description?.Length ?? 0)) ?? "")...</p>
+
+							<div class="opportunity-stats mb-3">
+								<div class="stat-row">
+									<span>Goal:</span>
+									<strong>${@opportunity.FundingGoal:N0}</strong>
+								</div>
+								<div class="stat-row">
+									<span>Raised:</span>
+									<strong>${@opportunity.CurrentFunding:N0}</strong>
+								</div>
+								<div class="stat-row">
+									<span>Min Investment:</span>
+									<strong>${@opportunity.MinimumInvestment:N0}</strong>
+								</div>
+								<div class="stat-row">
+									<span>Equity:</span>
+									<strong>@opportunity.EquityPercentage.ToString("F1")%</strong>
+								</div>
+							</div>
+
+							<div class="d-flex gap-2">
+								<a href="@Url.Action("EditOpportunity", "Startup", new { id = opportunity.OpportunityID })" class="btn btn-sm btn-outline-primary flex-grow-1">Edit</a>
+								<form method="post" asp-action="DeleteOpportunity" asp-controller="Startup" style="display:inline;">
+									@Html.AntiForgeryToken()
+									<input type="hidden" name="id" value="@opportunity.OpportunityID">
+									<button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	}
+</div>
+
+<style>
+	.opportunity-stats {
+		background: #f7f9f9;
+		padding: 0.75rem;
+		border-radius: 8px;
+		font-size: 0.875rem;
+	}
+
+	.stat-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.25rem 0;
+	}
+
+	.stat-row span {
+		color: #626d78;
+		font-weight: 500;
+	}
+</style>

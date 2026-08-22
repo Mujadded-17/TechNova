@@ -1,0 +1,89 @@
+@model List<TechNova.Models.InvestmentRequest>
+
+@{
+	ViewData["Title"] = "Investment Requests";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+	<div class="row mb-4">
+		<div class="col-12">
+			<h1 class="mb-2">Investment Requests</h1>
+			<p class="text-muted">Manage investment inquiries from investors</p>
+		</div>
+	</div>
+
+	@if (TempData["Success"] != null)
+	{
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			@TempData["Success"]
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+	}
+
+	@if (Model.Count == 0)
+	{
+		<div class="alert alert-info" role="alert">
+			<h4 class="alert-heading">No Requests Yet</h4>
+			<p>You haven't received any investment requests yet. Once investors express interest in your startup, their requests will appear here.</p>
+		</div>
+	}
+	else
+	{
+		<div class="table-responsive">
+			<table class="table table-hover">
+				<thead class="table-light">
+					<tr>
+						<th>Investor</th>
+						<th>Amount</th>
+						<th>Date</th>
+						<th>Status</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var request in Model)
+					{
+						<tr>
+							<td>
+								<strong>@request.Investor?.Name</strong><br>
+								<small class="text-muted">@request.Investor?.InvestorType</small>
+							</td>
+							<td>
+								<strong>${@request.InvestmentAmount:N0}</strong>
+							</td>
+							<td>
+								@request.RequestDate.ToString("MMM dd, yyyy")
+							</td>
+							<td>
+								@{
+									var statusClass = request.Status switch
+									{
+										"Pending" => "warning",
+										"Viewed" => "info",
+										"Accepted" => "success",
+										"Rejected" => "danger",
+										_ => "secondary"
+									};
+								}
+								<form method="post" asp-action="UpdateRequestStatus" asp-controller="Startup" style="display:inline;">
+									@Html.AntiForgeryToken()
+									<input type="hidden" name="requestId" value="@request.RequestID">
+									<select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+										<option value="Pending">Pending</option>
+										<option value="Viewed">Viewed</option>
+										<option value="Accepted">Accepted</option>
+										<option value="Rejected">Rejected</option>
+									</select>
+								</form>
+							</td>
+							<td>
+								<a href="@Url.Action("Profile", "Investor", new { id = request.InvestorID })" class="btn btn-sm btn-primary">View Profile</a>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
