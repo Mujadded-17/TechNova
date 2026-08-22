@@ -1,21 +1,728 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Where Startups Meet Opportunity";
+    Layout = "_LandingLayout";
 }
 
-<div class="text-center">
+<!-- =========================================================
+     1 — HERO   (the only dark section on the page)
+     ========================================================= -->
 
-    <h1 class="display-4">Welcome to TechNova</h1>
+<section class="hero"
+         data-velaris
+         data-bg="#03060a"
+         data-colors="#0a3a3f,#146b5a,#1e9e7a,#04080c"
+         data-speed="1.4"
+         data-grain="0.28">
 
-    <p>
-        A platform that connects innovative startups with potential investors.
-    </p>
+    <div class="shell hero__inner">
 
-    <br />
+        <span class="eyebrow eyebrow--dark">Where Startups Meet Opportunity</span>
 
-    <a asp-controller="Account"
-       asp-action="Login"
-       class="btn btn-primary">
-        Login / Register
-    </a>
+        <h1>Great Ideas Deserve the Right Investors.</h1>
 
-</div>
+        <p class="hero__copy">
+            Tech Nova connects ambitious startups with investors who are actively
+            looking for the next opportunity. Discover promising businesses, explore
+            funding opportunities, and build meaningful connections &mdash; all in one place.
+        </p>
+
+        <div class="hero__ctas">
+
+            <a href="#discover" class="btn btn--light">
+                Explore Startups
+                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+            </a>
+
+            <a asp-controller="Account" asp-action="RegisterStartup" class="btn btn--outline-light">
+                Raise Funding
+                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+            </a>
+
+        </div>
+
+        <p class="hero__trust">
+            One platform. Thousands of opportunities. Better connections.
+        </p>
+
+
+        <!-- Marketplace visual: startup → matched → investor -->
+
+        <div class="match">
+
+            <article class="match-card">
+
+                <div class="match-card__top">
+                    <div class="match-card__mark match-card__mark--startup">FN</div>
+
+                    <div>
+                        <div class="match-card__name">Finova</div>
+                        <div class="match-card__meta">FinTech &middot; Seed Stage</div>
+                    </div>
+                </div>
+
+                <div class="match-card__row">
+                    <span class="match-card__label">Seeking</span>
+                    <span class="match-card__value">$250K</span>
+                </div>
+
+            </article>
+
+
+            <div class="match__connector">
+                <span class="match__line"></span>
+
+                <span class="match__badge">
+                    <svg class="ico ico--sm"><use href="#i-handshake" /></svg>
+                    92% MATCH
+                </span>
+
+                <span class="match__line"></span>
+            </div>
+
+
+            <article class="match-card">
+
+                <div class="match-card__top">
+                    <div class="match-card__mark match-card__mark--investor">SA</div>
+
+                    <div>
+                        <div class="match-card__name">Sarah Ahmed</div>
+                        <div class="match-card__meta">Angel Investor &middot; FinTech</div>
+                    </div>
+                </div>
+
+                <div class="match-card__row">
+                    <span class="match-card__label">Investment Range</span>
+                    <span class="match-card__value match-card__value--sm">$100K &ndash; $500K</span>
+                </div>
+
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     2 — DISCOVER OPPORTUNITIES  (marketplace, two rows)
+     Heading characters converge as this scrolls up from the hero.
+     ========================================================= -->
+
+<section class="section" id="discover">
+    <div class="shell">
+
+        <div class="section__head">
+
+            <span class="eyebrow">Discover Opportunities</span>
+
+            <div class="scroll-fx">
+                <h2 class="section__title scroll-chars" data-scroll-chars>
+                    Find startups worth believing in.
+                </h2>
+            </div>
+
+            <p class="lede">
+                Explore a growing ecosystem of startups across industries,
+                funding stages, and investment requirements.
+            </p>
+
+        </div>
+
+        <div class="market">
+
+            <div class="market__bar">
+
+                <div class="market__search">
+                    <svg class="ico ico--sm"><use href="#i-search" /></svg>
+                    Search startups...
+                </div>
+
+                <div class="filters">
+                    <span class="chip">Industry <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
+                    <span class="chip">Funding Stage <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
+                    <span class="chip">Funding Required <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
+                    <span class="chip">Location <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
+                </div>
+
+            </div>
+
+            <div class="market__grid">
+
+                <!-- ROW 1 -->
+
+                <article class="venture">
+
+                    <div class="venture__head">
+                        <div class="venture__mark venture__mark--agri">
+                            <svg class="ico"><use href="#i-trending" /></svg>
+                        </div>
+
+                        <div>
+                            <div class="venture__name">AgroNova</div>
+                            <div class="venture__sector">Agriculture</div>
+                        </div>
+                    </div>
+
+                    <span class="stage-pill">Seed Stage</span>
+
+                    <p>
+                        AI-powered agricultural intelligence helping farmers
+                        make better decisions.
+                    </p>
+
+                    <div class="venture__foot">
+                        <div>
+                            <span class="venture__seek">Seeking</span>
+                            <span class="venture__amount">$300K</span>
+                        </div>
+
+                        <span class="link-arrow">
+                            View Startup
+                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                        </span>
+                    </div>
+
+                </article>
+
+
+                <article class="venture">
+
+                    <div class="venture__head">
+                        <div class="venture__mark venture__mark--health">
+                            <svg class="ico"><use href="#i-activity" /></svg>
+                        </div>
+
+                        <div>
+                            <div class="venture__name">MediCore</div>
+                            <div class="venture__sector">Healthcare</div>
+                        </div>
+                    </div>
+
+                    <span class="stage-pill">Pre-Seed</span>
+
+                    <p>
+                        Digital healthcare solutions designed to improve access
+                        to medical services.
+                    </p>
+
+                    <div class="venture__foot">
+                        <div>
+                            <span class="venture__seek">Seeking</span>
+                            <span class="venture__amount">$150K</span>
+                        </div>
+
+                        <span class="link-arrow">
+                            View Startup
+                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                        </span>
+                    </div>
+
+                </article>
+
+
+                <article class="venture">
+
+                    <div class="venture__head">
+                        <div class="venture__mark venture__mark--fin">
+                            <svg class="ico"><use href="#i-wallet" /></svg>
+                        </div>
+
+                        <div>
+                            <div class="venture__name">FinEdge</div>
+                            <div class="venture__sector">FinTech</div>
+                        </div>
+                    </div>
+
+                    <span class="stage-pill">Series A</span>
+
+                    <p>
+                        Financial infrastructure for emerging businesses.
+                    </p>
+
+                    <div class="venture__foot">
+                        <div>
+                            <span class="venture__seek">Seeking</span>
+                            <span class="venture__amount">$1.2M</span>
+                        </div>
+
+                        <span class="link-arrow">
+                            View Startup
+                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                        </span>
+                    </div>
+
+                </article>
+
+
+                <!-- ROW 2 -->
+
+                <article class="venture">
+
+                    <div class="venture__head">
+                        <div class="venture__mark venture__mark--edu">
+                            <svg class="ico"><use href="#i-graduation" /></svg>
+                        </div>
+
+                        <div>
+                            <div class="venture__name">EduPath</div>
+                            <div class="venture__sector">Education</div>
+                        </div>
+                    </div>
+
+                    <span class="stage-pill">Seed Stage</span>
+
+                    <p>
+                        Personalised learning pathways for students in
+                        underserved classrooms.
+                    </p>
+
+                    <div class="venture__foot">
+                        <div>
+                            <span class="venture__seek">Seeking</span>
+                            <span class="venture__amount">$400K</span>
+                        </div>
+
+                        <span class="link-arrow">
+                            View Startup
+                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                        </span>
+                    </div>
+
+                </article>
+
+
+                <article class="venture">
+
+                    <div class="venture__head">
+                        <div class="venture__mark venture__mark--energy">
+                            <svg class="ico"><use href="#i-zap" /></svg>
+                        </div>
+
+                        <div>
+                            <div class="venture__name">GridWise</div>
+                            <div class="venture__sector">Clean Energy</div>
+                        </div>
+                    </div>
+
+                    <span class="stage-pill">Series A</span>
+
+                    <p>
+                        Smart grid software that cuts energy waste for
+                        industrial operators.
+                    </p>
+
+                    <div class="venture__foot">
+                        <div>
+                            <span class="venture__seek">Seeking</span>
+                            <span class="venture__amount">$2.5M</span>
+                        </div>
+
+                        <span class="link-arrow">
+                            View Startup
+                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                        </span>
+                    </div>
+
+                </article>
+
+
+                <article class="venture">
+
+                    <div class="venture__head">
+                        <div class="venture__mark venture__mark--logi">
+                            <svg class="ico"><use href="#i-globe" /></svg>
+                        </div>
+
+                        <div>
+                            <div class="venture__name">CargoLoop</div>
+                            <div class="venture__sector">Logistics</div>
+                        </div>
+                    </div>
+
+                    <span class="stage-pill">Pre-Seed</span>
+
+                    <p>
+                        Route optimisation for last-mile delivery across
+                        dense urban networks.
+                    </p>
+
+                    <div class="venture__foot">
+                        <div>
+                            <span class="venture__seek">Seeking</span>
+                            <span class="venture__amount">$180K</span>
+                        </div>
+
+                        <span class="link-arrow">
+                            View Startup
+                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                        </span>
+                    </div>
+
+                </article>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     3 — VALUE PROPOSITION (two-sided)
+     ========================================================= -->
+
+<section class="section section--soft" id="about">
+    <div class="shell">
+
+        <div class="section__head section__head--center">
+            <span class="eyebrow">Two-Sided Platform</span>
+
+            <h2 class="section__title">One platform. Two sides of the funding ecosystem.</h2>
+        </div>
+
+        <div class="split">
+
+            <!-- FOR STARTUPS -->
+
+            <article class="side-card side-card--startup" id="for-startups">
+
+                <span class="side-card__tag">
+                    <svg class="ico ico--sm"><use href="#i-rocket" /></svg>
+                    For Startups
+                </span>
+
+                <h3>Turn your idea into an opportunity.</h3>
+
+                <p>
+                    Create a professional startup profile, showcase your pitch deck,
+                    define your funding requirements, and connect directly with investors
+                    who are interested in what you're building.
+                </p>
+
+                <ul class="feature-list">
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Build your startup profile</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Upload your pitch deck</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Specify funding requirements</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Showcase your business</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Discover interested investors</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Communicate directly</li>
+                </ul>
+
+                <a asp-controller="Account" asp-action="RegisterStartup" class="btn btn--brand">
+                    Create Your Startup Profile
+                    <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+                </a>
+
+            </article>
+
+
+            <!-- FOR INVESTORS -->
+
+            <article class="side-card side-card--investor" id="for-investors">
+
+                <span class="side-card__tag">
+                    <svg class="ico ico--sm"><use href="#i-briefcase" /></svg>
+                    For Investors
+                </span>
+
+                <h3>Discover the next opportunity.</h3>
+
+                <p>
+                    Explore startups based on industry, funding stage, funding requirements,
+                    and other criteria. Save promising opportunities and connect directly
+                    with founders.
+                </p>
+
+                <ul class="feature-list">
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Search startups</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Filter opportunities</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>View pitch decks</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Bookmark startups</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Express investment interest</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Connect with founders</li>
+                </ul>
+
+                <a asp-controller="Account" asp-action="RegisterInvestor" class="btn btn--primary">
+                    Discover Startups
+                    <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+                </a>
+
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     4 — HOW IT WORKS
+     ========================================================= -->
+
+<section class="section" id="how-it-works">
+    <div class="shell">
+
+        <div class="section__head">
+            <span class="eyebrow">How Tech Nova Works</span>
+
+            <h2 class="section__title">From discovery to connection in a few simple steps.</h2>
+        </div>
+
+        <div class="steps">
+
+            <article class="step">
+                <span class="step__num">STEP 01</span>
+
+                <h3>Create Your Profile</h3>
+
+                <p>
+                    Startups and investors create their profiles and tell the platform
+                    what they're looking for.
+                </p>
+            </article>
+
+            <article class="step">
+                <span class="step__num">STEP 02</span>
+
+                <h3>Discover Opportunities</h3>
+
+                <p>
+                    Startups showcase their businesses while investors explore
+                    opportunities based on their investment preferences.
+                </p>
+            </article>
+
+            <article class="step">
+                <span class="step__num">STEP 03</span>
+
+                <h3>Find the Right Match</h3>
+
+                <p>
+                    Search and filtering help investors discover startups that align
+                    with their interests and funding criteria.
+                </p>
+            </article>
+
+            <article class="step">
+                <span class="step__num">STEP 04</span>
+
+                <h3>Connect</h3>
+
+                <p>
+                    Express interest, start conversations, and build relationships
+                    directly through the platform.
+                </p>
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     5 — INVESTOR MATCHING / FILTERING
+     ========================================================= -->
+
+<section class="section section--soft">
+    <div class="shell matching">
+
+        <div>
+            <span class="eyebrow">Precision Discovery</span>
+
+            <h2 class="section__title">Stop searching. Start discovering.</h2>
+
+            <p class="lede">
+                Investors shouldn't have to dig through hundreds of unrelated
+                opportunities. Tech Nova makes discovery easier by allowing investors
+                to explore startups based on the things that matter to them.
+            </p>
+
+            <p style="margin-top:32px">
+                <a asp-controller="Account" asp-action="RegisterInvestor" class="btn btn--brand">
+                    Explore Investment Opportunities
+                    <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+                </a>
+            </p>
+        </div>
+
+        <div class="criteria">
+
+            <article class="criterion">
+                <div class="icon-tile">
+                    <svg class="ico"><use href="#i-layers" /></svg>
+                </div>
+
+                <h3>Industry</h3>
+
+                <p>Find startups in sectors you understand and believe in.</p>
+            </article>
+
+            <article class="criterion">
+                <div class="icon-tile">
+                    <svg class="ico"><use href="#i-wallet" /></svg>
+                </div>
+
+                <h3>Funding Range</h3>
+
+                <p>Discover opportunities that fit your investment capacity.</p>
+            </article>
+
+            <article class="criterion">
+                <div class="icon-tile">
+                    <svg class="ico"><use href="#i-trending" /></svg>
+                </div>
+
+                <h3>Business Stage</h3>
+
+                <p>Explore pre-seed, seed, Series A, and beyond.</p>
+            </article>
+
+            <article class="criterion">
+                <div class="icon-tile">
+                    <svg class="ico"><use href="#i-target" /></svg>
+                </div>
+
+                <h3>Investment Preferences</h3>
+
+                <p>Focus on startups aligned with your interests and strategy.</p>
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     6 — DIRECT COMMUNICATION
+     ========================================================= -->
+
+<section class="section">
+    <div class="shell">
+
+        <div class="section__head">
+            <span class="eyebrow">Discovery to Conversation</span>
+
+            <h2 class="section__title">The connection shouldn't end with a profile.</h2>
+
+            <p class="lede">
+                When an investor finds a startup worth exploring, Tech Nova makes it
+                easy to move from discovery to conversation.
+            </p>
+        </div>
+
+        <div class="matching">
+
+            <div class="chat">
+
+                <div class="chat__head">
+                    <span class="chat__dot"></span>
+                    Sarah Ahmed &middot; Finova
+                </div>
+
+                <div class="chat__body">
+
+                    <div class="bubble bubble--investor">
+                        <div class="bubble__avatar">SA</div>
+
+                        <div class="bubble__content">
+                            <span class="bubble__who">Investor</span>
+                            Hi! I went through your pitch deck and would love to learn
+                            more about your expansion plans.
+                        </div>
+                    </div>
+
+                    <div class="bubble bubble--founder">
+                        <div class="bubble__avatar">RK</div>
+
+                        <div class="bubble__content">
+                            <span class="bubble__who">Founder</span>
+                            Absolutely. I'd be happy to discuss our current funding round.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="comm-points">
+
+                <div class="comm-point">
+                    <div class="icon-tile">
+                        <svg class="ico"><use href="#i-bookmark" /></svg>
+                    </div>
+
+                    <div>
+                        <h3>Express Interest</h3>
+                        <p>Let founders know when an investor wants to learn more.</p>
+                    </div>
+                </div>
+
+                <div class="comm-point">
+                    <div class="icon-tile">
+                        <svg class="ico"><use href="#i-message" /></svg>
+                    </div>
+
+                    <div>
+                        <h3>Direct Messaging</h3>
+                        <p>Communicate without leaving the platform.</p>
+                    </div>
+                </div>
+
+                <div class="comm-point">
+                    <div class="icon-tile">
+                        <svg class="ico"><use href="#i-bell" /></svg>
+                    </div>
+
+                    <div>
+                        <h3>Notifications</h3>
+                        <p>
+                            Stay updated when someone interacts with your startup
+                            or investment interests.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     7 — FINAL CTA
+     ========================================================= -->
+
+<section class="final">
+    <div class="shell">
+
+        <h2>Your next opportunity could be one connection away.</h2>
+
+        <p>
+            Whether you're building the next big company or looking for the next
+            opportunity to invest, Tech Nova helps you find the right people faster.
+        </p>
+
+        <div class="final__ctas">
+
+            <a asp-controller="Account" asp-action="RegisterStartup" class="btn btn--brand">
+                I'm a Startup
+                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+            </a>
+
+            <a asp-controller="Account" asp-action="RegisterInvestor" class="btn btn--ghost">
+                I'm an Investor
+                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+            </a>
+
+        </div>
+
+        <p class="final__note">Join the Tech Nova ecosystem today.</p>
+
+    </div>
+</section>
