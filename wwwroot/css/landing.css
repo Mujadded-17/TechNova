@@ -3,44 +3,7 @@
    Dark hero, light everything else.
    ========================================================= */
 
-/* ---------- Tokens ---------- */
-
-:root {
-    /* Neutrals — slightly cool ink, off-white paper */
-    --ink: #0a0c0e;
-    --ink-70: #3d454d;
-    --muted: #626d78;
-    --muted-soft: #8b959e;
-    --line: #e3e7ea;
-    --line-soft: #eef1f3;
-    --paper: #ffffff;
-    --paper-soft: #f7f9f9;
-
-    /* Brand — deep emerald. Reads "capital", not "AI startup". */
-    --brand: #0f7a5c;
-    --brand-deep: #0a5943;
-    --brand-bright: #1e9e7a;
-    --brand-tint: #edf6f2;
-    --brand-line: #cfe6dd;
-
-    /* Hero (dark) */
-    --hero-bg: #03060a;
-    --hero-fg: #ffffff;
-    --hero-fg-70: rgba(255, 255, 255, 0.72);
-    --hero-fg-50: rgba(255, 255, 255, 0.52);
-    --hero-line: rgba(255, 255, 255, 0.14);
-    --hero-glass: rgba(255, 255, 255, 0.07);
-
-    /* Shape */
-    --r-sm: 8px;
-    --r-md: 12px;
-    --r-lg: 18px;
-    --r-xl: 26px;
-
-    --shell: 1200px;
-    --gutter: 24px;
-    --nav-h: 72px;
-}
+/* Tokens now live in tokens.css, loaded first by every layout. */
 
 /* ---------- Base ---------- */
 

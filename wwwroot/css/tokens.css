@@ -1,0 +1,66 @@
+/* =========================================================
+   Tech Nova — design tokens.
+
+   Single source of truth for colour, shape and typography.
+   Loaded before landing.css / auth.css / app.css so every
+   surface of the app resolves the same values.
+
+   Tokens only — no resets, no component rules. Adding a
+   global reset here would leak into the Bootstrap pages.
+   ========================================================= */
+
+:root {
+    /* Neutrals — slightly cool ink, off-white paper */
+    --ink: #0a0c0e;
+    --ink-70: #3d454d;
+    --muted: #626d78;
+    --muted-soft: #8b959e;
+    --line: #e3e7ea;
+    --line-soft: #eef1f3;
+    --paper: #ffffff;
+    --paper-soft: #f7f9f9;
+
+    /* Brand — deep emerald. Reads "capital", not "AI startup". */
+    --brand: #0f7a5c;
+    --brand-deep: #0a5943;
+    --brand-bright: #1e9e7a;
+    --brand-tint: #edf6f2;
+    --brand-line: #cfe6dd;
+
+    /* Secondary — investor blue */
+    --accent: #2c5a99;
+    --accent-deep: #1e3a68;
+    --accent-tint: #eef3fa;
+    --accent-line: #d3e0f0;
+
+    /* Status */
+    --ok: #0f7a5c;
+    --ok-tint: #edf6f2;
+    --warn: #9a6212;
+    --warn-tint: #fdf5e7;
+    --danger: #c0392b;
+    --danger-tint: #fdf1ef;
+
+    /* Dark surfaces (hero, auth panel, final CTA) */
+    --hero-bg: #03060a;
+    --hero-fg: #ffffff;
+    --hero-fg-70: rgba(255, 255, 255, 0.72);
+    --hero-fg-50: rgba(255, 255, 255, 0.52);
+    --hero-line: rgba(255, 255, 255, 0.14);
+    --hero-glass: rgba(255, 255, 255, 0.07);
+
+    /* Shape */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --r-xl: 26px;
+
+    --shell: 1200px;
+    --gutter: 24px;
+    --nav-h: 72px;
+
+    /* Type */
+    --font: "Inter Tight", "Inter", -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --tracking-head: -0.04em;
+}

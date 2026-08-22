@@ -1,0 +1,613 @@
+/* =========================================================
+   Tech Nova — app theme (signed-in pages)
+
+   A theme layer over Bootstrap, not a replacement. The Startup
+   and Investor views keep their standard Bootstrap markup and
+   inherit the design system through these overrides, so nobody
+   has to rewrite a view to get a consistent look.
+
+   Load order matters:  bootstrap.min.css → tokens.css → app.css
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Bootstrap's own custom properties
+   Overriding these does most of the work for free.
+   --------------------------------------------------------- */
+
+:root {
+    --bs-font-sans-serif: var(--font);
+    --bs-body-font-family: var(--font);
+    --bs-body-font-size: 0.95rem;
+    --bs-body-color: var(--ink);
+    --bs-body-bg: var(--paper-soft);
+    --bs-secondary-color: var(--muted);
+    --bs-emphasis-color: var(--ink);
+
+    --bs-border-color: var(--line);
+    --bs-border-color-translucent: var(--line);
+    --bs-border-radius: var(--r-md);
+    --bs-border-radius-sm: var(--r-sm);
+    --bs-border-radius-lg: var(--r-lg);
+
+    --bs-primary: var(--brand);
+    --bs-primary-rgb: 15, 122, 92;
+    --bs-link-color: var(--brand);
+    --bs-link-color-rgb: 15, 122, 92;
+    --bs-link-hover-color: var(--brand-deep);
+
+    --bs-success: var(--ok);
+    --bs-danger: var(--danger);
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    background: var(--paper-soft);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01" 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    letter-spacing: var(--tracking-head);
+    font-weight: 600;
+    color: var(--ink);
+}
+
+h1, .h1 { font-size: clamp(26px, 3vw, 34px); line-height: 1.12; }
+h2, .h2 { font-size: clamp(22px, 2.4vw, 27px); line-height: 1.16; }
+h3, .h3 { font-size: 20px; }
+h4, .h4 { font-size: 17px; }
+h5, .h5 { font-size: 15.5px; }
+
+.text-muted {
+    color: var(--muted) !important;
+}
+
+a {
+    text-underline-offset: 2px;
+}
+
+/* ---------------------------------------------------------
+   2. App shell — navbar, content, footer
+   --------------------------------------------------------- */
+
+.app-nav {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding-block: 0;
+    min-height: var(--nav-h);
+}
+
+.app-nav .navbar-brand {
+    font-size: 19px;
+    font-weight: 650;
+    letter-spacing: var(--tracking-head);
+    color: var(--ink);
+}
+
+.app-nav .nav-link {
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--muted) !important;
+    padding-inline: 14px !important;
+    border-radius: var(--r-sm);
+    transition: color .18s ease, background-color .18s ease;
+}
+
+.app-nav .nav-link:hover,
+.app-nav .nav-link:focus {
+    color: var(--ink) !important;
+    background: var(--paper-soft);
+}
+
+.app-nav .nav-link.active {
+    color: var(--brand) !important;
+}
+
+/* signed-in user chip */
+.app-nav .user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 13px !important;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+}
+
+.app-nav .user-chip:hover {
+    border-color: var(--brand-line);
+    background: var(--brand-tint);
+}
+
+.app-nav .user-chip::after {
+    margin-left: 2px;
+}
+
+.user-avatar {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: linear-gradient(140deg, var(--brand-bright), var(--brand-deep));
+    color: #fff;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    flex: none;
+    text-transform: uppercase;
+}
+
+.app-main {
+    flex: 1 0 auto;
+    padding-block: 34px 56px;
+}
+
+.app-footer {
+    flex-shrink: 0;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    padding-block: 22px;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.app-footer a {
+    color: var(--muted);
+}
+
+.app-footer a:hover {
+    color: var(--ink);
+}
+
+/* ---------------------------------------------------------
+   3. Cards
+   --------------------------------------------------------- */
+
+.card {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--paper);
+    box-shadow: 0 1px 2px rgba(10, 12, 14, .03);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 30px rgba(10, 12, 14, .06);
+}
+
+.card-header {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-soft);
+    padding: 17px 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.card-header:first-child {
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+
+.card-body {
+    padding: 22px;
+}
+
+.card-title {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+}
+
+.card-text {
+    font-size: 14.5px;
+    line-height: 1.62;
+    color: var(--muted);
+}
+
+.card-footer {
+    background: var(--paper-soft);
+    border-top: 1px solid var(--line-soft);
+    padding: 15px 22px;
+}
+
+/* bg-light panels inside cards read as inset wells */
+.bg-light {
+    background: var(--paper-soft) !important;
+    border-radius: var(--r-md);
+}
+
+/* ---------------------------------------------------------
+   4. Buttons
+   Bootstrap's .btn — distinct from the landing page's own
+   pill .btn, which lives on differently-scoped pages.
+   --------------------------------------------------------- */
+
+.btn {
+    font-size: 14.5px;
+    font-weight: 550;
+    letter-spacing: -0.015em;
+    border-radius: 999px;
+    padding: 9px 18px;
+    transition: background-color .18s ease, border-color .18s ease,
+                color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-sm {
+    font-size: 13.5px;
+    padding: 6px 14px;
+}
+
+.btn-lg {
+    font-size: 16px;
+    padding: 12px 24px;
+}
+
+.btn-primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: var(--brand-deep);
+    border-color: var(--brand-deep);
+    box-shadow: 0 6px 18px rgba(15, 122, 92, .24);
+}
+
+.btn-outline-primary {
+    border-color: var(--brand-line);
+    color: var(--brand);
+    background: transparent;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    background: var(--brand-tint);
+    border-color: var(--brand);
+    color: var(--brand-deep);
+}
+
+.btn-secondary {
+    background: var(--ink);
+    border-color: var(--ink);
+}
+
+.btn-secondary:hover {
+    background: #1c2126;
+    border-color: #1c2126;
+}
+
+.btn-outline-secondary {
+    border-color: var(--line);
+    color: var(--ink-70);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--paper-soft);
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+.btn-success {
+    background: var(--ok);
+    border-color: var(--ok);
+}
+
+.btn-danger {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-outline-danger {
+    border-color: #f0cec9;
+    color: var(--danger);
+}
+
+.btn-outline-danger:hover {
+    background: var(--danger-tint);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--brand-bright);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* ---------------------------------------------------------
+   5. Forms
+   --------------------------------------------------------- */
+
+.form-label {
+    font-size: 13.5px;
+    font-weight: 550;
+    letter-spacing: -0.01em;
+    color: var(--ink-70);
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    font-size: 15px;
+    padding: 11px 14px;
+    color: var(--ink);
+    background-color: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(15, 122, 92, .14);
+}
+
+.form-control::placeholder {
+    color: var(--muted-soft);
+}
+
+.form-control-sm,
+.form-select-sm {
+    font-size: 13.5px;
+    padding: 8px 11px;
+}
+
+.form-text {
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.form-check-input {
+    border-color: var(--line);
+    width: 1.05em;
+    height: 1.05em;
+    margin-top: 0.2em;
+}
+
+.form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+
+.form-check-input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(15, 122, 92, .14);
+}
+
+.form-check-label {
+    font-size: 14.5px;
+    color: var(--ink-70);
+}
+
+/* server + client validation messages */
+.field-validation-error,
+.text-danger,
+.invalid-feedback {
+    font-size: 12.5px;
+    color: var(--danger) !important;
+}
+
+.input-validation-error {
+    border-color: var(--danger) !important;
+}
+
+.input-validation-error:focus {
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, .13) !important;
+}
+
+/* ---------------------------------------------------------
+   6. Badges
+   Bootstrap colour utilities are used as badge backgrounds in
+   these views, so they need restating in the palette.
+   --------------------------------------------------------- */
+
+.badge {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+
+.badge.bg-primary { background: var(--brand-tint) !important; color: var(--brand-deep); border-color: var(--brand-line); }
+.badge.bg-success { background: var(--ok-tint) !important; color: var(--ok); border-color: var(--brand-line); }
+.badge.bg-info    { background: var(--accent-tint) !important; color: var(--accent-deep); border-color: var(--accent-line); }
+.badge.bg-warning { background: var(--warn-tint) !important; color: var(--warn); border-color: #f0e0c2; }
+.badge.bg-danger  { background: var(--danger-tint) !important; color: var(--danger); border-color: #f0cec9; }
+.badge.bg-secondary { background: var(--paper-soft) !important; color: var(--ink-70); border-color: var(--line); }
+.badge.bg-light   { background: var(--paper-soft) !important; color: var(--ink-70); border-color: var(--line); }
+.badge.bg-dark    { background: var(--ink) !important; color: #fff; }
+
+/* ---------------------------------------------------------
+   7. Alerts
+   --------------------------------------------------------- */
+
+.alert {
+    border-radius: var(--r-md);
+    border-width: 1px;
+    padding: 14px 17px;
+    font-size: 14.5px;
+    line-height: 1.55;
+}
+
+.alert-heading {
+    font-size: 15.5px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+}
+
+.alert-info    { background: var(--accent-tint); border-color: var(--accent-line); color: var(--accent-deep); }
+.alert-success { background: var(--ok-tint); border-color: var(--brand-line); color: var(--brand-deep); }
+.alert-warning { background: var(--warn-tint); border-color: #f0e0c2; color: var(--warn); }
+.alert-danger  { background: var(--danger-tint); border-color: #f3d2cc; color: #8e2a1e; }
+.alert-secondary { background: var(--paper-soft); border-color: var(--line); color: var(--ink-70); }
+
+/* ---------------------------------------------------------
+   8. Tables
+   --------------------------------------------------------- */
+
+.table {
+    --bs-table-bg: transparent;
+    font-size: 14.5px;
+    border-color: var(--line-soft);
+    margin-bottom: 0;
+}
+
+.table > thead {
+    background: var(--paper-soft);
+}
+
+.table > thead th {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 14px;
+    white-space: nowrap;
+}
+
+.table > tbody td {
+    padding: 14px;
+    vertical-align: middle;
+    border-color: var(--line-soft);
+    color: var(--ink-70);
+}
+
+.table-hover > tbody > tr:hover > * {
+    background: var(--brand-tint);
+    color: var(--ink);
+}
+
+.table-responsive {
+    border-radius: var(--r-md);
+}
+
+/* ---------------------------------------------------------
+   9. Misc components
+   --------------------------------------------------------- */
+
+.dropdown-menu {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 7px;
+    box-shadow: 0 18px 44px rgba(10, 12, 14, .14);
+    font-size: 14.5px;
+}
+
+.dropdown-item {
+    border-radius: var(--r-sm);
+    padding: 9px 12px;
+    color: var(--ink-70);
+    font-weight: 500;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: var(--paper-soft);
+    color: var(--ink);
+}
+
+.dropdown-divider {
+    border-color: var(--line-soft);
+    margin: 5px 0;
+}
+
+.progress {
+    height: 7px;
+    background: var(--line-soft);
+    border-radius: 999px;
+}
+
+.progress-bar {
+    background: var(--brand);
+}
+
+.modal-content {
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--line-soft);
+}
+
+.list-group-item {
+    border-color: var(--line-soft);
+    font-size: 14.5px;
+    padding: 13px 16px;
+}
+
+.pagination {
+    --bs-pagination-color: var(--ink-70);
+    --bs-pagination-active-bg: var(--brand);
+    --bs-pagination-active-border-color: var(--brand);
+    --bs-pagination-border-color: var(--line);
+    --bs-pagination-border-radius: var(--r-sm);
+}
+
+/* Page heading block used at the top of dashboard views */
+.page-head {
+    margin-bottom: 26px;
+}
+
+.page-head h1 {
+    margin-bottom: 6px;
+}
+
+.page-head p {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------
+   10. Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .app-main {
+        padding-block: 24px 44px;
+    }
+
+    .card-body,
+    .card-header {
+        padding: 17px;
+    }
+
+    .app-nav .nav-link {
+        padding-inline: 0 !important;
+    }
+
+    .app-nav .user-chip {
+        margin-top: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition-duration: .01ms !important;
+    }
+}

@@ -1,0 +1,80 @@
+﻿@using System.Security.Claims
+@{
+    ViewData["Title"] = "Access Denied";
+    ViewData["AsideTitle"] = "You're signed in — just not to this part.";
+    ViewData["AsideCopy"] = "Startup and investor areas are kept separate so each side only sees what's relevant to them.";
+    Layout = "_AuthLayout";
+
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+}
+
+<div class="auth__head">
+    <h1>Access denied</h1>
+
+    <p>
+        @if (signedIn)
+        {
+            <text>
+                Your account doesn't have permission to open that page.
+                @if (!string.IsNullOrEmpty(role))
+                {
+                    <text>You're signed in as a <strong>@role</strong> account.</text>
+                }
+            </text>
+        }
+        else
+        {
+            <text>You need to sign in before opening that page.</text>
+        }
+    </p>
+</div>
+
+<div class="auth-alert" role="alert">
+    <svg class="ico ico--sm"><use href="#i-alert" /></svg>
+    <span>
+        If you think this is a mistake, check that you signed in with the
+        right account type.
+    </span>
+</div>
+
+<div class="denied-actions">
+
+    @if (role == "Startup")
+    {
+        <a asp-controller="Startup" asp-action="Dashboard" class="btn btn--brand auth-submit">
+            Go to your dashboard
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </a>
+    }
+    else if (role == "Investor")
+    {
+        <a asp-controller="Investor" asp-action="Dashboard" class="btn btn--brand auth-submit">
+            Go to your dashboard
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </a>
+    }
+    else
+    {
+        <a asp-controller="Account" asp-action="Login" class="btn btn--brand auth-submit">
+            Sign in
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </a>
+    }
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn--ghost auth-submit">
+        Back to home
+    </a>
+
+</div>
+
+@if (signedIn)
+{
+    <p class="auth__foot">
+        Need a different account?
+        <form asp-controller="Account" asp-action="Logout" method="post" class="denied-signout">
+            @Html.AntiForgeryToken()
+            <button type="submit">Sign out</button>
+        </form>
+    </p>
+}

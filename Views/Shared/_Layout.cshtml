@@ -1,38 +1,88 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+@{
+    var displayName = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+    var initials = string.IsNullOrWhiteSpace(displayName)
+        ? "?"
+        : string.Concat(displayName
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(w => w[0]));
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TechNova</title>
+    <title>@ViewData["Title"] - Tech Nova</title>
     <script type="importmap"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;450;500;550;600;650;700&display=swap"
+          rel="stylesheet" />
+
+    @* Order matters: Bootstrap first, then tokens, then the theme
+       layer that restyles Bootstrap with those tokens. *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TechNova.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TechNova</a>
+        <nav class="navbar navbar-expand-sm navbar-light app-nav">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Tech Nova</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @if (User.IsInRole("Startup"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Startup" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Startup" asp-action="Opportunities">Opportunities</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Startup" asp-action="InvestmentRequests">Requests</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Investor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Investor" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Investor" asp-action="Discover">Discover</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Investor" asp-action="Favorites">Saved</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Investor" asp-action="MyRequests">My Requests</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            </li>
+                        }
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <strong>@User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value</strong>
+                                <a class="nav-link dropdown-toggle user-chip" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="user-avatar">@initials</span>
+                                    <strong>@displayName</strong>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                     @if (User.IsInRole("Startup"))
@@ -65,7 +115,7 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">Log In</a>
                             </li>
                         }
                     </ul>
@@ -73,17 +123,20 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <main role="main" class="app-main">
         <div class="container">
-            &copy; 2026 - TechNova - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; 2026 Tech Nova</span>
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

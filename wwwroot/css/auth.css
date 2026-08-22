@@ -472,3 +472,29 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ---------- Access denied ---------- */
+
+.denied-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.denied-signout {
+    display: inline;
+}
+
+.denied-signout button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--brand);
+    font-weight: 550;
+    cursor: pointer;
+}
+
+.denied-signout button:hover {
+    text-decoration: underline;
+}
