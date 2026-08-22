@@ -1,0 +1,91 @@
+@{
+	ViewData["Title"] = "Investor Dashboard";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var dashboardData = ViewData.Model;
+}
+
+<div class="container mt-5">
+	<div class="row mb-4">
+		<div class="col-md-8">
+			<h1 class="mb-2">Welcome, Investor</h1>
+			<p class="text-muted">Discover and invest in promising startups</p>
+		</div>
+		<div class="col-md-4 text-end">
+			<a href="@Url.Action("EditProfile", "Investor")" class="btn btn-outline-primary">
+				Edit Profile
+			</a>
+		</div>
+	</div>
+
+	<!-- Quick Stats -->
+	<div class="row mb-4">
+		<div class="col-md-6 mb-3">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Active Requests</h5>
+					<p class="card-text fs-4 fw-bold">0</p>
+					<a href="@Url.Action("MyRequests", "Investor")" class="card-link">View All</a>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6 mb-3">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Saved Startups</h5>
+					<p class="card-text fs-4 fw-bold">0</p>
+					<a href="@Url.Action("Favorites", "Investor")" class="card-link">View All</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Recent Startups -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h3>Recent Startups</h3>
+				<a href="@Url.Action("Discover", "Investor")" class="btn btn-sm btn-primary">
+					Explore All
+				</a>
+			</div>
+			<div class="row" id="recentStartups">
+				<p class="text-muted">Loading startups...</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Recent Requests -->
+	<div class="row">
+		<div class="col-12">
+			<h3 class="mb-3">My Recent Requests</h3>
+			<div class="table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>Startup</th>
+							<th>Investment Amount</th>
+							<th>Status</th>
+							<th>Date</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody id="requestsTable">
+						<tr>
+							<td colspan="5" class="text-center text-muted">No requests yet</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.card {
+		border: 1px solid #e3e7ea;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	}
+	.card-body {
+		padding: 1.5rem;
+	}
+</style>
