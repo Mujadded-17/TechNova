@@ -582,26 +582,20 @@ h2.section__title {
 }
 
 .hero__copy {
-    margin-top: 30px;
-    max-width: 58ch;
+    margin-top: 28px;
+    max-width: 48ch;
     font-size: 16.5px;
     line-height: 1.66;
     color: var(--hero-fg-70);
+    text-wrap: balance;
 }
 
 .hero__ctas {
-    margin-top: 40px;
+    margin-top: 42px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
-}
-
-.hero__trust {
-    margin-top: 30px;
-    font-size: 13.5px;
-    color: var(--hero-fg-50);
-    letter-spacing: .01em;
 }
 
 /* ---- Hero marketplace visual ---- */
@@ -1100,6 +1094,20 @@ h2.section__title {
     gap: 20px;
 }
 
+/* Criteria moved below the stack, so they run full width. */
+.criteria--row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+@media (max-width: 1080px) {
+    .criteria--row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 680px) {
+    .criteria--row { grid-template-columns: 1fr; }
+}
+
 .criterion {
     padding: 26px;
     border: 1px solid var(--line);
@@ -1261,32 +1269,521 @@ h2.section__title {
 }
 
 /* =========================================================
-   6 — FINAL CTA
+   6 — MATCH STACK  (DisplayCards port)
+   Three skewed cards sharing one grid cell. The back two sit
+   desaturated behind a scrim until hovered, so the fan reads
+   as "the right match coming into focus".
+   ========================================================= */
+
+.stack {
+    display: grid;
+    grid-template-areas: "stack";
+    place-items: center;
+    min-height: 300px;
+    padding-block: 20px;
+}
+
+.stack-card {
+    grid-area: stack;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+
+    width: min(22rem, 78vw);
+    height: 9rem;
+    padding: 15px 18px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: rgba(255, 255, 255, .82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 14px 34px rgba(10, 12, 14, .07);
+
+    user-select: none;
+    transition: transform .7s cubic-bezier(.16, 1, .3, 1),
+                filter .7s ease, border-color .3s ease;
+}
+
+/* fade the trailing edge so overlapped cards blend into each other */
+.stack-card::after {
+    content: "";
+    position: absolute;
+    top: -5%;
+    right: -1px;
+    width: 60%;
+    height: 110%;
+    border-radius: var(--r-md);
+    pointer-events: none;
+    background: linear-gradient(to left, var(--paper-soft) 8%, transparent 78%);
+}
+
+/* scrim over the two cards sitting behind */
+.stack-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-md);
+    background: rgba(247, 249, 249, .55);
+    opacity: 0;
+    transition: opacity .7s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.stack-card--1 {
+    transform: skewY(-8deg);
+    filter: grayscale(1);
+    z-index: 1;
+}
+
+.stack-card--2 {
+    transform: skewY(-8deg) translate(3.5rem, 2.6rem);
+    filter: grayscale(1);
+    z-index: 2;
+}
+
+.stack-card--3 {
+    transform: skewY(-8deg) translate(7rem, 5.2rem);
+    z-index: 3;
+}
+
+.stack-card--1::before,
+.stack-card--2::before { opacity: 1; }
+
+.stack-card--1:hover {
+    transform: skewY(-8deg) translateY(-2.6rem);
+}
+
+.stack-card--2:hover {
+    transform: skewY(-8deg) translate(3.5rem, 2.2rem);
+}
+
+.stack-card--3:hover {
+    transform: skewY(-8deg) translate(7rem, 4.4rem);
+}
+
+.stack-card:hover {
+    filter: grayscale(0);
+    border-color: var(--brand-line);
+    z-index: 4;
+}
+
+.stack-card:hover::before { opacity: 0; }
+
+.stack-card__top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    position: relative;
+    z-index: 2;
+}
+
+.stack-card__badge {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--brand-deep);
+    color: #fff;
+    flex: none;
+}
+
+.stack-card__badge .ico {
+    width: 14px;
+    height: 14px;
+}
+
+.stack-card__title {
+    font-size: 16.5px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--brand-deep);
+}
+
+.stack-card__desc {
+    position: relative;
+    z-index: 2;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: var(--ink);
+}
+
+.stack-card__meta {
+    position: relative;
+    z-index: 2;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+
+/* =========================================================
+   7 — TESTIMONIALS  (vertical marquee)
+   Each column duplicates its list, so translating the track
+   by -50% loops seamlessly with no JS involved.
+   ========================================================= */
+
+.testi {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    max-height: 720px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+}
+
+.testi__col {
+    flex: 0 1 340px;
+}
+
+.testi__track {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 24px;
+    animation: testi-scroll var(--dur, 18s) linear infinite;
+    will-change: transform;
+}
+
+@keyframes testi-scroll {
+    to { transform: translateY(-50%); }
+}
+
+/* Let a reader stop the motion to actually finish a quote. */
+.testi__col:hover .testi__track,
+.testi__col:focus-within .testi__track {
+    animation-play-state: paused;
+}
+
+.testi-card {
+    padding: 30px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    background: var(--paper);
+    box-shadow: 0 8px 24px rgba(10, 12, 14, .04);
+    transition: transform .3s cubic-bezier(.16, 1, .3, 1),
+                box-shadow .3s ease, border-color .3s ease;
+}
+
+.testi-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(10, 12, 14, .12);
+    border-color: var(--brand-line);
+}
+
+.testi-card blockquote {
+    margin: 0;
+}
+
+.testi-card p {
+    font-size: 14.5px;
+    line-height: 1.68;
+    color: var(--muted);
+}
+
+.testi-card footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.testi-card__avatar {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    flex: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+}
+
+.testi-card__avatar--startup { background: linear-gradient(140deg, #1e9e7a, #0a5943); }
+.testi-card__avatar--investor { background: linear-gradient(140deg, #4a7ec7, #1e3a68); }
+
+.testi-card cite {
+    display: block;
+    font-style: normal;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    line-height: 1.25;
+}
+
+.testi-card__role {
+    display: block;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .testi__track { animation: none; }
+    .testi { max-height: none; }
+}
+
+
+/* =========================================================
+   8 — FINAL CTA
    ========================================================= */
 
 .final {
-    padding-block: 120px;
-    background: var(--paper-soft);
-    border-top: 1px solid var(--line-soft);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: 150px;
+    background: var(--hero-bg);
+    color: var(--hero-fg);
     text-align: center;
 }
 
-.final h2 {
-    font-size: clamp(38px, 5.6vw, 68px);
-    max-width: 18ch;
-    margin-inline: auto;
+/* Same family as the hero, rendered in CSS — a second WebGL
+   context for one static backdrop is not worth the cost. */
+.final::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(80% 120% at 50% 115%, rgba(30, 158, 122, .30) 0%, transparent 62%),
+        radial-gradient(70% 90% at 12% -10%, rgba(10, 89, 67, .40) 0%, transparent 60%);
 }
 
-.final p {
-    margin: 26px auto 0;
-    max-width: 54ch;
-    font-size: 16px;
-    color: var(--muted);
-    line-height: 1.6;
+.final__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- availability pulse --- */
+
+.final__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 12px;
+    font-weight: 550;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--hero-fg-50);
+}
+
+.pulse {
+    position: relative;
+    display: flex;
+    width: 8px;
+    height: 8px;
+    flex: none;
+}
+
+.pulse::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--brand-bright);
+    opacity: .75;
+    animation: pulse-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite;
+}
+
+.pulse::after {
+    content: "";
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand-bright);
+}
+
+@keyframes pulse-ping {
+    75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* --- the oversized interactive headline --- */
+
+.final__trigger {
+    position: relative;
+    margin-top: 52px;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+}
+
+.final__trigger:focus-visible {
+    outline: 2px solid var(--brand-bright);
+    outline-offset: 14px;
+    border-radius: 8px;
+}
+
+.final__title {
+    font-size: clamp(44px, 8.2vw, 104px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-align: center;
+}
+
+/* Each line rides inside its own clipped box so the hover lift
+   reads as the words sliding up behind a mask. */
+.final__line {
+    display: block;
+    overflow: hidden;
+}
+
+.final__line > span {
+    display: block;
+    transition: transform .7s cubic-bezier(.16, 1, .3, 1);
+}
+
+.final__line:nth-child(2) > span {
+    transition-delay: .075s;
+}
+
+.final__trigger:hover .final__line > span,
+.final__trigger:focus-visible .final__line > span {
+    transform: translateY(-8%);
+}
+
+.final__title .muted {
+    color: rgba(255, 255, 255, .42);
+}
+
+.final__arrow {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 78px;
+    height: 78px;
+}
+
+.final__arrow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--hero-line);
+    transition: transform .5s ease, background-color .5s ease, border-color .5s ease;
+}
+
+.final__trigger:hover .final__arrow::before,
+.final__trigger:focus-visible .final__arrow::before {
+    transform: scale(1.1);
+    background: #fff;
+    border-color: #fff;
+}
+
+.final__arrow svg {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .5s cubic-bezier(.16, 1, .3, 1), color .5s ease;
+}
+
+.final__trigger:hover .final__arrow svg,
+.final__trigger:focus-visible .final__arrow svg {
+    transform: translate(2px, -2px);
+    color: var(--hero-bg);
+}
+
+/* rules flanking the headline */
+.final__rule {
+    position: absolute;
+    top: 50%;
+    width: 48px;
+    height: 1px;
+    background: var(--hero-line);
+    transition: transform .5s ease, opacity .5s ease;
+}
+
+.final__rule--l { left: -72px; }
+.final__rule--r { right: -72px; }
+
+.final__trigger:hover .final__rule {
+    transform: scaleX(1.5);
+    opacity: 1;
+}
+
+.final__copy {
+    margin-top: 38px;
+    max-width: 52ch;
+    font-size: 15.5px;
+    line-height: 1.66;
+    color: var(--hero-fg-50);
+    transition: opacity .5s ease, transform .5s ease;
+}
+
+/* --- revealed role picker --- */
+
+.final__reveal {
+    margin-top: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: opacity .7s cubic-bezier(.16, 1, .3, 1),
+                transform .7s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Only collapse the reveal once JS is driving the section — without
+   it the role buttons stay visible instead of being unreachable. */
+.final[data-cta-ready] .final__reveal {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -40%) scale(.96);
+    opacity: 0;
+    pointer-events: none;
+    width: 100%;
+}
+
+.final[data-cta-ready].is-revealed .final__reveal {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.final[data-cta-ready].is-revealed .final__status,
+.final[data-cta-ready].is-revealed .final__trigger,
+.final[data-cta-ready].is-revealed .final__copy {
+    opacity: 0;
+    transform: translateY(-18px);
+    pointer-events: none;
+}
+
+.final[data-cta-ready] .final__status,
+.final[data-cta-ready] .final__trigger,
+.final[data-cta-ready] .final__copy {
+    transition: opacity .5s ease, transform .5s ease;
+}
+
+.final__reveal h3 {
+    margin-top: 10px;
+    font-size: clamp(26px, 3.4vw, 40px);
+    font-weight: 300;
 }
 
 .final__ctas {
-    margin-top: 40px;
+    margin-top: 38px;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
@@ -1295,9 +1792,27 @@ h2.section__title {
 
 .final__note {
     margin-top: 26px;
-    font-size: 14px;
-    color: var(--muted-soft);
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--hero-fg-50);
 }
+
+.final__back {
+    margin-top: 30px;
+    background: none;
+    border: 0;
+    color: var(--hero-fg-50);
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: .04em;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: color .2s ease;
+}
+
+.final__back:hover { color: #fff; }
 
 /* =========================================================
    7 — FOOTER
@@ -1431,6 +1946,11 @@ h2.section__title {
         padding: 32px;
     }
 
+    /* Third testimonial column drops before the second. */
+    .testi__col--3 {
+        display: none;
+    }
+
     /* Match strip stacks; the connector lies flat between cards. */
     .match {
         grid-template-columns: 1fr;
@@ -1499,5 +2019,38 @@ h2.section__title {
 
     .bubble {
         max-width: 92%;
+    }
+
+    .testi__col--2 {
+        display: none;
+    }
+
+    /* Tighten the fan so it clears the viewport on a phone.
+       The stack centres on the card, not the fan, so the widest
+       card still has to fit: 64vw + 3rem offset stays inside
+       375px (and 320px) with room to spare. */
+    .stack {
+        min-height: 250px;
+    }
+
+    .stack-card {
+        width: min(22rem, 64vw);
+        height: 8.5rem;
+    }
+
+    .stack-card--2 { transform: skewY(-8deg) translate(1.5rem, 1.9rem); }
+    .stack-card--3 { transform: skewY(-8deg) translate(3rem, 3.8rem); }
+    .stack-card--1:hover { transform: skewY(-8deg) translateY(-1.8rem); }
+    .stack-card--2:hover { transform: skewY(-8deg) translate(1.5rem, 1.5rem); }
+    .stack-card--3:hover { transform: skewY(-8deg) translate(3rem, 3.2rem); }
+
+    .stack-card__desc { white-space: normal; }
+
+    .final {
+        padding-block: 96px;
+    }
+
+    .final__rule {
+        display: none;
     }
 }

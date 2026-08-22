@@ -21,9 +21,8 @@
         <h1>Great Ideas Deserve the Right Investors.</h1>
 
         <p class="hero__copy">
-            Tech Nova connects ambitious startups with investors who are actively
-            looking for the next opportunity. Discover promising businesses, explore
-            funding opportunities, and build meaningful connections &mdash; all in one place.
+            Discover promising businesses, explore funding opportunities,
+            and build meaningful connections &mdash; all in one place.
         </p>
 
         <div class="hero__ctas">
@@ -39,11 +38,6 @@
             </a>
 
         </div>
-
-        <p class="hero__trust">
-            One platform. Thousands of opportunities. Better connections.
-        </p>
-
 
         <!-- Marketplace visual: startup → matched → investor -->
 
@@ -548,7 +542,54 @@
             </p>
         </div>
 
-        <div class="criteria">
+        <!-- Matched startups fanned out; the back cards stay muted
+             until hovered, mirroring "stop searching, start discovering" -->
+
+        <div class="stack">
+
+            <article class="stack-card stack-card--1">
+                <div class="stack-card__top">
+                    <span class="stack-card__badge">
+                        <svg class="ico"><use href="#i-trending" /></svg>
+                    </span>
+                    <span class="stack-card__title">AgroNova</span>
+                </div>
+
+                <p class="stack-card__desc">Agriculture &middot; Seed Stage</p>
+                <p class="stack-card__meta">94% match &middot; Seeking $300K</p>
+            </article>
+
+            <article class="stack-card stack-card--2">
+                <div class="stack-card__top">
+                    <span class="stack-card__badge">
+                        <svg class="ico"><use href="#i-activity" /></svg>
+                    </span>
+                    <span class="stack-card__title">MediCore</span>
+                </div>
+
+                <p class="stack-card__desc">Healthcare &middot; Pre-Seed</p>
+                <p class="stack-card__meta">88% match &middot; Seeking $150K</p>
+            </article>
+
+            <article class="stack-card stack-card--3">
+                <div class="stack-card__top">
+                    <span class="stack-card__badge">
+                        <svg class="ico"><use href="#i-wallet" /></svg>
+                    </span>
+                    <span class="stack-card__title">FinEdge</span>
+                </div>
+
+                <p class="stack-card__desc">FinTech &middot; Series A</p>
+                <p class="stack-card__meta">91% match &middot; Seeking $1.2M</p>
+            </article>
+
+        </div>
+
+    </div>
+
+    <div class="shell" style="margin-top:72px">
+
+        <div class="criteria criteria--row">
 
             <article class="criterion">
                 <div class="icon-tile">
@@ -695,34 +736,379 @@
 
 
 <!-- =========================================================
-     7 — FINAL CTA
+     7 — TESTIMONIALS  (vertical marquee)
+     Each column repeats its cards twice so the -50% translate
+     loops seamlessly. Avatars are monograms, not photographs.
      ========================================================= -->
 
-<section class="final">
+<section class="section section--soft">
     <div class="shell">
 
-        <h2>Your next opportunity could be one connection away.</h2>
+        <div class="section__head section__head--center">
+            <span class="eyebrow">Testimonials</span>
 
-        <p>
+            <h2 class="section__title">What founders and investors say.</h2>
+
+            <p class="lede" style="margin-inline:auto">
+                Discover how startups and investors are building connections
+                through Tech Nova.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="testi">
+        <div class="testi__col testi__col--1">
+            <div class="testi__track" style="--dur:22s">
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>We went from cold emails to three investor conversations in a week. Having our funding requirement and stage visible up front changed who reached out.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">RK</span>
+
+                            <span>
+                                <cite>Rafiul Karim</cite>
+                                <span class="testi-card__role">Founder, AgroNova</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>I can filter by sector and cheque size before I ever open a profile. That alone saves me hours every week.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">SA</span>
+
+                            <span>
+                                <cite>Sarah Ahmed</cite>
+                                <span class="testi-card__role">Angel Investor</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>The pitch deck sits right on the profile. No back-and-forth attachments, no chasing links.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">NJ</span>
+
+                            <span>
+                                <cite>Nusrat Jahan</cite>
+                                <span class="testi-card__role">Co-founder, MediCore</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>We went from cold emails to three investor conversations in a week. Having our funding requirement and stage visible up front changed who reached out.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">RK</span>
+
+                            <span>
+                                <cite>Rafiul Karim</cite>
+                                <span class="testi-card__role">Founder, AgroNova</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>I can filter by sector and cheque size before I ever open a profile. That alone saves me hours every week.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">SA</span>
+
+                            <span>
+                                <cite>Sarah Ahmed</cite>
+                                <span class="testi-card__role">Angel Investor</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>The pitch deck sits right on the profile. No back-and-forth attachments, no chasing links.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">NJ</span>
+
+                            <span>
+                                <cite>Nusrat Jahan</cite>
+                                <span class="testi-card__role">Co-founder, MediCore</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+            </div>
+        </div>
+
+        <div class="testi__col testi__col--2">
+            <div class="testi__track" style="--dur:28s">
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Verification matters more than people admit. Knowing a profile has been reviewed changes how seriously I take a first conversation.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">IC</span>
+
+                            <span>
+                                <cite>Imran Chowdhury</cite>
+                                <span class="testi-card__role">Managing Partner</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>We are a pre-seed team with no network in the city. This is the first place we have been visible to anyone outside our own contacts.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">TH</span>
+
+                            <span>
+                                <cite>Tanvir Hasan</cite>
+                                <span class="testi-card__role">Founder, CargoLoop</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Bookmarking startups and coming back to them later is such a small feature, but it is the one I use most.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">AR</span>
+
+                            <span>
+                                <cite>Ayesha Rahman</cite>
+                                <span class="testi-card__role">Investment Associate</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Verification matters more than people admit. Knowing a profile has been reviewed changes how seriously I take a first conversation.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">IC</span>
+
+                            <span>
+                                <cite>Imran Chowdhury</cite>
+                                <span class="testi-card__role">Managing Partner</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>We are a pre-seed team with no network in the city. This is the first place we have been visible to anyone outside our own contacts.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">TH</span>
+
+                            <span>
+                                <cite>Tanvir Hasan</cite>
+                                <span class="testi-card__role">Founder, CargoLoop</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Bookmarking startups and coming back to them later is such a small feature, but it is the one I use most.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">AR</span>
+
+                            <span>
+                                <cite>Ayesha Rahman</cite>
+                                <span class="testi-card__role">Investment Associate</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+            </div>
+        </div>
+
+        <div class="testi__col testi__col--3">
+            <div class="testi__track" style="--dur:25s">
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Messaging founders directly, without an introduction chain, has made early diligence far faster.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">MI</span>
+
+                            <span>
+                                <cite>Mahdi Islam</cite>
+                                <span class="testi-card__role">Angel Investor</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Setting our business stage honestly meant the investors who contacted us already knew what they were getting into.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">FA</span>
+
+                            <span>
+                                <cite>Farhana Akter</cite>
+                                <span class="testi-card__role">CEO, EduPath</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>It is the first platform where I did not have to explain what my company does five separate times.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">SA</span>
+
+                            <span>
+                                <cite>Shahriar Alam</cite>
+                                <span class="testi-card__role">Founder, GridWise</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Messaging founders directly, without an introduction chain, has made early diligence far faster.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--investor">MI</span>
+
+                            <span>
+                                <cite>Mahdi Islam</cite>
+                                <span class="testi-card__role">Angel Investor</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>Setting our business stage honestly meant the investors who contacted us already knew what they were getting into.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">FA</span>
+
+                            <span>
+                                <cite>Farhana Akter</cite>
+                                <span class="testi-card__role">CEO, EduPath</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+                <article class="testi-card">
+                    <blockquote>
+                        <p>It is the first platform where I did not have to explain what my company does five separate times.</p>
+
+                        <footer>
+                            <span class="testi-card__avatar testi-card__avatar--startup">SA</span>
+
+                            <span>
+                                <cite>Shahriar Alam</cite>
+                                <span class="testi-card__role">Founder, GridWise</span>
+                            </span>
+                        </footer>
+                    </blockquote>
+                </article>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     8 — FINAL CTA  (dark)
+     ========================================================= -->
+
+<section class="final" id="get-started">
+    <div class="shell final__inner">
+
+        <p class="final__status">
+            <span class="pulse"></span>
+            Now onboarding startups and investors
+        </p>
+
+        <button type="button"
+                class="final__trigger"
+                id="ctaTrigger"
+                aria-expanded="false"
+                aria-controls="ctaReveal">
+
+            <span class="final__rule final__rule--l"></span>
+            <span class="final__rule final__rule--r"></span>
+
+            <span class="final__title">
+                <span class="final__line"><span>Let's build</span></span>
+                <span class="final__line"><span class="muted">something together</span></span>
+            </span>
+
+            <span class="final__arrow">
+                <svg><use href="#i-arrow-up-right" /></svg>
+            </span>
+
+        </button>
+
+        <p class="final__copy">
             Whether you're building the next big company or looking for the next
             opportunity to invest, Tech Nova helps you find the right people faster.
         </p>
 
-        <div class="final__ctas">
+        <div class="final__reveal" id="ctaReveal">
 
-            <a asp-controller="Account" asp-action="RegisterStartup" class="btn btn--brand">
-                I'm a Startup
-                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
-            </a>
+            <span class="final__note">Choose your path</span>
 
-            <a asp-controller="Account" asp-action="RegisterInvestor" class="btn btn--ghost">
-                I'm an Investor
-                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
-            </a>
+            <h3>Which side are you on?</h3>
+
+            <div class="final__ctas">
+
+                <a asp-controller="Account" asp-action="RegisterStartup" class="btn btn--light">
+                    I'm a Startup
+                    <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+                </a>
+
+                <a asp-controller="Account" asp-action="RegisterInvestor" class="btn btn--outline-light">
+                    I'm an Investor
+                    <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+                </a>
+
+            </div>
+
+            <button type="button" class="final__back" id="ctaBack">&larr; Back</button>
 
         </div>
-
-        <p class="final__note">Join the Tech Nova ecosystem today.</p>
 
     </div>
 </section>

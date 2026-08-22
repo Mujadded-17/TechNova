@@ -211,4 +211,48 @@
     }
 
     initScrollChars();
+
+    /* =====================================================
+       Final CTA — the headline collapses into a role picker.
+
+       Progressive enhancement: the reveal is visible by default
+       and only becomes a hidden panel once this runs, so the
+       signup links are never unreachable without JS.
+       ===================================================== */
+
+    function initFinalCta() {
+        var section = document.querySelector(".final");
+        var trigger = document.getElementById("ctaTrigger");
+        var back = document.getElementById("ctaBack");
+        if (!section || !trigger) return;
+
+        section.setAttribute("data-cta-ready", "");
+
+        function open() {
+            section.classList.add("is-revealed");
+            trigger.setAttribute("aria-expanded", "true");
+
+            // move focus to the first choice so keyboard users land there
+            var first = section.querySelector(".final__ctas a");
+            if (first) first.focus({ preventScroll: true });
+        }
+
+        function close() {
+            section.classList.remove("is-revealed");
+            trigger.setAttribute("aria-expanded", "false");
+            trigger.focus({ preventScroll: true });
+        }
+
+        trigger.addEventListener("click", open);
+
+        if (back) back.addEventListener("click", close);
+
+        section.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && section.classList.contains("is-revealed")) {
+                close();
+            }
+        });
+    }
+
+    initFinalCta();
 })();
