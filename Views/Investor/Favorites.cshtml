@@ -1,0 +1,151 @@
+@model List<TechNova.Models.FavoriteStartup>
+
+@{
+	ViewData["Title"] = "Saved Startups";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+	<div class="row mb-4">
+		<div class="col-12">
+			<h1 class="mb-2">Saved Startups</h1>
+			<p class="text-muted">Startups you've saved for later review</p>
+		</div>
+	</div>
+
+	@if (Model.Count == 0)
+	{
+		<div class="alert alert-info" role="alert">
+			<h4 class="alert-heading">No Saved Startups</h4>
+			<p><a href="@Url.Action("Discover", "Investor")">Explore startups</a> and save ones that interest you.</p>
+		</div>
+	}
+	else
+	{
+		<p class="text-muted mb-4">You have @Model.Count saved startup@(Model.Count != 1 ? "s" : "")</p>
+
+		<div class="row">
+			@foreach (var favorite in Model)
+			{
+				var startup = favorite.Startup;
+				<div class="col-md-6 col-lg-4 mb-4">
+					<div class="card h-100 startup-card">
+						<div class="card-body">
+							<div class="d-flex justify-content-between align-items-start mb-3">
+								<div>
+									<h5 class="card-title">@startup.CompanyName</h5>
+									<p class="card-text text-muted small">
+										@startup.Industry @(string.IsNullOrEmpty(startup.Industry) ? "" : "•") @startup.Location
+									</p>
+								</div>
+								<button class="btn btn-sm btn-primary favorite-btn favorited" 
+										data-startup-id="@startup.StartupID" 
+										onclick="toggleFavorite(@startup.StartupID)">
+									♥
+								</button>
+							</div>
+
+							<p class="card-text small mb-3">
+								@startup.Tagline
+							</p>
+
+							<div class="mb-3">
+								<small class="badge bg-info">@startup.BusinessStage</small>
+							</div>
+
+							<div class="startup-info mb-3">
+								<div class="info-row">
+									<span class="label">Funding Goal:</span>
+									<span class="value">${@startup.FundingRequired:N0}</span>
+								</div>
+								<div class="info-row">
+									<span class="label">Raised:</span>
+									<span class="value">${@startup.AmountRaised:N0}</span>
+								</div>
+								@if (startup.MinimumInvestment.HasValue)
+								{
+									<div class="info-row">
+										<span class="label">Min Investment:</span>
+										<span class="value">${@startup.MinimumInvestment:N0}</span>
+									</div>
+								}
+							</div>
+
+							<div class="d-grid gap-2">
+								<a href="@Url.Action("Profile", "Startup", new { id = startup.StartupID })" 
+								   class="btn btn-primary btn-sm">
+									View Profile
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	}
+</div>
+
+<style>
+	.startup-card {
+		border: 1px solid #e3e7ea;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+		transition: box-shadow 0.3s ease, transform 0.3s ease;
+	}
+
+	.startup-card:hover {
+		box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+		transform: translateY(-4px);
+	}
+
+	.favorite-btn {
+		font-size: 1.5rem;
+		padding: 0 0.5rem;
+		border: none;
+		background: none;
+		color: #e8443c;
+	}
+
+	.startup-info {
+		background: #f7f9f9;
+		padding: 0.75rem;
+		border-radius: 8px;
+		font-size: 0.875rem;
+	}
+
+	.info-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.25rem 0;
+	}
+
+	.info-row .label {
+		color: #626d78;
+		font-weight: 500;
+	}
+
+	.info-row .value {
+		color: #0a0c0e;
+		font-weight: 600;
+	}
+</style>
+
+<script>
+	async function toggleFavorite(startupId) {
+		try {
+			const response = await fetch('@Url.Action("ToggleFavorite", "Investor")', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ startupId: startupId })
+			});
+
+			const data = await response.json();
+			if (data.success) {
+				location.reload();
+			}
+		} catch (error) {
+			console.error('Error:', error);
+		}
+	}
+</script>
