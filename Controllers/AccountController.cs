@@ -62,7 +62,7 @@ namespace TechNova.Controllers
                     "Admin",
                     admin.Name);
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Dashboard", "Admin");
             }
 
             // ----------------------------

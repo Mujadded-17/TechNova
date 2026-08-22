@@ -1,0 +1,145 @@
+﻿@model List<TechNova.Models.Investor>
+@{
+    ViewData["Title"] = "Investor Accounts";
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var active = (string)ViewBag.Status;
+    var query = (string?)ViewBag.Query;
+}
+
+<div class="page-head">
+    <h1>Investor accounts</h1>
+    <p>@Model.Count account@(Model.Count == 1 ? "" : "s") shown. Verify, suspend or remove investors.</p>
+</div>
+
+@if (TempData["AdminMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["AdminMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<partial name="_AdminTabs" />
+
+<div class="card mb-3">
+    <div class="card-body">
+
+        <form method="get" class="row g-2 align-items-end">
+
+            <div class="col-md-6">
+                <label class="form-label" for="q">Search</label>
+                <input class="form-control" id="q" name="q" value="@query"
+                       placeholder="Name or email" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label" for="status">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="All" selected="@(active == "All")">All statuses</option>
+                    @foreach (var s in statuses)
+                    {
+                        <option value="@s" selected="@(active == s)">@s</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No investor accounts match this filter.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Investor</th>
+                        <th>Email</th>
+                        <th>Preference</th>
+                        <th>Range</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var i in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@i.Name</strong>
+                                @if (!string.IsNullOrEmpty(i.CompanyName))
+                                {
+                                    <span class="d-block text-muted small">@i.CompanyName</span>
+                                }
+                            </td>
+
+                            <td class="text-muted">@i.Email</td>
+
+                            <td>@(string.IsNullOrEmpty(i.Preference) ? "—" : i.Preference)</td>
+
+                            <td>@(i.InvestmentRange.HasValue ? i.InvestmentRange.Value.ToString("N0") : "—")</td>
+
+                            <td><partial name="_StatusPill" model="@i.VerificationStatus" /></td>
+
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end flex-wrap">
+
+                                    <form asp-action="SetInvestorStatus" method="post" class="d-inline-flex gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@i.InvestorID" />
+                                        <input type="hidden" name="returnStatus" value="@active" />
+                                        <input type="hidden" name="returnQuery" value="@query" />
+
+                                        @if (i.VerificationStatus != "Verified")
+                                        {
+                                            <button type="submit" name="status" value="Verified"
+                                                    class="btn btn-primary btn-sm">Verify</button>
+                                        }
+
+                                        @if (i.VerificationStatus != "Suspended")
+                                        {
+                                            <button type="submit" name="status" value="Suspended"
+                                                    class="btn btn-outline-secondary btn-sm">Suspend</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" name="status" value="Verified"
+                                                    class="btn btn-outline-primary btn-sm">Reinstate</button>
+                                        }
+                                    </form>
+
+                                    <form asp-action="DeleteInvestor" method="post" class="d-inline"
+                                          onsubmit="return confirm('Permanently remove @i.Name? This also deletes their investment requests and messages. This cannot be undone.');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@i.InvestorID" />
+                                        <input type="hidden" name="returnStatus" value="@active" />
+
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+}

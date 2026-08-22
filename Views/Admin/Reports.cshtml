@@ -1,0 +1,212 @@
+﻿@{
+    ViewData["Title"] = "Platform Reports";
+
+    var byStatus = ViewBag.ByStatus as Dictionary<string, int> ?? new();
+    var byStage = ViewBag.ByStage as Dictionary<string, int> ?? new();
+    var byIndustry = ViewBag.ByIndustry as Dictionary<string, int> ?? new();
+    var invByStatus = ViewBag.InvestorByStatus as Dictionary<string, int> ?? new();
+    var reqByStatus = ViewBag.RequestsByStatus as Dictionary<string, int> ?? new();
+
+    var startupCount = (int)ViewBag.StartupCount;
+
+    // Bar widths are relative to the largest bucket in each group.
+    string Bar(int value, int max) =>
+        max <= 0 ? "0%" : $"{(value * 100.0 / max):0.#}%";
+}
+
+<div class="page-head">
+    <h1>Platform reports</h1>
+    <p>Aggregate view of accounts, funding demand and marketplace activity.</p>
+</div>
+
+<partial name="_AdminTabs" />
+
+<!-- HEADLINE FIGURES -->
+
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Total startups</span>
+                <span class="stat-value">@startupCount</span>
+                <span class="stat-note">@ViewBag.PublishedCount published</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Total investors</span>
+                <span class="stat-value">@ViewBag.InvestorCount</span>
+                <span class="stat-note">across all statuses</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Funding sought</span>
+                <span class="stat-value">@(((decimal)ViewBag.TotalFundingSought).ToString("N0"))</span>
+                <span class="stat-note">summed across startups</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Requested capital</span>
+                <span class="stat-value">@(((decimal)ViewBag.RequestedTotal).ToString("N0"))</span>
+                <span class="stat-note">across all investment requests</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-3">
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Startups by verification status</div>
+            <div class="card-body">
+                @if (!byStatus.Any())
+                {
+                    <p class="text-muted mb-0">No startup accounts yet.</p>
+                }
+                else
+                {
+                    var max = byStatus.Values.Max();
+                    <ul class="bar-list">
+                        @foreach (var kv in byStatus.OrderByDescending(k => k.Value))
+                        {
+                            <li>
+                                <div class="bar-list__head">
+                                    <partial name="_StatusPill" model="@kv.Key" />
+                                    <span class="bar-list__value">@kv.Value</span>
+                                </div>
+                                <div class="bar-track"><span style="width:@Bar(kv.Value, max)"></span></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Investors by verification status</div>
+            <div class="card-body">
+                @if (!invByStatus.Any())
+                {
+                    <p class="text-muted mb-0">No investor accounts yet.</p>
+                }
+                else
+                {
+                    var max = invByStatus.Values.Max();
+                    <ul class="bar-list">
+                        @foreach (var kv in invByStatus.OrderByDescending(k => k.Value))
+                        {
+                            <li>
+                                <div class="bar-list__head">
+                                    <partial name="_StatusPill" model="@kv.Key" />
+                                    <span class="bar-list__value">@kv.Value</span>
+                                </div>
+                                <div class="bar-track"><span style="width:@Bar(kv.Value, max)"></span></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Startups by business stage</div>
+            <div class="card-body">
+                @if (!byStage.Any())
+                {
+                    <p class="text-muted mb-0">No stage data recorded yet.</p>
+                }
+                else
+                {
+                    var max = byStage.Values.Max();
+                    <ul class="bar-list">
+                        @foreach (var kv in byStage.OrderByDescending(k => k.Value))
+                        {
+                            <li>
+                                <div class="bar-list__head">
+                                    <span>@kv.Key</span>
+                                    <span class="bar-list__value">@kv.Value</span>
+                                </div>
+                                <div class="bar-track"><span style="width:@Bar(kv.Value, max)"></span></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Startups by industry</div>
+            <div class="card-body">
+                @if (!byIndustry.Any())
+                {
+                    <p class="text-muted mb-0">No industry data recorded yet.</p>
+                }
+                else
+                {
+                    var max = byIndustry.Values.Max();
+                    <ul class="bar-list">
+                        @foreach (var kv in byIndustry.OrderByDescending(k => k.Value).Take(8))
+                        {
+                            <li>
+                                <div class="bar-list__head">
+                                    <span>@kv.Key</span>
+                                    <span class="bar-list__value">@kv.Value</span>
+                                </div>
+                                <div class="bar-track"><span style="width:@Bar(kv.Value, max)"></span></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Investment requests by status</div>
+            <div class="card-body">
+                @if (!reqByStatus.Any())
+                {
+                    <p class="text-muted mb-0">No investment requests have been made yet.</p>
+                }
+                else
+                {
+                    var max = reqByStatus.Values.Max();
+                    <ul class="bar-list">
+                        @foreach (var kv in reqByStatus.OrderByDescending(k => k.Value))
+                        {
+                            <li>
+                                <div class="bar-list__head">
+                                    <span>@kv.Key</span>
+                                    <span class="bar-list__value">@kv.Value</span>
+                                </div>
+                                <div class="bar-track"><span style="width:@Bar(kv.Value, max)"></span></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>

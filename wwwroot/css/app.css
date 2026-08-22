@@ -611,3 +611,152 @@ a {
         transition-duration: .01ms !important;
     }
 }
+
+/* ---------------------------------------------------------
+   11. Admin module
+   --------------------------------------------------------- */
+
+.admin-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 22px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.admin-tab {
+    padding: 8px 17px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 550;
+    letter-spacing: -0.015em;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: background-color .18s ease, color .18s ease;
+}
+
+.admin-tab:hover {
+    background: var(--paper-soft);
+    color: var(--ink);
+}
+
+.admin-tab.is-active {
+    background: var(--ink);
+    color: #fff;
+}
+
+/* stat tiles */
+
+.stat-label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.stat-value {
+    display: block;
+    margin-top: 9px;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    color: var(--ink);
+}
+
+.stat-note {
+    display: block;
+    margin-top: 7px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* verification queue */
+
+.review-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.review-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.review-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.review-list li:first-child {
+    padding-top: 0;
+}
+
+/* report bars */
+
+.bar-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+}
+
+.bar-list__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 7px;
+    font-size: 14px;
+    color: var(--ink-70);
+}
+
+.bar-list__value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+.bar-track {
+    height: 7px;
+    border-radius: 999px;
+    background: var(--line-soft);
+    overflow: hidden;
+}
+
+.bar-track > span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--brand-bright), var(--brand-deep));
+}
+
+@media (max-width: 560px) {
+    .review-list li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-tabs {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .admin-tab {
+        padding-inline: 12px;
+        font-size: 13px;
+    }
+}

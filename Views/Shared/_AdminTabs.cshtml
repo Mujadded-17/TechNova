@@ -1,0 +1,12 @@
+﻿@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    string Tab(string name) => action == name ? "admin-tab is-active" : "admin-tab";
+}
+
+<nav class="admin-tabs" aria-label="Admin sections">
+    <a class="@Tab("Dashboard")" asp-controller="Admin" asp-action="Dashboard">Overview</a>
+    <a class="@Tab("Startups")" asp-controller="Admin" asp-action="Startups">Startups</a>
+    <a class="@Tab("Investors")" asp-controller="Admin" asp-action="Investors">Investors</a>
+    <a class="@Tab("Reports")" asp-controller="Admin" asp-action="Reports">Reports</a>
+</nav>

@@ -1,0 +1,13 @@
+﻿@model string
+@{
+    var status = string.IsNullOrWhiteSpace(Model) ? "Pending" : Model;
+
+    var tone = status switch
+    {
+        "Verified"  => "bg-success",
+        "Rejected"  => "bg-danger",
+        "Suspended" => "bg-warning",
+        _           => "bg-secondary"
+    };
+}
+<span class="badge @tone">@status</span>

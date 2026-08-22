@@ -24,6 +24,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
+// Nothing ever created an administrator, so the admin half of the
+// platform was unreachable. Seed one in development only.
+if (app.Environment.IsDevelopment())
+{
+    await TechNova.Data.AdminSeeder.SeedAsync(
+        app.Services,
+        app.Configuration,
+        app.Logger);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
