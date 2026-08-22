@@ -297,9 +297,16 @@ namespace TechNova.Controllers
 
             var principal = new ClaimsPrincipal(identity);
 
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+            };
+
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                principal);
+                principal,
+                authProperties);
         }
     }
 }

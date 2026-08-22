@@ -132,34 +132,57 @@
 
             <div class="nav__actions">
 
-                <a class="nav__login" asp-controller="Account" asp-action="Login">Log In</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="color: white; font-weight: 500;">
+                            @User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                        </span>
+                        @if (User.IsInRole("Startup"))
+                        {
+                            <a href="@Url.Action("Dashboard", "Startup")" class="nav__login">Dashboard</a>
+                        }
+                        @if (User.IsInRole("Investor"))
+                        {
+                            <a href="@Url.Action("Dashboard", "Investor")" class="nav__login">Dashboard</a>
+                        }
+                        <form method="post" asp-controller="Account" asp-action="Logout" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="nav__login" style="background: none; border: none; cursor: pointer;">Logout</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <a class="nav__login" asp-controller="Account" asp-action="Login">Log In</a>
 
-                <div class="nav__cta-wrap" id="navCtaWrap">
+                    <div class="nav__cta-wrap" id="navCtaWrap">
 
-                    <button type="button"
-                            class="btn btn--outline-light btn--sm"
-                            id="navCtaBtn"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        Get Started
-                        <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg>
-                    </button>
+                        <button type="button"
+                                class="btn btn--outline-light btn--sm"
+                                id="navCtaBtn"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            Get Started
+                            <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg>
+                        </button>
 
-                    <div class="nav__menu" role="menu" aria-labelledby="navCtaBtn">
+                        <div class="nav__menu" role="menu" aria-labelledby="navCtaBtn">
 
-                        <a asp-controller="Account" asp-action="RegisterStartup" role="menuitem">
-                            <strong>Get started as a Startup</strong>
-                            <span>Showcase your business and raise funding.</span>
-                        </a>
+                            <a asp-controller="Account" asp-action="RegisterStartup" role="menuitem">
+                                <strong>Get started as a Startup</strong>
+                                <span>Showcase your business and raise funding.</span>
+                            </a>
 
-                        <a asp-controller="Account" asp-action="RegisterInvestor" role="menuitem">
-                            <strong>Join as an Investor</strong>
-                            <span>Discover opportunities that match your criteria.</span>
-                        </a>
+                            <a asp-controller="Account" asp-action="RegisterInvestor" role="menuitem">
+                                <strong>Join as an Investor</strong>
+                                <span>Discover opportunities that match your criteria.</span>
+                            </a>
+
+                        </div>
 
                     </div>
-
-                </div>
+                }
 
                 <button type="button"
                         class="nav__burger"
