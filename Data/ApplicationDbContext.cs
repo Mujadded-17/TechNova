@@ -18,6 +18,8 @@ namespace TechNova.Data
         public DbSet<PitchDeck> PitchDecks { get; set; }
         public DbSet<InvestmentRequest> InvestmentRequests { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<StartupInvestmentOpportunity> StartupInvestmentOpportunities { get; set; }
+        public DbSet<FavoriteStartup> FavoriteStartups { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +48,12 @@ namespace TechNova.Data
 
             modelBuilder.Entity<Message>()
                 .HasKey(m => m.MessageID);
+
+            modelBuilder.Entity<StartupInvestmentOpportunity>()
+                .HasKey(o => o.OpportunityID);
+
+            modelBuilder.Entity<FavoriteStartup>()
+                .HasKey(f => f.FavoriteID);
 
             // -------------------------
             // Startup -> Founder
@@ -142,6 +150,18 @@ namespace TechNova.Data
                 .Property(s => s.FundingRequired)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Startup>()
+                .Property(s => s.AmountRaised)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Startup>()
+                .Property(s => s.MinimumInvestment)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Startup>()
+                .Property(s => s.EquityOffered)
+                .HasPrecision(18, 2);
+
             modelBuilder.Entity<InvestmentRequest>()
                 .Property(r => r.InvestmentAmount)
                 .HasPrecision(18, 2);
@@ -149,6 +169,75 @@ namespace TechNova.Data
             modelBuilder.Entity<Investor>()
                 .Property(i => i.InvestmentRange)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Investor>()
+                .Property(i => i.MinInvestmentAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Investor>()
+                .Property(i => i.MaxInvestmentAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<StartupInvestmentOpportunity>()
+                .Property(o => o.FundingGoal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<StartupInvestmentOpportunity>()
+                .Property(o => o.CurrentFunding)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<StartupInvestmentOpportunity>()
+                .Property(o => o.EquityPercentage)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<StartupInvestmentOpportunity>()
+                .Property(o => o.MinimumInvestment)
+                .HasPrecision(18, 2);
+
+            // -------------------------
+            // Startup -> StartupInvestmentOpportunity
+            // One Startup has many Investment Opportunities
+            // -------------------------
+            modelBuilder.Entity<StartupInvestmentOpportunity>()
+                .HasOne(o => o.Startup)
+                .WithMany() // No reverse navigation property yet
+                .HasForeignKey(o => o.StartupID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------------------------
+            // StartupInvestmentOpportunity -> InvestmentRequest
+            // One Opportunity has many Investment Requests
+            // -------------------------
+            // Note: We need to update InvestmentRequest model to have OpportunityID foreign key
+            // For now, we'll handle relationship via Startup
+
+            // -------------------------
+            // Investor -> FavoriteStartup
+            // One Investor has many Favorite Startups
+            // -------------------------
+            modelBuilder.Entity<FavoriteStartup>()
+                .HasKey(f => f.FavoriteID);
+
+            modelBuilder.Entity<FavoriteStartup>()
+                .HasOne(f => f.Investor)
+                .WithMany(i => i.FavoriteStartups)
+                .HasForeignKey(f => f.InvestorID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------------------------
+            // Startup -> FavoriteStartup
+            // One Startup has many Investors who favorited it
+            // -------------------------
+            modelBuilder.Entity<FavoriteStartup>()
+                .HasOne(f => f.Startup)
+                .WithMany(s => s.FavoredByInvestors)
+                .HasForeignKey(f => f.StartupID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique constraint: Each investor can favorite a startup only once
+            modelBuilder.Entity<FavoriteStartup>()
+                .HasIndex(f => new { f.InvestorID, f.StartupID })
+                .IsUnique();
         }
     }
 }
