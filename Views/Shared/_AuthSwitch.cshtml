@@ -1,0 +1,67 @@
+﻿@*
+    Sign in / Sign up switch.
+
+    These are three separate controller actions, so the switch
+    navigates rather than toggling client-side state — the sliding
+    thumb is positioned from whichever page is currently rendering.
+
+    Set ViewData["AuthMode"] to "signin" or "signup", and for the
+    signup pages set ViewData["AuthRole"] to "startup" or "investor".
+*@
+
+@{
+    var mode = (ViewData["AuthMode"] as string) ?? "signin";
+    var role = (ViewData["AuthRole"] as string) ?? "startup";
+    var isSignUp = mode == "signup";
+}
+
+<div class="auth-switch @(isSignUp ? "is-signup" : "is-signin")">
+
+    <span class="auth-switch__thumb" aria-hidden="true"></span>
+
+    <a class="auth-switch__opt @(isSignUp ? "" : "is-active")"
+       asp-controller="Account"
+       asp-action="Login"
+       aria-current="@(isSignUp ? null : "page")">
+        Sign In
+    </a>
+
+    <a class="auth-switch__opt @(isSignUp ? "is-active" : "")"
+       asp-controller="Account"
+       asp-action="RegisterStartup"
+       aria-current="@(isSignUp ? "page" : null)">
+        Sign Up
+    </a>
+
+</div>
+
+@if (isSignUp)
+{
+    <div class="role-switch" role="group" aria-label="Account type">
+
+        <a class="role-switch__opt @(role == "startup" ? "is-active" : "")"
+           asp-controller="Account"
+           asp-action="RegisterStartup">
+
+            <svg class="ico ico--sm"><use href="#i-rocket" /></svg>
+
+            <span>
+                <strong>Startup</strong>
+                <small>Raise funding</small>
+            </span>
+        </a>
+
+        <a class="role-switch__opt @(role == "investor" ? "is-active" : "")"
+           asp-controller="Account"
+           asp-action="RegisterInvestor">
+
+            <svg class="ico ico--sm"><use href="#i-briefcase" /></svg>
+
+            <span>
+                <strong>Investor</strong>
+                <small>Find opportunities</small>
+            </span>
+        </a>
+
+    </div>
+}

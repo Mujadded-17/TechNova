@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - Tech Nova</title>
+
+    <script type="importmap"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;450;500;550;600;650;700&display=swap"
+          rel="stylesheet" />
+
+    @* landing.css carries the design tokens, buttons and icon sizing *@
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+</head>
+
+<body class="landing auth-body">
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+            <symbol id="i-arrow-right" viewBox="0 0 24 24">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+            </symbol>
+            <symbol id="i-arrow-left" viewBox="0 0 24 24">
+                <path d="M19 12H5M11 18l-6-6 6-6" />
+            </symbol>
+            <symbol id="i-check" viewBox="0 0 24 24">
+                <path d="M20 6L9 17l-5-5" />
+            </symbol>
+            <symbol id="i-rocket" viewBox="0 0 24 24">
+                <path d="M5 13c-1.5 1.5-2 5-2 5s3.5-.5 5-2" />
+                <path d="M15 4c3 0 5 2 5 5 0 4-4 8-7 10l-4-4C11 12 15 8 19 8" />
+                <circle cx="14.5" cy="9.5" r="1.5" />
+            </symbol>
+            <symbol id="i-briefcase" viewBox="0 0 24 24">
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M2 13h20" />
+            </symbol>
+            <symbol id="i-eye" viewBox="0 0 24 24">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                <circle cx="12" cy="12" r="3" />
+            </symbol>
+            <symbol id="i-eye-off" viewBox="0 0 24 24">
+                <path d="M10.6 6.2A9.7 9.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.7M6.6 6.6A17 17 0 0 0 2 12s3.5 6 10 6a9.6 9.6 0 0 0 4.2-.9" />
+                <path d="M3 3l18 18" />
+            </symbol>
+            <symbol id="i-alert" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v5M12 16.5v.01" />
+            </symbol>
+        </defs>
+    </svg>
+
+
+    <div class="auth">
+
+        <!-- =====================================================
+             LEFT — the hero's Velaris shader, reused verbatim
+             ===================================================== -->
+
+        <aside class="auth__aside"
+               data-velaris
+               data-bg="#03060a"
+               data-colors="#0a3a3f,#146b5a,#1e9e7a,#04080c"
+               data-speed="1.2"
+               data-grain="0.26">
+
+            <div class="auth__aside-inner">
+
+                <a class="auth__brand" asp-controller="Home" asp-action="Index">
+                    <svg class="ico ico--sm"><use href="#i-arrow-left" /></svg>
+                    Tech Nova
+                </a>
+
+                <div class="auth__pitch">
+                    <h2>@(ViewData["AsideTitle"] ?? "Great ideas deserve the right investors.")</h2>
+
+                    <p>
+                        @(ViewData["AsideCopy"] ?? "Discover promising businesses, explore funding opportunities, and build meaningful connections — all in one place.")
+                    </p>
+                </div>
+
+                <ul class="auth__points">
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Build a profile investors can act on</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Search and filter by what matters</li>
+                    <li><svg class="ico ico--sm"><use href="#i-check" /></svg>Talk directly &mdash; no introductions needed</li>
+                </ul>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =====================================================
+             RIGHT — switch + form
+             ===================================================== -->
+
+        <main class="auth__main">
+            <div class="auth__panel">
+                @RenderBody()
+            </div>
+        </main>
+
+    </div>
+
+    <script src="~/js/velaris.js" asp-append-version="true"></script>
+    <script src="~/js/auth.js" asp-append-version="true"></script>
+
+    @* _ValidationScriptsPartial ships jquery.validate but not jQuery
+       itself — it relies on the layout providing it. Must load before
+       the Scripts section or unobtrusive validation throws. *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

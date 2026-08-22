@@ -1,77 +1,62 @@
 ﻿@{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Sign In";
+    ViewData["AuthMode"] = "signin";
+    ViewData["AsideTitle"] = "Great ideas deserve the right investors.";
+    Layout = "_AuthLayout";
 }
 
-<link rel="stylesheet" href="~/css/account.css" />
+<partial name="_AuthSwitch" />
 
-<div class="login-page">
-    <div class="login-card">
-
-        <div class="login-header">
-            <h1>TechNova</h1>
-            <p>Welcome back</p>
-        </div>
-
-        @if (ViewBag.Error != null)
-        {
-            <div class="login-error">
-                @ViewBag.Error
-            </div>
-        }
-
-        <form asp-controller="Account"
-              asp-action="Login"
-              method="post">
-
-            @Html.AntiForgeryToken()
-
-            <div class="form-group">
-                <label for="email">Email</label>
-
-                <input type="email"
-                       id="email"
-                       name="email"
-                       placeholder="Enter your email"
-                       required />
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-
-                <input type="password"
-                       id="password"
-                       name="password"
-                       placeholder="Enter your password"
-                       required />
-            </div>
-
-            <button type="submit" class="login-button">
-                Login
-            </button>
-
-        </form>
-
-        <div class="register-section">
-
-            <p>Don't have an account?</p>
-
-            <div class="register-buttons">
-
-                <a asp-controller="Account"
-                   asp-action="RegisterStartup"
-                   class="register-button startup-button">
-                    Register as Startup
-                </a>
-
-                <a asp-controller="Account"
-                   asp-action="RegisterInvestor"
-                   class="register-button investor-button">
-                    Register as Investor
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
+<div class="auth__head">
+    <h1>Welcome back</h1>
+    <p>Sign in to pick up where you left off.</p>
 </div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="auth-alert" role="alert">
+        <svg class="ico ico--sm"><use href="#i-alert" /></svg>
+        <span>@ViewBag.Error</span>
+    </div>
+}
+
+<form asp-controller="Account"
+      asp-action="Login"
+      method="post"
+      class="auth-form">
+
+    @Html.AntiForgeryToken()
+
+    <div class="field">
+        <label for="email">Email</label>
+
+        <input type="email"
+               id="email"
+               name="email"
+               autocomplete="email"
+               placeholder="Enter your email"
+               required />
+    </div>
+
+    <div class="field field--password">
+        <label for="password">Password</label>
+
+        <input type="password"
+               id="password"
+               name="password"
+               autocomplete="current-password"
+               placeholder="Enter your password"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn--brand auth-submit">
+        Sign In
+        <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+    </button>
+
+</form>
+
+<p class="auth__foot">
+    Don't have an account?
+    <a asp-controller="Account" asp-action="RegisterStartup">Create one</a>
+</p>

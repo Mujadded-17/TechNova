@@ -1,0 +1,474 @@
+/* =========================================================
+   Tech Nova — Auth (sign in / sign up)
+   Split screen: Velaris shader panel + light form column.
+   Tokens, buttons and .ico sizing come from landing.css.
+   ========================================================= */
+
+.auth-body {
+    margin: 0;
+    background: var(--paper);
+}
+
+.auth {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    min-height: 100vh;
+}
+
+/* ---------- Left: shader panel ---------- */
+
+.auth__aside {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--hero-bg);
+    color: var(--hero-fg);
+
+    /* Fallback if WebGL is unavailable — same family as the hero */
+    background-image:
+        radial-gradient(120% 90% at 18% 12%, #0a3a3f 0%, transparent 55%),
+        radial-gradient(110% 80% at 82% 78%, #146b5a 0%, transparent 58%);
+}
+
+/* legibility scrim over the shader */
+.auth__aside::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(160deg, rgba(3, 6, 10, .72) 0%, rgba(3, 6, 10, .30) 55%, rgba(3, 6, 10, .60) 100%);
+}
+
+.auth__aside-inner {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 44px;
+}
+
+.auth__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    align-self: flex-start;
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    color: #fff;
+    padding: 8px 14px 8px 10px;
+    border: 1px solid var(--hero-line);
+    border-radius: 999px;
+    background: var(--hero-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background-color .2s ease, border-color .2s ease;
+}
+
+.auth__brand:hover {
+    background: rgba(255, 255, 255, .16);
+    border-color: rgba(255, 255, 255, .3);
+}
+
+.auth__brand svg {
+    transition: transform .2s ease;
+}
+
+.auth__brand:hover svg {
+    transform: translateX(-3px);
+}
+
+.auth__pitch h2 {
+    font-size: clamp(28px, 2.9vw, 42px);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: -0.04em;
+    max-width: 16ch;
+}
+
+.auth__pitch p {
+    margin-top: 20px;
+    max-width: 44ch;
+    font-size: 15.5px;
+    line-height: 1.66;
+    color: var(--hero-fg-70);
+}
+
+.auth__points {
+    display: grid;
+    gap: 12px;
+    padding-top: 26px;
+    border-top: 1px solid var(--hero-line);
+}
+
+.auth__points li {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 14.5px;
+    letter-spacing: -0.015em;
+    color: var(--hero-fg-70);
+}
+
+.auth__points .ico {
+    color: var(--brand-bright);
+}
+
+/* ---------- Right: form column ---------- */
+
+.auth__main {
+    display: flex;
+    justify-content: center;
+    padding: 56px 40px 72px;
+}
+
+.auth__panel {
+    width: 100%;
+    max-width: 480px;
+}
+
+.auth__head {
+    margin-bottom: 30px;
+}
+
+.auth__head h1 {
+    font-size: clamp(28px, 3.2vw, 38px);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+}
+
+.auth__head p {
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+/* ---------- Sign in / Sign up switch ---------- */
+
+.auth-switch {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 4px;
+    margin-bottom: 30px;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.auth-switch__thumb {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    border-radius: 999px;
+    background: var(--ink);
+    box-shadow: 0 4px 14px rgba(10, 12, 14, .18);
+    transition: transform .34s cubic-bezier(.16, 1, .3, 1);
+}
+
+.auth-switch.is-signup .auth-switch__thumb {
+    transform: translateX(100%);
+}
+
+.auth-switch__opt {
+    position: relative;
+    z-index: 1;
+    padding: 11px 8px;
+    text-align: center;
+    font-size: 14.5px;
+    font-weight: 550;
+    letter-spacing: -0.015em;
+    color: var(--muted);
+    border-radius: 999px;
+    transition: color .28s ease;
+}
+
+.auth-switch__opt:hover {
+    color: var(--ink);
+}
+
+.auth-switch__opt.is-active,
+.auth-switch__opt.is-active:hover {
+    color: #fff;
+}
+
+/* ---------- Startup / Investor role switch ---------- */
+
+.role-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.role-switch__opt {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 14px 15px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--paper);
+    transition: border-color .2s ease, background-color .2s ease,
+                box-shadow .2s ease, transform .2s ease;
+}
+
+.role-switch__opt:hover {
+    border-color: var(--brand-line);
+    transform: translateY(-1px);
+}
+
+.role-switch__opt .ico {
+    color: var(--muted-soft);
+    transition: color .2s ease;
+}
+
+.role-switch__opt strong {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+.role-switch__opt small {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.role-switch__opt.is-active {
+    border-color: var(--brand);
+    background: var(--brand-tint);
+    box-shadow: 0 0 0 1px var(--brand);
+}
+
+.role-switch__opt.is-active .ico {
+    color: var(--brand);
+}
+
+/* ---------- Form ---------- */
+
+.auth-form {
+    display: grid;
+    gap: 18px;
+}
+
+.field {
+    display: grid;
+    gap: 7px;
+}
+
+.field--half {
+    grid-column: span 1;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.field label {
+    font-size: 13.5px;
+    font-weight: 550;
+    letter-spacing: -0.01em;
+    color: var(--ink-70);
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    outline: none;
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 92px;
+    line-height: 1.6;
+}
+
+.field select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    /* chevron drawn inline so the control needs no extra markup */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23626d78' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    padding-right: 38px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+    color: var(--muted-soft);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(15, 122, 92, .14);
+}
+
+/* password visibility toggle */
+.field--password {
+    position: relative;
+}
+
+.field--password input {
+    padding-right: 44px;
+}
+
+.pw-toggle {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--muted-soft);
+    cursor: pointer;
+    transition: color .18s ease, background-color .18s ease;
+}
+
+.pw-toggle:hover {
+    color: var(--ink);
+    background: var(--paper-soft);
+}
+
+.field-error {
+    font-size: 12.5px;
+    color: #c0392b;
+    line-height: 1.45;
+}
+
+.field-error:empty {
+    display: none;
+}
+
+/* server-side error banner */
+.auth-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 15px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #8e2a1e;
+    background: #fdf1ef;
+    border: 1px solid #f3d2cc;
+    border-radius: var(--r-sm);
+}
+
+.auth-alert .ico {
+    color: #c0392b;
+    margin-top: 1px;
+}
+
+.auth-submit {
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.auth__foot {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.auth__foot a {
+    color: var(--brand);
+    font-weight: 550;
+}
+
+.auth__foot a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .auth {
+        grid-template-columns: 1fr;
+    }
+
+    /* Panel becomes a banner; the shader still runs behind it. */
+    .auth__aside {
+        position: static;
+        height: auto;
+    }
+
+    .auth__aside-inner {
+        padding: 26px 24px 34px;
+        gap: 26px;
+    }
+
+    .auth__pitch h2 {
+        font-size: clamp(24px, 5.4vw, 32px);
+        max-width: 100%;
+    }
+
+    .auth__pitch p {
+        margin-top: 14px;
+        max-width: 100%;
+        font-size: 14.5px;
+    }
+
+    /* Bullets are supporting detail — drop them on small screens. */
+    .auth__points {
+        display: none;
+    }
+
+    .auth__main {
+        padding: 40px 24px 64px;
+    }
+}
+
+@media (max-width: 560px) {
+    .auth__aside-inner {
+        padding: 20px 18px 28px;
+    }
+
+    .auth__main {
+        padding: 32px 18px 56px;
+    }
+
+    .field-row,
+    .role-switch {
+        grid-template-columns: 1fr;
+    }
+}
