@@ -23,3 +23,6 @@ Thumbs.db
 appsettings.Development.json
 # Local tooling
 .claude/
+
+# Dev email output
+App_Data/

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TechNova.Data;
+using TechNova.Filters;
 using TechNova.Models;
 
 namespace TechNova.Controllers
@@ -162,6 +163,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequiresSubscription]
         public async Task<IActionResult> Send(int id, string content)
         {
             if (string.IsNullOrWhiteSpace(content))
@@ -215,6 +217,7 @@ namespace TechNova.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Investor")]
+        [RequiresSubscription]
         public async Task<IActionResult> New(string? q)
         {
             var me = CurrentId;

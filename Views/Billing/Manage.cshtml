@@ -1,0 +1,178 @@
+﻿@model TechNova.Models.Subscription
+@using TechNova.Models
+@{
+    ViewData["Title"] = "Subscription";
+    var payments = ViewBag.Payments as List<Payment> ?? new();
+    var account = (string?)ViewBag.PayeeAccount;
+
+    var pending = payments.FirstOrDefault(p => p.Status == PaymentStatus.Pending);
+}
+
+<div class="page-head">
+    <h1>Your subscription</h1>
+    <p>Plan, renewal date and payment history.</p>
+</div>
+
+@if (TempData["BillingMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["BillingMessage"]</div>
+}
+@if (TempData["BillingError"] != null)
+{
+    <div class="alert alert-danger">@TempData["BillingError"]</div>
+}
+
+@if (Model == null)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3 class="mb-2">No active subscription</h3>
+            <p class="text-muted mb-3">
+                You can browse startups for free. Pick a plan to message
+                founders and send investment requests.
+            </p>
+            <a asp-action="Plans" class="btn btn-primary">See plans</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>@Model.Plan.Name</span>
+                    <partial name="_SubscriptionPill" model="@Model" />
+                </div>
+
+                <div class="card-body">
+
+                    <div class="pay-row">
+                        <span>Price</span>
+                        <strong>@Model.Currency @Model.PriceAtSubscription.ToString("N2") / month</strong>
+                    </div>
+
+                    <div class="pay-row">
+                        <span>@(Model.Status == SubscriptionStatus.Trialing ? "Trial ends" : "Current period ends")</span>
+                        <strong>@Model.CurrentPeriodEnd.ToLocalTime().ToString("dd MMM yyyy")</strong>
+                    </div>
+
+                    <div class="pay-row">
+                        <span>Auto-renew</span>
+                        <strong>@(Model.AutoRenew ? "On" : "Off")</strong>
+                    </div>
+
+                    <div class="pay-row">
+                        <span>Started</span>
+                        <strong>@Model.StartedAt.ToLocalTime().ToString("dd MMM yyyy")</strong>
+                    </div>
+
+                    @if (!Model.IsCurrentlyActive)
+                    {
+                        <div class="alert alert-warning mt-3 mb-0">
+                            @if (Model.Status == SubscriptionStatus.PendingPayment)
+                            {
+                                <text>
+                                    Waiting on payment. Access opens as soon as we
+                                    confirm your transfer.
+                                </text>
+                            }
+                            else
+                            {
+                                <text>This subscription has ended. Renew to restore access.</text>
+                            }
+                        </div>
+                    }
+
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a asp-action="Plans" class="btn btn-outline-primary btn-sm">Change plan</a>
+
+                        @if (Model.AutoRenew)
+                        {
+                            <form asp-action="Cancel" method="post"
+                                  onsubmit="return confirm('Turn off auto-renewal? You keep access until @Model.CurrentPeriodEnd.ToLocalTime().ToString("dd MMM yyyy").');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                    Cancel auto-renewal
+                                </button>
+                            </form>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            @if (pending != null)
+            {
+                <div class="card">
+                    <div class="card-header">Payment awaiting confirmation</div>
+                    <div class="card-body">
+
+                        <p class="text-muted small">
+                            Transfer the amount below quoting this reference.
+                        </p>
+
+                        <div class="ref-box">@pending.Reference</div>
+
+                        <div class="pay-row mt-3">
+                            <span>Amount</span>
+                            <strong>@pending.Currency @pending.Amount.ToString("N2")</strong>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(account))
+                        {
+                            <div class="pay-row">
+                                <span>Account</span>
+                                <strong>@account</strong>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+}
+
+<div class="card mt-3">
+    <div class="card-header">Payment history</div>
+
+    @if (!payments.Any())
+    {
+        <div class="card-body">
+            <p class="text-muted mb-0">No payments yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in payments)
+                    {
+                        <tr>
+                            <td><code>@p.Reference</code></td>
+                            <td class="text-muted">@p.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>@p.Currency @p.Amount.ToString("N2")</td>
+                            <td class="text-muted">@p.Provider</td>
+                            <td><partial name="_PaymentPill" model="@p.Status" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,14 @@
+@using TechNova.Models
+@model Subscription
+@{
+    var (tone, label) = Model.Status switch
+    {
+        SubscriptionStatus.Active         => ("bg-success", "Active"),
+        SubscriptionStatus.Trialing       => ("bg-info", "Trial"),
+        SubscriptionStatus.PendingPayment => ("bg-warning", "Awaiting payment"),
+        SubscriptionStatus.Expired        => ("bg-secondary", "Expired"),
+        SubscriptionStatus.Cancelled      => ("bg-secondary", "Cancelled"),
+        _                                 => ("bg-secondary", Model.Status)
+    };
+}
+<span class="badge @tone">@label</span>

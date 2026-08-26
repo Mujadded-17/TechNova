@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.Metrics;
+using System.Diagnostics.Metrics;
 using System.ComponentModel.DataAnnotations;
 
 namespace TechNova.Models
@@ -64,6 +64,20 @@ namespace TechNova.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
+
+
+        // ---- Email verification ----
+
+        /// <summary>
+        /// Sign-in is refused until this is true. Existing accounts were
+        /// grandfathered to true by the AddEmailVerification migration.
+        /// </summary>
+        public bool EmailVerified { get; set; } = false;
+
+        /// <summary>Cleared as soon as it is redeemed, so a link works once.</summary>
+        public string? EmailVerificationToken { get; set; }
+
+        public DateTime? EmailVerificationSentAt { get; set; }
 
         public string VerificationStatus { get; set; } = "Pending";
 

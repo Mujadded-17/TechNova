@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Resend Confirmation";
+    ViewData["AsideTitle"] = "Send yourself a fresh link.";
+    Layout = "_AuthLayout";
+    var sent = ViewBag.Sent as bool? ?? false;
+    var email = (string?)ViewBag.Email;
+}
+
+<div class="auth__head">
+    <h1>Resend confirmation</h1>
+    <p>Enter the address you registered with and we'll send a new link.</p>
+</div>
+
+@if (sent)
+{
+    <div class="auth-alert" role="status">
+        <svg class="ico ico--sm"><use href="#i-alert" /></svg>
+        <span>
+            If that address has an unconfirmed account, a new link is on its way.
+            It expires in 24 hours.
+        </span>
+    </div>
+
+    <div class="denied-actions">
+        <a asp-action="Login" class="btn btn--brand auth-submit">
+            Back to sign in
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </a>
+    </div>
+}
+else
+{
+    <form asp-action="ResendVerification" method="post" class="auth-form">
+        @Html.AntiForgeryToken()
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="@email"
+                   autocomplete="email" placeholder="you@example.com" required />
+        </div>
+
+        <button type="submit" class="btn btn--brand auth-submit">
+            Send link
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </button>
+    </form>
+
+    <p class="auth__foot">
+        Already confirmed? <a asp-action="Login">Sign in</a>
+    </p>
+}

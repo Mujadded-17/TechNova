@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using TechNova.Data;
+using TechNova.Filters;
 using TechNova.Models;
 using System.Security.Claims;
 
@@ -279,6 +280,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequiresSubscription]
         public async Task<IActionResult> CreateRequest(int startupId, decimal investmentAmount, string? message)
         {
             var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -75,6 +75,9 @@
                                     Messages @await Component.InvokeAsync("UnreadCount")
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Billing" asp-action="Plans">Plans</a>
+                            </li>
                         }
                         else
                         {
@@ -105,6 +108,7 @@
                                         <li><a class="dropdown-item" asp-controller="Investor" asp-action="Dashboard">Dashboard</a></li>
                                         <li><a class="dropdown-item" asp-controller="Investor" asp-action="Discover">Discover</a></li>
                                         <li><a class="dropdown-item" asp-controller="Investor" asp-action="EditProfile">Edit Profile</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Billing" asp-action="Manage">Subscription</a></li>
                                     }
                                     @if (User.IsInRole("Admin"))
                                     {

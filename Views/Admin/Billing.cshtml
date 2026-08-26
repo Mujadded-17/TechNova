@@ -1,0 +1,179 @@
+﻿@model List<TechNova.Models.Payment>
+@using TechNova.Models
+@{
+    ViewData["Title"] = "Billing & Revenue";
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var active = (string)ViewBag.Status;
+    var currency = (string)ViewBag.Currency;
+}
+
+<div class="page-head">
+    <h1>Billing &amp; revenue</h1>
+    <p>Confirm incoming payments and track recurring revenue.</p>
+</div>
+
+<partial name="_AdminTabs" />
+
+@if (TempData["AdminMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["AdminMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">MRR</span>
+                <span class="stat-value">@currency @(((decimal)ViewBag.Mrr).ToString("N0"))</span>
+                <span class="stat-note">paid subscriptions only</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Active</span>
+                <span class="stat-value">@ViewBag.ActiveCount</span>
+                <span class="stat-note">@ViewBag.TrialCount on trial</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Awaiting confirmation</span>
+                <span class="stat-value">@ViewBag.PendingCount</span>
+                <span class="stat-note">payments needing action</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="stat-label">Lifetime revenue</span>
+                <span class="stat-value">@currency @(((decimal)ViewBag.LifetimeRevenue).ToString("N0"))</span>
+                <span class="stat-note">all confirmed payments</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+
+            <div class="col-md-4">
+                <label class="form-label" for="status">Payment status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="All" selected="@(active == "All")">All</option>
+                    @foreach (var s in statuses)
+                    {
+                        <option value="@s" selected="@(active == s)">@s</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-0">No payments match this filter.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Investor</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td>
+                                <code>@p.Reference</code>
+                                @if (!string.IsNullOrWhiteSpace(p.PayerNote))
+                                {
+                                    <span class="d-block text-muted small">@p.PayerNote</span>
+                                }
+                            </td>
+
+                            <td>
+                                <strong>@p.Investor.Name</strong>
+                                <span class="d-block text-muted small">@p.Investor.Email</span>
+                            </td>
+
+                            <td>@p.Subscription.Plan.Name</td>
+
+                            <td>@p.Currency @p.Amount.ToString("N2")</td>
+
+                            <td class="text-muted">@p.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+
+                            <td><partial name="_PaymentPill" model="@p.Status" /></td>
+
+                            <td class="text-end">
+                                @if (p.Status == PaymentStatus.Pending)
+                                {
+                                    <div class="d-flex gap-1 justify-content-end">
+
+                                        <form asp-action="ConfirmPayment" method="post" class="d-inline"
+                                              onsubmit="return confirm('Confirm @p.Currency @p.Amount.ToString("N2") from @p.Investor.Name? This grants one month of access.');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@p.PaymentID" />
+                                            <input type="hidden" name="returnStatus" value="@active" />
+                                            <button type="submit" class="btn btn-primary btn-sm">Confirm</button>
+                                        </form>
+
+                                        <form asp-action="RejectPayment" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@p.PaymentID" />
+                                            <input type="hidden" name="returnStatus" value="@active" />
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">Reject</button>
+                                        </form>
+
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">
+                                        @(p.PaidAt.HasValue ? p.PaidAt.Value.ToLocalTime().ToString("dd MMM") : "—")
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+}

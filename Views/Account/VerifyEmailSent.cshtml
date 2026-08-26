@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Check your email";
+    ViewData["AsideTitle"] = "One more step.";
+    ViewData["AsideCopy"] = "Confirming your address keeps the marketplace trustworthy for everyone on it.";
+    Layout = "_AuthLayout";
+    var email = (string?)ViewBag.Email;
+}
+
+<div class="auth__head">
+    <h1>Check your email</h1>
+
+    <p>
+        We've sent a confirmation link
+        @if (!string.IsNullOrWhiteSpace(email))
+        {
+            <text>to <strong>@email</strong></text>
+        }.
+        Open it to activate your account &mdash; the link expires in 24 hours.
+    </p>
+</div>
+
+<div class="auth-alert" role="status">
+    <svg class="ico ico--sm"><use href="#i-alert" /></svg>
+    <span>You won't be able to sign in until your address is confirmed.</span>
+</div>
+
+<div class="denied-actions">
+    <a asp-action="Login" class="btn btn--brand auth-submit">
+        Go to sign in
+        <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+    </a>
+
+    <a asp-action="ResendVerification" asp-route-email="@email" class="btn btn--ghost auth-submit">
+        Didn't get it? Send again
+    </a>
+</div>

@@ -10,6 +10,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<TechNova.Services.SubscriptionService>();
+
+// Real SMTP when configured; otherwise a development sender that writes
+// the message to App_Data/sent-emails so links are still clickable locally.
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Email:Smtp:Host"]))
+{
+    builder.Services.AddScoped<TechNova.Services.IEmailSender,
+                               TechNova.Services.SmtpEmailSender>();
+}
+else
+{
+    builder.Services.AddScoped<TechNova.Services.IEmailSender,
+                               TechNova.Services.DevEmailSender>();
+}
+
+builder.Services.AddScoped<TechNova.Services.EmailVerificationService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -29,6 +45,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     await TechNova.Data.AdminSeeder.SeedAsync(
+        app.Services,
+        app.Configuration,
+        app.Logger);
+
+    await TechNova.Data.PlanSeeder.SeedAsync(
         app.Services,
         app.Configuration,
         app.Logger);

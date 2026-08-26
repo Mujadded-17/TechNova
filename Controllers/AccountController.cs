@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using TechNova.Data;
 using TechNova.Models;
+using TechNova.Services;
 
 namespace TechNova.Controllers
 {
@@ -14,12 +15,22 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<object> _passwordHasher;
+        private readonly EmailVerificationService _verification;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(
+            ApplicationDbContext context,
+            EmailVerificationService verification)
         {
             _context = context;
+            _verification = verification;
             _passwordHasher = new PasswordHasher<object>();
         }
+
+        /// <summary>Absolute verify link with a {token} placeholder.</summary>
+        private string VerifyUrlTemplate =>
+            Url.Action("VerifyEmail", "Account", new { token = "TOKEN_PLACEHOLDER" },
+                       Request.Scheme)!
+               .Replace("TOKEN_PLACEHOLDER", "{token}");
 
         // ============================
         // LOGIN
@@ -75,6 +86,13 @@ namespace TechNova.Controllers
             if (startup != null &&
                 VerifyPassword(startup.PasswordHash, password))
             {
+                if (!startup.EmailVerified)
+                {
+                    ViewBag.Unverified = startup.Email;
+                    ViewBag.Error = "Confirm your email address before signing in.";
+                    return View();
+                }
+
                 await SignInUser(
                     startup.StartupID.ToString(),
                     startup.Email,
@@ -93,6 +111,13 @@ namespace TechNova.Controllers
             if (investor != null &&
                 VerifyPassword(investor.PasswordHash, password))
             {
+                if (!investor.EmailVerified)
+                {
+                    ViewBag.Unverified = investor.Email;
+                    ViewBag.Error = "Confirm your email address before signing in.";
+                    return View();
+                }
+
                 await SignInUser(
                     investor.InvestorID.ToString(),
                     investor.Email,
@@ -163,7 +188,9 @@ namespace TechNova.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Login");
+            await _verification.SendForStartupAsync(startup.StartupID, VerifyUrlTemplate);
+
+            return RedirectToAction(nameof(VerifyEmailSent), new { email });
         }
 
         // ============================
@@ -223,8 +250,59 @@ namespace TechNova.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Login");
+            await _verification.SendForInvestorAsync(investor.InvestorID, VerifyUrlTemplate);
+
+            return RedirectToAction(nameof(VerifyEmailSent), new { email });
         }
+        // ============================
+        // EMAIL VERIFICATION
+        // ============================
+
+        /// <summary>Shown right after registering.</summary>
+        [HttpGet]
+        public IActionResult VerifyEmailSent(string? email)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
+
+
+        /// <summary>Redeem the link from the email.</summary>
+        [HttpGet]
+        public async Task<IActionResult> VerifyEmail(string? token)
+        {
+            ViewBag.Result = await _verification.VerifyAsync(token);
+            return View();
+        }
+
+
+        [HttpGet]
+        public IActionResult ResendVerification(string? email)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName(nameof(ResendVerification))]
+        public async Task<IActionResult> ResendVerificationPost(string email)
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                await _verification.ResendAsync(email, VerifyUrlTemplate);
+            }
+
+            // Always the same answer, whether or not the address exists —
+            // otherwise this endpoint enumerates registered users.
+            ViewBag.Sent = true;
+            ViewBag.Email = email;
+
+            return View(nameof(ResendVerification));
+        }
+
+
         // ============================
         // LOGOUT
         // ============================

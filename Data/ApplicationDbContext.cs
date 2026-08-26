@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TechNova.Models;
 
 namespace TechNova.Data
@@ -20,6 +20,11 @@ namespace TechNova.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<StartupInvestmentOpportunity> StartupInvestmentOpportunities { get; set; }
         public DbSet<FavoriteStartup> FavoriteStartups { get; set; }
+
+        // Billing
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -168,6 +173,68 @@ namespace TechNova.Data
 
             modelBuilder.Entity<Investor>()
                 .Property(i => i.InvestmentRange)
+                .HasPrecision(18, 2);
+
+
+            // -------------------------
+            // Billing
+            // -------------------------
+            modelBuilder.Entity<SubscriptionPlan>()
+                .HasKey(p => p.SubscriptionPlanID);
+
+            modelBuilder.Entity<Subscription>()
+                .HasKey(s => s.SubscriptionID);
+
+            modelBuilder.Entity<Payment>()
+                .HasKey(p => p.PaymentID);
+
+            // Plan codes are the stable machine key.
+            modelBuilder.Entity<SubscriptionPlan>()
+                .HasIndex(p => p.Code)
+                .IsUnique();
+
+            // Our payment reference must be unique so it can be quoted
+            // on a bank transfer and reconciled unambiguously.
+            modelBuilder.Entity<Payment>()
+                .HasIndex(p => p.Reference)
+                .IsUnique();
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Investor)
+                .WithMany()
+                .HasForeignKey(s => s.InvestorID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Plan)
+                .WithMany(p => p.Subscriptions)
+                .HasForeignKey(s => s.SubscriptionPlanID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Subscription)
+                .WithMany(s => s.Payments)
+                .HasForeignKey(p => p.SubscriptionID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Deleting an investor cascades via Subscription; a second
+            // cascade path here would create multiple-cascade-paths.
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Investor)
+                .WithMany()
+                .HasForeignKey(p => p.InvestorID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<SubscriptionPlan>()
+                .Property(p => p.PriceMonthly)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Subscription>()
+                .Property(s => s.PriceAtSubscription)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<Investor>()

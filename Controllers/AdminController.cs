@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TechNova.Data;
 using TechNova.Models;
+using TechNova.Services;
 
 namespace TechNova.Controllers
 {
@@ -18,10 +19,12 @@ namespace TechNova.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly SubscriptionService _subs;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, SubscriptionService subs)
         {
             _context = context;
+            _subs = subs;
         }
 
         // Allowed VerificationStatus values.
@@ -306,6 +309,89 @@ namespace TechNova.Controllers
                 .SumAsync(r => (decimal?)r.InvestmentAmount) ?? 0m;
 
             return View();
+        }
+
+        // ============================
+        // BILLING — revenue and payment confirmation
+        // ============================
+
+        [HttpGet]
+        public async Task<IActionResult> Billing(string? status)
+        {
+            var payments = _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Investor)
+                .Include(p => p.Subscription)
+                    .ThenInclude(s => s.Plan)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(status) && status != "All")
+            {
+                payments = payments.Where(p => p.Status == status);
+            }
+
+            ViewBag.Status = status ?? "Pending";
+            ViewBag.Statuses = PaymentStatus.All;
+
+            var subs = _context.Subscriptions.AsNoTracking();
+            var now = DateTime.UtcNow;
+
+            ViewBag.Mrr = await _subs.GetMrrAsync();
+
+            ViewBag.ActiveCount = await subs.CountAsync(s =>
+                s.Status == SubscriptionStatus.Active && s.CurrentPeriodEnd > now);
+
+            ViewBag.TrialCount = await subs.CountAsync(s =>
+                s.Status == SubscriptionStatus.Trialing && s.CurrentPeriodEnd > now);
+
+            ViewBag.PendingCount = await _context.Payments
+                .CountAsync(p => p.Status == PaymentStatus.Pending);
+
+            ViewBag.LifetimeRevenue = await _context.Payments
+                .Where(p => p.Status == PaymentStatus.Paid)
+                .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+
+            ViewBag.Currency = (await _context.SubscriptionPlans
+                .Select(p => p.Currency).FirstOrDefaultAsync()) ?? "USD";
+
+            // Default the list to what needs action.
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                payments = payments.Where(p => p.Status == PaymentStatus.Pending);
+            }
+
+            return View(await payments
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(200)
+                .ToListAsync());
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int id, string? returnStatus)
+        {
+            var ok = await _subs.ConfirmPaymentAsync(id, CurrentAdminId);
+
+            TempData["AdminMessage"] = ok
+                ? "Payment confirmed — access granted for one month."
+                : "That payment was already settled.";
+
+            return RedirectToAction(nameof(Billing), new { status = returnStatus });
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectPayment(int id, string? returnStatus)
+        {
+            var ok = await _subs.MarkPaymentFailedAsync(id, CurrentAdminId);
+
+            TempData["AdminMessage"] = ok
+                ? "Payment marked as failed."
+                : "That payment is already paid and cannot be failed.";
+
+            return RedirectToAction(nameof(Billing), new { status = returnStatus });
         }
     }
 }

@@ -1,0 +1,116 @@
+﻿@model List<TechNova.Models.SubscriptionPlan>
+@using TechNova.Models
+@{
+    ViewData["Title"] = "Plans & Pricing";
+
+    var current = ViewBag.Current as Subscription;
+    var trialAvailable = (bool)ViewBag.TrialAvailable;
+    var returnUrl = (string?)ViewBag.ReturnUrl;
+    var gated = (bool)ViewBag.Gated;
+}
+
+<div class="page-head text-center">
+    <h1>Investor plans</h1>
+    <p class="mx-auto" style="max-width:52ch">
+        Browsing startups is free. A plan unlocks contacting founders
+        and sending investment requests.
+    </p>
+</div>
+
+@if (gated)
+{
+    <div class="alert alert-info">
+        <span class="alert-heading">That's a subscriber feature</span>
+        Pick a plan below to continue. @(trialAvailable ? "Your first 14 days are free." : "")
+    </div>
+}
+
+@if (TempData["BillingError"] != null)
+{
+    <div class="alert alert-danger">@TempData["BillingError"]</div>
+}
+
+@if (current is { IsCurrentlyActive: true })
+{
+    <div class="alert alert-success d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>
+            <span class="alert-heading">You're on @current.Plan.Name</span>
+            @(current.Status == SubscriptionStatus.Trialing ? "Trial ends" : "Renews")
+            @current.CurrentPeriodEnd.ToLocalTime().ToString("dd MMM yyyy").
+        </span>
+        <a asp-action="Manage" class="btn btn-outline-primary btn-sm">Manage subscription</a>
+    </div>
+}
+
+<div class="row g-3 align-items-stretch">
+    @foreach (var p in Model)
+    {
+        var isCurrent = current?.SubscriptionPlanID == p.SubscriptionPlanID
+                        && current.IsCurrentlyActive;
+
+        <div class="col-lg-4">
+            <div class="card h-100 @(p.IsFeatured ? "plan-card is-featured" : "plan-card")">
+
+                @if (p.IsFeatured)
+                {
+                    <span class="plan-flag">Most popular</span>
+                }
+
+                <div class="card-body d-flex flex-column">
+
+                    <h3 class="card-title mb-1">@p.Name</h3>
+                    <p class="text-muted small mb-3">@p.Tagline</p>
+
+                    <div class="plan-price">
+                        <span class="plan-price__amount">
+                            @p.Currency @p.PriceMonthly.ToString("N0")
+                        </span>
+                        <span class="plan-price__period">/ month</span>
+                    </div>
+
+                    <ul class="plan-features">
+                        @foreach (var f in p.Features.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <li>@f</li>
+                        }
+                    </ul>
+
+                    <div class="mt-auto pt-3 d-grid gap-2">
+
+                        @if (isCurrent)
+                        {
+                            <button class="btn btn-outline-secondary" disabled>Current plan</button>
+                        }
+                        else
+                        {
+                            @if (trialAvailable && p.TrialDays > 0)
+                            {
+                                <form asp-action="StartTrial" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="planId" value="@p.SubscriptionPlanID" />
+                                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Start @p.TrialDays-day free trial
+                                    </button>
+                                </form>
+                            }
+
+                            <a asp-action="Checkout" asp-route-planId="@p.SubscriptionPlanID"
+                               class="btn @(trialAvailable ? "btn-outline-primary" : "btn-primary")">
+                                Subscribe
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<p class="text-muted small text-center mt-4 mb-0">
+    Prices are per investor account, billed monthly. Cancel any time —
+    you keep access until the end of the period you've paid for.
+</p>

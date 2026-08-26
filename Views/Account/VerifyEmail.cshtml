@@ -1,0 +1,51 @@
+@using TechNova.Services
+@{
+    ViewData["Title"] = "Email Verification";
+    Layout = "_AuthLayout";
+    var result = (EmailVerificationService.VerifyResult)ViewBag.Result;
+    var ok = result == EmailVerificationService.VerifyResult.Success;
+
+    ViewData["AsideTitle"] = ok ? "You're all set." : "That link didn't work.";
+}
+
+<div class="auth__head">
+    @switch (result)
+    {
+        case EmailVerificationService.VerifyResult.Success:
+            <h1>Email confirmed</h1>
+            <p>Your account is active. Sign in to get started.</p>
+            break;
+
+        case EmailVerificationService.VerifyResult.Expired:
+            <h1>Link expired</h1>
+            <p>Confirmation links last 24 hours. Request a fresh one below.</p>
+            break;
+
+        default:
+            <h1>Link not valid</h1>
+            <p>
+                This link is invalid or has already been used. If you've
+                already confirmed, just sign in.
+            </p>
+            break;
+    }
+</div>
+
+<div class="denied-actions">
+    @if (ok)
+    {
+        <a asp-action="Login" class="btn btn--brand auth-submit">
+            Sign in
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </a>
+    }
+    else
+    {
+        <a asp-action="ResendVerification" class="btn btn--brand auth-submit">
+            Send a new link
+            <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+        </a>
+
+        <a asp-action="Login" class="btn btn--ghost auth-submit">Back to sign in</a>
+    }
+</div>

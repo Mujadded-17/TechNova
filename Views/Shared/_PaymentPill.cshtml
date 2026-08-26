@@ -1,0 +1,13 @@
+@using TechNova.Models
+@model string
+@{
+    var tone = Model switch
+    {
+        PaymentStatus.Paid     => "bg-success",
+        PaymentStatus.Pending  => "bg-warning",
+        PaymentStatus.Failed   => "bg-danger",
+        PaymentStatus.Refunded => "bg-info",
+        _                      => "bg-secondary"
+    };
+}
+<span class="badge @tone">@Model</span>

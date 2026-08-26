@@ -1,0 +1,125 @@
+﻿@model TechNova.Models.SubscriptionPlan
+@{
+    ViewData["Title"] = "Subscribe to " + Model.Name;
+    var account = (string?)ViewBag.PayeeAccount;
+    var instructions = (string?)ViewBag.PayeeInstructions;
+}
+
+<div class="mb-3">
+    <a asp-action="Plans" class="back-link">&larr; All plans</a>
+</div>
+
+<div class="row g-3">
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">How payment works</div>
+            <div class="card-body">
+
+                <ol class="checkout-steps">
+                    <li>
+                        <strong>Confirm below.</strong>
+                        We create a payment reference for your account.
+                    </li>
+                    <li>
+                        <strong>Transfer the amount</strong> to the account shown,
+                        quoting that reference.
+                    </li>
+                    <li>
+                        <strong>We confirm receipt</strong> and your access opens —
+                        usually within one business day.
+                    </li>
+                </ol>
+
+                <div class="alert alert-info mb-0">
+                    <span class="alert-heading">We never ask for card details here</span>
+                    Tech Nova does not collect or store card numbers. Payment is
+                    arranged through your bank or mobile wallet.
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">Where to send it</div>
+            <div class="card-body">
+
+                <div class="pay-row">
+                    <span>Payee</span>
+                    <strong>@ViewBag.PayeeName</strong>
+                </div>
+
+                <div class="pay-row">
+                    <span>Account</span>
+                    <strong>
+                        @if (string.IsNullOrWhiteSpace(account))
+                        {
+                            <span class="text-muted">
+                                Not configured yet — set <code>Billing:PayeeAccount</code>
+                            </span>
+                        }
+                        else
+                        {
+                            @account
+                        }
+                    </strong>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(instructions))
+                {
+                    <p class="text-muted small mb-0 mt-3">@instructions</p>
+                }
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Order summary</div>
+            <div class="card-body">
+
+                <div class="pay-row">
+                    <span>Plan</span>
+                    <strong>@Model.Name</strong>
+                </div>
+
+                <div class="pay-row">
+                    <span>Billing</span>
+                    <strong>Monthly</strong>
+                </div>
+
+                <div class="pay-row pay-row--total">
+                    <span>Due now</span>
+                    <strong>@Model.Currency @Model.PriceMonthly.ToString("N2")</strong>
+                </div>
+
+                <form asp-action="Checkout" method="post" class="mt-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="planId" value="@Model.SubscriptionPlanID" />
+
+                    <div class="mb-3">
+                        <label class="form-label" for="payerNote">
+                            Payment note <span class="text-muted">(optional)</span>
+                        </label>
+
+                        <input class="form-control" id="payerNote" name="payerNote"
+                               maxlength="240"
+                               placeholder="e.g. sending from bKash 01XXXXXXXXX" />
+
+                        <div class="form-text">
+                            Helps us match your transfer faster. Don't enter card
+                            numbers or passwords.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Create payment reference
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</div>
