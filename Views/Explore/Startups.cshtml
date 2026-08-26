@@ -1,0 +1,152 @@
+﻿@model List<TechNova.Models.Startup>
+@{
+    ViewData["Title"] = "Explore Startups";
+
+    var industries = ViewBag.Industries as List<string> ?? new();
+    var stages = ViewBag.Stages as List<string> ?? new();
+
+    var page = (int)ViewBag.Page;
+    var pageCount = (int)ViewBag.PageCount;
+    var total = (int)ViewBag.Total;
+
+    var q = (string?)ViewBag.Query;
+    var industry = (string?)ViewBag.Industry;
+    var stage = (string?)ViewBag.Stage;
+    var sort = (string?)ViewBag.Sort;
+}
+
+<div class="page-head">
+    <h1>Explore startups</h1>
+    <p>@total published startup@(total == 1 ? "" : "s") looking for funding.</p>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+
+            <div class="col-md-4">
+                <label class="form-label" for="q">Search</label>
+                <input class="form-control" id="q" name="q" value="@q"
+                       placeholder="Name or what they do" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label" for="industry">Industry</label>
+                <select class="form-select" id="industry" name="industry">
+                    <option value="">All industries</option>
+                    @foreach (var i in industries)
+                    {
+                        <option value="@i" selected="@(industry == i)">@i</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label" for="stage">Stage</label>
+                <select class="form-select" id="stage" name="stage">
+                    <option value="">All stages</option>
+                    @foreach (var st in stages)
+                    {
+                        <option value="@st" selected="@(stage == st)">@st</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label" for="sort">Sort</label>
+                <select class="form-select" id="sort" name="sort">
+                    <option value="" selected="@(string.IsNullOrEmpty(sort))">Newest</option>
+                    <option value="funding" selected="@(sort == "funding")">Funding sought</option>
+                    <option value="name" selected="@(sort == "name")">Name</option>
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">Go</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3 class="mb-2">No startups found</h3>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(q) && string.IsNullOrWhiteSpace(industry) && string.IsNullOrWhiteSpace(stage))
+                {
+                    <text>No founders have published a profile yet.</text>
+                }
+                else
+                {
+                    <text>Try widening your filters.</text>
+                }
+            </p>
+            <a asp-action="Startups" class="btn btn-outline-primary">Clear filters</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var s in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <a class="card h-100 directory-card"
+                   asp-action="Startup" asp-route-id="@s.StartupID">
+                    <div class="card-body d-flex flex-column">
+
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <span class="dir-avatar">
+                                @(string.Concat(s.CompanyName
+                                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Take(2).Select(w => w[0])).ToUpperInvariant())
+                            </span>
+
+                            <span class="flex-grow-1">
+                                <span class="dir-name">@s.CompanyName</span>
+                                <span class="dir-sub">
+                                    @(string.IsNullOrWhiteSpace(s.Industry) ? "Startup" : s.Industry)
+                                    @if (!string.IsNullOrWhiteSpace(s.Location))
+                                    {
+                                        <text>&middot; @s.Location</text>
+                                    }
+                                </span>
+                            </span>
+
+                            @if (s.VerificationStatus == "Verified")
+                            {
+                                <span class="badge bg-success">Verified</span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(s.BusinessStage))
+                        {
+                            <span class="stage-chip">@s.BusinessStage</span>
+                        }
+
+                        <p class="card-text flex-grow-1 mt-2">
+                            @{
+                                var blurb = !string.IsNullOrWhiteSpace(s.Tagline) ? s.Tagline! : s.Description;
+                            }
+                            @(blurb.Length > 130 ? blurb.Substring(0, 130) + "…" : blurb)
+                        </p>
+
+                        <div class="dir-foot">
+                            <span>
+                                <span class="dir-label">Seeking</span>
+                                <span class="dir-amount">@s.FundingRequired.ToString("N0")</span>
+                            </span>
+                            <span class="dir-go">View &rarr;</span>
+                        </div>
+
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    <partial name="_Pager" model="@(new TechNova.Views.PagerModel(page, pageCount))" />
+}

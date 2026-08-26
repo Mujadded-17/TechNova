@@ -51,6 +51,12 @@
                                 <a class="nav-link" asp-controller="Startup" asp-action="InvestmentRequests">Requests</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" asp-controller="PitchDeck" asp-action="Index">Pitch Decks</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Explore" asp-action="Investors">Investors</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="Message" asp-action="Index">
                                     Messages @await Component.InvokeAsync("UnreadCount")
                                 </a>
@@ -63,6 +69,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Investor" asp-action="Discover">Discover</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Explore" asp-action="Startups">Directory</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Investor" asp-action="Favorites">Saved</a>
@@ -83,6 +92,9 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Explore" asp-action="Startups">Startups</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>

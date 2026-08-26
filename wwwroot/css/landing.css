@@ -2017,3 +2017,23 @@ h2.section__title {
         display: none;
     }
 }
+
+/* Empty state when no startups have published yet. */
+.venture--empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding-block: 54px;
+}
+
+.venture--empty p {
+    margin: 0 auto;
+    max-width: 42ch;
+    font-size: 14.5px;
+    color: var(--muted);
+}
+
+/* The market bar controls are links now, not decoration. */
+a.market__search,
+a.chip {
+    cursor: pointer;
+}

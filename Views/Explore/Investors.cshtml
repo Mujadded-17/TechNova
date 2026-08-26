@@ -1,0 +1,114 @@
+﻿@model List<TechNova.Models.Investor>
+@{
+    ViewData["Title"] = "Explore Investors";
+
+    var prefs = ViewBag.Preferences as List<string> ?? new();
+    var page = (int)ViewBag.Page;
+    var pageCount = (int)ViewBag.PageCount;
+    var total = (int)ViewBag.Total;
+    var q = (string?)ViewBag.Query;
+    var preference = (string?)ViewBag.Preference;
+}
+
+<div class="page-head">
+    <h1>Explore investors</h1>
+    <p>@total investor@(total == 1 ? "" : "s") on the platform.</p>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+
+            <div class="col-md-6">
+                <label class="form-label" for="q">Search</label>
+                <input class="form-control" id="q" name="q" value="@q"
+                       placeholder="Name, firm or focus" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label" for="preference">Focus</label>
+                <select class="form-select" id="preference" name="preference">
+                    <option value="">All areas</option>
+                    @foreach (var p in prefs)
+                    {
+                        <option value="@p" selected="@(preference == p)">@p</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Go</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3 class="mb-2">No investors found</h3>
+            <p class="text-muted mb-3">Try widening your search.</p>
+            <a asp-action="Investors" class="btn btn-outline-primary">Clear filters</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var i in Model)
+        {
+            var bio = string.IsNullOrWhiteSpace(i.Bio)
+                ? "This investor hasn't added a bio yet."
+                : (i.Bio!.Length > 130 ? i.Bio.Substring(0, 130) + "…" : i.Bio);
+
+            <div class="col-md-6 col-lg-4">
+                <a class="card h-100 directory-card"
+                   asp-action="Investor" asp-route-id="@i.InvestorID">
+                    <div class="card-body d-flex flex-column">
+
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <span class="dir-avatar dir-avatar--investor">
+                                @(string.Concat(i.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Take(2).Select(w => w[0])).ToUpperInvariant())
+                            </span>
+
+                            <span class="flex-grow-1">
+                                <span class="dir-name">@i.Name</span>
+                                <span class="dir-sub">
+                                    @(string.IsNullOrWhiteSpace(i.CompanyName) ? "Independent investor" : i.CompanyName)
+                                </span>
+                            </span>
+
+                            @if (i.VerificationStatus == "Verified")
+                            {
+                                <span class="badge bg-success">Verified</span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(i.Preference))
+                        {
+                            <span class="stage-chip">@i.Preference</span>
+                        }
+
+                        <p class="card-text flex-grow-1 mt-2">@bio</p>
+
+                        <div class="dir-foot">
+                            <span>
+                                <span class="dir-label">Invests up to</span>
+                                <span class="dir-amount">
+                                    @(i.InvestmentRange.HasValue ? i.InvestmentRange.Value.ToString("N0") : "—")
+                                </span>
+                            </span>
+                            <span class="dir-go">View &rarr;</span>
+                        </div>
+
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    <partial name="_Pager" model="@(new TechNova.Views.PagerModel(page, pageCount))" />
+}

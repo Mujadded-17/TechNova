@@ -1,0 +1,249 @@
+﻿@model TechNova.Models.Startup
+@using TechNova.Models
+@{
+    ViewData["Title"] = Model.CompanyName;
+
+    var founders = ViewBag.Founders as List<Founder> ?? new();
+    var deck = ViewBag.Deck as PitchDeck;
+
+    var isInvestor = User.IsInRole("Investor");
+    var isOwner = User.IsInRole("Startup")
+                  && User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                     == Model.StartupID.ToString();
+
+    var initials = string.Concat(Model.CompanyName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(w => w[0])).ToUpperInvariant();
+}
+
+<div class="mb-3">
+    <a asp-action="Startups" class="back-link">&larr; All startups</a>
+</div>
+
+<div class="card profile-hero mb-3">
+    <div class="profile-hero__cover"></div>
+
+    <div class="card-body">
+        <div class="profile-hero__ident">
+            <span class="profile-hero__avatar">@initials</span>
+
+            <div class="flex-grow-1">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h1 class="mb-0">@Model.CompanyName</h1>
+                    <partial name="_StatusPill" model="@Model.VerificationStatus" />
+                </div>
+
+                <p class="text-muted mb-0 mt-1">
+                    @(string.IsNullOrWhiteSpace(Model.Industry) ? "Startup" : Model.Industry)
+                    @if (!string.IsNullOrWhiteSpace(Model.BusinessStage))
+                    {
+                        <text>&middot; @Model.BusinessStage</text>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Location))
+                    {
+                        <text>&middot; @Model.Location</text>
+                    }
+                </p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Tagline))
+        {
+            <p class="profile-hero__tagline">@Model.Tagline</p>
+        }
+
+        <div class="stat-strip">
+            <div>
+                <span class="stat-label">Seeking</span>
+                <span class="stat-value">@Model.FundingRequired.ToString("N0")</span>
+            </div>
+
+            @if (Model.EquityOffered.HasValue)
+            {
+                <div>
+                    <span class="stat-label">Equity offered</span>
+                    <span class="stat-value">@Model.EquityOffered.Value.ToString("0.##")%</span>
+                </div>
+            }
+
+            @if (Model.FoundedYear.HasValue)
+            {
+                <div>
+                    <span class="stat-label">Founded</span>
+                    <span class="stat-value">@Model.FoundedYear</span>
+                </div>
+            }
+
+            @if (Model.NumberOfEmployees.HasValue)
+            {
+                <div>
+                    <span class="stat-label">Team</span>
+                    <span class="stat-value">@Model.NumberOfEmployees</span>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            @if (isInvestor)
+            {
+                <a class="btn btn-primary btn-sm"
+                   asp-controller="Message" asp-action="Thread" asp-route-id="@Model.StartupID">
+                    Message founders
+                </a>
+            }
+            else if (!User.Identity!.IsAuthenticated)
+            {
+                <a class="btn btn-primary btn-sm"
+                   asp-controller="Account" asp-action="RegisterInvestor">
+                    Join as an investor to connect
+                </a>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Website))
+            {
+                <a class="btn btn-outline-secondary btn-sm" href="@Model.Website"
+                   target="_blank" rel="noopener noreferrer nofollow">
+                    Visit website
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+
+    <div class="col-lg-8">
+
+        <div class="card mb-3">
+            <div class="card-header">About</div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space:pre-wrap">@Model.Description</p>
+            </div>
+        </div>
+
+        @foreach (var (heading, body) in new[]
+        {
+            ("The problem", Model.ProblemStatement),
+            ("The solution", Model.Solution),
+            ("Target market", Model.TargetMarket),
+            ("Business model", Model.BusinessModel),
+            ("Competitive advantage", Model.CompetitiveAdvantage),
+            ("Traction", Model.Traction)
+        })
+        {
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                <div class="card mb-3">
+                    <div class="card-header">@heading</div>
+                    <div class="card-body">
+                        <p class="mb-0" style="white-space:pre-wrap">@body</p>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <!-- PITCH DECK -->
+        <div class="card mb-3">
+            <div class="card-header">Pitch deck</div>
+            <div class="card-body">
+
+                @if (deck == null)
+                {
+                    <p class="text-muted mb-0">This startup hasn't uploaded a deck yet.</p>
+                }
+                else if (isInvestor || isOwner || User.IsInRole("Admin"))
+                {
+                    <div class="deck-row">
+                        <span class="deck-icon">PDF</span>
+                        <span class="flex-grow-1">
+                            <strong class="d-block">@(deck.Title ?? deck.FileName)</strong>
+                            <span class="text-muted small">
+                                @(deck.FileSizeBytes / 1024) KB &middot;
+                                @deck.UploadDate.ToLocalTime().ToString("dd MMM yyyy")
+                            </span>
+                        </span>
+                    </div>
+
+                    <a class="btn btn-primary btn-sm w-100 mt-3"
+                       asp-controller="PitchDeck" asp-action="Download" asp-route-id="@deck.PitchID"
+                       target="_blank" rel="noopener">
+                        Open pitch deck
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted">
+                        A pitch deck is available. Sign in as an investor to view it.
+                    </p>
+                    <a class="btn btn-outline-primary btn-sm w-100"
+                       asp-controller="Account" asp-action="Login">Sign in</a>
+                }
+
+            </div>
+        </div>
+
+        @if (founders.Any())
+        {
+            <div class="card mb-3">
+                <div class="card-header">Team</div>
+                <div class="card-body">
+                    @foreach (var f in founders)
+                    {
+                        <div class="deck-row mb-2">
+                            <span class="dir-avatar dir-avatar--sm">
+                                @(string.Concat(f.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Take(2).Select(w => w[0])).ToUpperInvariant())
+                            </span>
+                            <span>
+                                <strong class="d-block">@f.Name</strong>
+                                <span class="text-muted small">@(f.Position ?? "Founder")</span>
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header">Funding</div>
+            <div class="card-body">
+
+                <div class="pay-row">
+                    <span>Seeking</span>
+                    <strong>@Model.FundingRequired.ToString("N0")</strong>
+                </div>
+
+                @if (Model.MinimumInvestment.HasValue)
+                {
+                    <div class="pay-row">
+                        <span>Minimum ticket</span>
+                        <strong>@Model.MinimumInvestment.Value.ToString("N0")</strong>
+                    </div>
+                }
+
+                @if (Model.AmountRaised > 0)
+                {
+                    <div class="pay-row">
+                        <span>Raised so far</span>
+                        <strong>@Model.AmountRaised.ToString("N0")</strong>
+                    </div>
+                }
+
+                @if (Model.FundingDeadline.HasValue)
+                {
+                    <div class="pay-row">
+                        <span>Closes</span>
+                        <strong>@Model.FundingDeadline.Value.ToLocalTime().ToString("dd MMM yyyy")</strong>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+    </div>
+
+</div>

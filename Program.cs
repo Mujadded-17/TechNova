@@ -26,6 +26,7 @@ else
 }
 
 builder.Services.AddScoped<TechNova.Services.EmailVerificationService>();
+builder.Services.AddScoped<TechNova.Services.PitchDeckStorage>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {

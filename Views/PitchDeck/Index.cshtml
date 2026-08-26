@@ -1,0 +1,134 @@
+﻿@model List<TechNova.Models.PitchDeck>
+@{
+    ViewData["Title"] = "Pitch Decks";
+    var max = (int)ViewBag.MaxDecks;
+    var allowed = (string)ViewBag.Allowed;
+}
+
+<div class="page-head">
+    <h1>Pitch decks</h1>
+    <p>Upload your deck so investors can read it from your profile.</p>
+</div>
+
+@if (TempData["DeckMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["DeckMessage"]</div>
+}
+@if (TempData["DeckError"] != null)
+{
+    <div class="alert alert-danger">@TempData["DeckError"]</div>
+}
+
+<div class="row g-3">
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Upload a deck</div>
+            <div class="card-body">
+
+                <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label" for="title">
+                            Label <span class="text-muted">(optional)</span>
+                        </label>
+                        <input class="form-control" id="title" name="title" maxlength="120"
+                               placeholder="e.g. Seed round deck" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="file">File</label>
+                        <input class="form-control" type="file" id="file" name="file"
+                               accept=".pdf,.ppt,.pptx" required />
+                        <div class="form-text">@allowed</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100"
+                            @(Model.Count >= max ? "disabled" : "")>
+                        Upload
+                    </button>
+
+                    @if (Model.Count >= max)
+                    {
+                        <div class="form-text text-center mt-2">
+                            You've reached the limit of @max decks.
+                        </div>
+                    }
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Your decks (@Model.Count / @max)</div>
+
+            @if (!Model.Any())
+            {
+                <div class="card-body text-center py-5">
+                    <p class="text-muted mb-0">
+                        No decks yet. Investors are far more likely to reply when
+                        there's something to read.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="card-body">
+                    @foreach (var d in Model)
+                    {
+                        <div class="deck-item">
+
+                            <span class="deck-icon">
+                                @(System.IO.Path.GetExtension(d.FileName).TrimStart('.').ToUpperInvariant())
+                            </span>
+
+                            <span class="flex-grow-1">
+                                <strong class="d-block">@(d.Title ?? d.FileName)</strong>
+                                <span class="text-muted small">
+                                    @d.FileName &middot; @(d.FileSizeBytes / 1024) KB &middot;
+                                    @d.UploadDate.ToLocalTime().ToString("dd MMM yyyy")
+                                </span>
+                            </span>
+
+                            @if (d.IsPrimary)
+                            {
+                                <span class="badge bg-success">On profile</span>
+                            }
+
+                            <span class="d-flex gap-1">
+                                <a class="btn btn-outline-secondary btn-sm"
+                                   asp-action="Download" asp-route-id="@d.PitchID"
+                                   target="_blank" rel="noopener">View</a>
+
+                                @if (!d.IsPrimary)
+                                {
+                                    <form asp-action="SetPrimary" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@d.PitchID" />
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                            Feature
+                                        </button>
+                                    </form>
+                                }
+
+                                <form asp-action="Delete" method="post" class="d-inline"
+                                      onsubmit="return confirm('Remove @d.FileName? This cannot be undone.');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@d.PitchID" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        Remove
+                                    </button>
+                                </form>
+                            </span>
+
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+</div>

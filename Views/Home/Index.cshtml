@@ -1,6 +1,12 @@
+@using TechNova.Models
 @{
     ViewData["Title"] = "Where Startups Meet Opportunity";
     Layout = "_LandingLayout";
+
+    var startups = ViewBag.Startups as List<Startup> ?? new List<Startup>();
+
+    // Rotating swatch so adjacent cards don't share a colour.
+    var accents = new[] { "agri", "health", "fin", "edu", "energy", "logi" };
 }
 
 <!-- =========================================================
@@ -127,237 +133,97 @@
 
             <div class="market__bar">
 
-                <div class="market__search">
+                @* These now open the real directory rather than being decorative. *@
+                <a class="market__search" asp-controller="Explore" asp-action="Startups">
                     <svg class="ico ico--sm"><use href="#i-search" /></svg>
                     Search startups...
-                </div>
+                </a>
 
                 <div class="filters">
-                    <span class="chip">Industry <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
-                    <span class="chip">Funding Stage <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
-                    <span class="chip">Funding Required <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
-                    <span class="chip">Location <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></span>
+                    <a class="chip" asp-controller="Explore" asp-action="Startups">Industry <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></a>
+                    <a class="chip" asp-controller="Explore" asp-action="Startups">Funding Stage <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></a>
+                    <a class="chip" asp-controller="Explore" asp-action="Startups" asp-route-sort="funding">Funding Required <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></a>
+                    <a class="chip" asp-controller="Explore" asp-action="Startups">Location <svg class="ico ico--sm"><use href="#i-chevron-down" /></svg></a>
                 </div>
 
             </div>
 
             <div class="market__grid">
 
-                <!-- ROW 1 -->
+@if (!startups.Any())
+                {
+                    <article class="venture venture--empty">
+                        <p>
+                            No startups have published a profile yet. Once founders
+                            publish, they appear here automatically.
+                        </p>
+                    </article>
+                }
+                else
+                {
+                    foreach (var s in startups)
+                    {
+                        var accent = accents[Math.Abs(s.CompanyName.GetHashCode()) % accents.Length];
 
-                <article class="venture">
+                        <article class="venture">
 
-                    <div class="venture__head">
-                        <div class="venture__mark venture__mark--agri">
-                            <svg class="ico"><use href="#i-trending" /></svg>
-                        </div>
+                            <div class="venture__head">
+                                <div class="venture__mark venture__mark--@accent">
+                                    @(string.Concat(s.CompanyName
+                                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Take(2)
+                                        .Select(w => w[0])).ToUpperInvariant())
+                                </div>
 
-                        <div>
-                            <div class="venture__name">AgroNova</div>
-                            <div class="venture__sector">Agriculture</div>
-                        </div>
-                    </div>
+                                <div>
+                                    <div class="venture__name">@s.CompanyName</div>
+                                    <div class="venture__sector">
+                                        @(string.IsNullOrWhiteSpace(s.Industry) ? "Startup" : s.Industry)
+                                    </div>
+                                </div>
+                            </div>
 
-                    <span class="stage-pill">Seed Stage</span>
+                            @if (!string.IsNullOrWhiteSpace(s.BusinessStage))
+                            {
+                                <span class="stage-pill">@s.BusinessStage</span>
+                            }
 
-                    <p>
-                        AI-powered agricultural intelligence helping farmers
-                        make better decisions.
-                    </p>
+                            <p>
+                                @{
+                                    var blurb = !string.IsNullOrWhiteSpace(s.Tagline)
+                                        ? s.Tagline!
+                                        : s.Description;
+                                }
+                                @(blurb.Length > 120 ? blurb.Substring(0, 120) + "…" : blurb)
+                            </p>
 
-                    <div class="venture__foot">
-                        <div>
-                            <span class="venture__seek">Seeking</span>
-                            <span class="venture__amount">$300K</span>
-                        </div>
+                            <div class="venture__foot">
+                                <div>
+                                    <span class="venture__seek">Seeking</span>
+                                    <span class="venture__amount">@s.FundingRequired.ToString("N0")</span>
+                                </div>
 
-                        <span class="link-arrow">
-                            View Startup
-                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
-                        </span>
-                    </div>
+                                <a class="link-arrow"
+                                   asp-controller="Explore" asp-action="Startup" asp-route-id="@s.StartupID">
+                                    View Startup
+                                    <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
+                                </a>
+                            </div>
 
-                </article>
-
-
-                <article class="venture">
-
-                    <div class="venture__head">
-                        <div class="venture__mark venture__mark--health">
-                            <svg class="ico"><use href="#i-activity" /></svg>
-                        </div>
-
-                        <div>
-                            <div class="venture__name">MediCore</div>
-                            <div class="venture__sector">Healthcare</div>
-                        </div>
-                    </div>
-
-                    <span class="stage-pill">Pre-Seed</span>
-
-                    <p>
-                        Digital healthcare solutions designed to improve access
-                        to medical services.
-                    </p>
-
-                    <div class="venture__foot">
-                        <div>
-                            <span class="venture__seek">Seeking</span>
-                            <span class="venture__amount">$150K</span>
-                        </div>
-
-                        <span class="link-arrow">
-                            View Startup
-                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
-                        </span>
-                    </div>
-
-                </article>
-
-
-                <article class="venture">
-
-                    <div class="venture__head">
-                        <div class="venture__mark venture__mark--fin">
-                            <svg class="ico"><use href="#i-wallet" /></svg>
-                        </div>
-
-                        <div>
-                            <div class="venture__name">FinEdge</div>
-                            <div class="venture__sector">FinTech</div>
-                        </div>
-                    </div>
-
-                    <span class="stage-pill">Series A</span>
-
-                    <p>
-                        Financial infrastructure for emerging businesses.
-                    </p>
-
-                    <div class="venture__foot">
-                        <div>
-                            <span class="venture__seek">Seeking</span>
-                            <span class="venture__amount">$1.2M</span>
-                        </div>
-
-                        <span class="link-arrow">
-                            View Startup
-                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
-                        </span>
-                    </div>
-
-                </article>
-
-
-                <!-- ROW 2 -->
-
-                <article class="venture">
-
-                    <div class="venture__head">
-                        <div class="venture__mark venture__mark--edu">
-                            <svg class="ico"><use href="#i-graduation" /></svg>
-                        </div>
-
-                        <div>
-                            <div class="venture__name">EduPath</div>
-                            <div class="venture__sector">Education</div>
-                        </div>
-                    </div>
-
-                    <span class="stage-pill">Seed Stage</span>
-
-                    <p>
-                        Personalised learning pathways for students in
-                        underserved classrooms.
-                    </p>
-
-                    <div class="venture__foot">
-                        <div>
-                            <span class="venture__seek">Seeking</span>
-                            <span class="venture__amount">$400K</span>
-                        </div>
-
-                        <span class="link-arrow">
-                            View Startup
-                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
-                        </span>
-                    </div>
-
-                </article>
-
-
-                <article class="venture">
-
-                    <div class="venture__head">
-                        <div class="venture__mark venture__mark--energy">
-                            <svg class="ico"><use href="#i-zap" /></svg>
-                        </div>
-
-                        <div>
-                            <div class="venture__name">GridWise</div>
-                            <div class="venture__sector">Clean Energy</div>
-                        </div>
-                    </div>
-
-                    <span class="stage-pill">Series A</span>
-
-                    <p>
-                        Smart grid software that cuts energy waste for
-                        industrial operators.
-                    </p>
-
-                    <div class="venture__foot">
-                        <div>
-                            <span class="venture__seek">Seeking</span>
-                            <span class="venture__amount">$2.5M</span>
-                        </div>
-
-                        <span class="link-arrow">
-                            View Startup
-                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
-                        </span>
-                    </div>
-
-                </article>
-
-
-                <article class="venture">
-
-                    <div class="venture__head">
-                        <div class="venture__mark venture__mark--logi">
-                            <svg class="ico"><use href="#i-globe" /></svg>
-                        </div>
-
-                        <div>
-                            <div class="venture__name">CargoLoop</div>
-                            <div class="venture__sector">Logistics</div>
-                        </div>
-                    </div>
-
-                    <span class="stage-pill">Pre-Seed</span>
-
-                    <p>
-                        Route optimisation for last-mile delivery across
-                        dense urban networks.
-                    </p>
-
-                    <div class="venture__foot">
-                        <div>
-                            <span class="venture__seek">Seeking</span>
-                            <span class="venture__amount">$180K</span>
-                        </div>
-
-                        <span class="link-arrow">
-                            View Startup
-                            <svg class="ico ico--sm"><use href="#i-arrow-right" /></svg>
-                        </span>
-                    </div>
-
-                </article>
+                        </article>
+                    }
+                }
 
             </div>
 
         </div>
+
+        <p style="margin-top:28px;text-align:center">
+            <a class="btn btn--ghost" asp-controller="Explore" asp-action="Startups">
+                @{ var totalPublished = (int)(ViewBag.StartupCount ?? 0); }Browse all @totalPublished startup@(totalPublished == 1 ? "" : "s")
+                <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
+            </a>
+        </p>
 
     </div>
 </section>
@@ -547,41 +413,54 @@
 
         <div class="stack">
 
-            <article class="stack-card stack-card--1">
-                <div class="stack-card__top">
-                    <span class="stack-card__badge">
-                        <svg class="ico"><use href="#i-trending" /></svg>
-                    </span>
-                    <span class="stack-card__title">AgroNova</span>
-                </div>
+            @{
+                // Same real startups as the discovery grid, up to three.
+                var stackItems = startups.Take(3).ToList();
+                var stackIcons = new[] { "i-trending", "i-activity", "i-wallet" };
+            }
 
-                <p class="stack-card__desc">Agriculture &middot; Seed Stage</p>
-                <p class="stack-card__meta">94% match &middot; Seeking $300K</p>
-            </article>
+            @if (!stackItems.Any())
+            {
+                <article class="stack-card stack-card--3">
+                    <div class="stack-card__top">
+                        <span class="stack-card__badge">
+                            <svg class="ico"><use href="#i-search" /></svg>
+                        </span>
+                        <span class="stack-card__title">Your matches</span>
+                    </div>
 
-            <article class="stack-card stack-card--2">
-                <div class="stack-card__top">
-                    <span class="stack-card__badge">
-                        <svg class="ico"><use href="#i-activity" /></svg>
-                    </span>
-                    <span class="stack-card__title">MediCore</span>
-                </div>
+                    <p class="stack-card__desc">Nothing published yet</p>
+                    <p class="stack-card__meta">Startups appear here as they join</p>
+                </article>
+            }
+            else
+            {
+                for (var i = 0; i < stackItems.Count; i++)
+                {
+                    var item = stackItems[i];
 
-                <p class="stack-card__desc">Healthcare &middot; Pre-Seed</p>
-                <p class="stack-card__meta">88% match &middot; Seeking $150K</p>
-            </article>
+                    <article class="stack-card stack-card--@(i + 1)">
+                        <div class="stack-card__top">
+                            <span class="stack-card__badge">
+                                <svg class="ico"><use href="#@stackIcons[i % stackIcons.Length]" /></svg>
+                            </span>
+                            <span class="stack-card__title">@item.CompanyName</span>
+                        </div>
 
-            <article class="stack-card stack-card--3">
-                <div class="stack-card__top">
-                    <span class="stack-card__badge">
-                        <svg class="ico"><use href="#i-wallet" /></svg>
-                    </span>
-                    <span class="stack-card__title">FinEdge</span>
-                </div>
+                        <p class="stack-card__desc">
+                            @(string.IsNullOrWhiteSpace(item.Industry) ? "Startup" : item.Industry)
+                            @if (!string.IsNullOrWhiteSpace(item.BusinessStage))
+                            {
+                                <text>&middot; @item.BusinessStage</text>
+                            }
+                        </p>
 
-                <p class="stack-card__desc">FinTech &middot; Series A</p>
-                <p class="stack-card__meta">91% match &middot; Seeking $1.2M</p>
-            </article>
+                        <p class="stack-card__meta">
+                            Seeking @item.FundingRequired.ToString("N0")
+                        </p>
+                    </article>
+                }
+            }
 
         </div>
 

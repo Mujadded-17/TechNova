@@ -1,0 +1,40 @@
+@model TechNova.Views.PagerModel
+@{
+    if (Model.PageCount <= 1) { return; }
+
+    // Preserve the current filters when moving between pages.
+    var route = new Dictionary<string, string?>();
+    foreach (var kv in Context.Request.Query)
+    {
+        if (kv.Key != "page") { route[kv.Key] = kv.Value; }
+    }
+
+    string Href(int p)
+    {
+        var qs = route.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value ?? "")}").ToList();
+        qs.Add($"page={p}");
+        return Context.Request.Path + "?" + string.Join("&", qs);
+    }
+}
+
+<nav class="pager" aria-label="Pagination">
+    @if (Model.Page > 1)
+    {
+        <a class="pager__step" href="@Href(Model.Page - 1)">&larr; Previous</a>
+    }
+    else
+    {
+        <span class="pager__step is-disabled">&larr; Previous</span>
+    }
+
+    <span class="pager__count">Page @Model.Page of @Model.PageCount</span>
+
+    @if (Model.Page < Model.PageCount)
+    {
+        <a class="pager__step" href="@Href(Model.Page + 1)">Next &rarr;</a>
+    }
+    else
+    {
+        <span class="pager__step is-disabled">Next &rarr;</span>
+    }
+</nav>

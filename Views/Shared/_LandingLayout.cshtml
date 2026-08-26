@@ -124,7 +124,7 @@
             <a class="nav__brand" asp-controller="Home" asp-action="Index">Tech Nova</a>
 
             <nav class="nav__links" aria-label="Primary">
-                <a href="#discover">Discover Startups</a>
+                <a asp-controller="Explore" asp-action="Startups">Discover Startups</a>
                 <a href="#for-startups">For Startups</a>
                 <a href="#for-investors">For Investors</a>
                 <a href="#how-it-works">How It Works</a>
@@ -200,7 +200,7 @@
     </header>
 
     <div class="nav__drawer" id="navDrawer">
-        <a href="#discover">Discover Startups</a>
+        <a asp-controller="Explore" asp-action="Startups">Discover Startups</a>
         <a href="#for-startups">For Startups</a>
         <a href="#for-investors">For Investors</a>
         <a href="#how-it-works">How It Works</a>
@@ -239,7 +239,7 @@
                 <div>
                     <h4>Platform</h4>
                     <ul>
-                        <li><a href="#discover">Discover Startups</a></li>
+                        <li><a asp-controller="Explore" asp-action="Startups">Discover Startups</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
                         <li><a href="#for-startups">For Startups</a></li>
                         <li><a href="#for-investors">For Investors</a></li>
