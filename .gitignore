@@ -21,3 +21,5 @@ Thumbs.db
 # Environment / secrets
 .env
 appsettings.Development.json
+# Local tooling
+.claude/

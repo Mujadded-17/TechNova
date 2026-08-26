@@ -1,0 +1,109 @@
+﻿@model List<TechNova.Models.Message>
+@{
+    ViewData["Title"] = (string)ViewBag.CounterpartyName;
+
+    var isStartup = (bool)ViewBag.IsStartup;
+    var myType = isStartup ? "Startup" : "Investor";
+    var counterId = (int)ViewBag.CounterpartyId;
+    var counterName = (string)ViewBag.CounterpartyName;
+
+    var initials = string.Concat(counterName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(w => w[0]));
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="back-link">&larr; All messages</a>
+</div>
+
+@if (TempData["MessageError"] != null)
+{
+    <div class="alert alert-danger">@TempData["MessageError"]</div>
+}
+
+<div class="card thread-card">
+
+    <div class="card-header thread-header">
+        <span class="thread-avatar">@initials</span>
+
+        <span>
+            <strong class="d-block">@counterName</strong>
+            <span class="text-muted small">@ViewBag.CounterpartySub</span>
+        </span>
+    </div>
+
+    <div class="thread-scroll" id="threadScroll">
+
+        @if (!Model.Any())
+        {
+            <p class="thread-empty">
+                No messages yet. Say hello and start the conversation.
+            </p>
+        }
+        else
+        {
+            DateTime? lastDay = null;
+
+            foreach (var m in Model)
+            {
+                var day = m.Timestamp.ToLocalTime().Date;
+
+                if (lastDay != day)
+                {
+                    lastDay = day;
+                    <div class="thread-day"><span>@day.ToString("dd MMMM yyyy")</span></div>
+                }
+
+                var mine = m.SenderType == myType;
+
+                <div class="msg @(mine ? "msg--mine" : "msg--theirs")">
+                    <div class="msg__bubble">
+                        @m.Content
+                        <time class="msg__time" datetime="@m.Timestamp.ToString("o")">
+                            @m.Timestamp.ToLocalTime().ToString("HH:mm")
+                        </time>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+    <div class="thread-composer">
+        <form asp-action="Send" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@counterId" />
+
+            <label class="visually-hidden" for="content">Message</label>
+
+            <textarea class="form-control" id="content" name="content" rows="2"
+                      maxlength="4000" required
+                      placeholder="Write a message&hellip;"></textarea>
+
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Open on the newest message, and let Enter send (Shift+Enter for a newline).
+        (function () {
+            var pane = document.getElementById('threadScroll');
+            if (pane) pane.scrollTop = pane.scrollHeight;
+
+            var box = document.getElementById('content');
+            if (box) {
+                box.focus();
+                box.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (box.value.trim()) box.form.submit();
+                    }
+                });
+            }
+        })();
+    </script>
+}

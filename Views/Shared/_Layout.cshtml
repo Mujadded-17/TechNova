@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 @{
     var displayName = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
     var initials = string.IsNullOrWhiteSpace(displayName)
@@ -50,6 +50,11 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Startup" asp-action="InvestmentRequests">Requests</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Message" asp-action="Index">
+                                    Messages @await Component.InvokeAsync("UnreadCount")
+                                </a>
+                            </li>
                         }
                         else if (User.IsInRole("Investor"))
                         {
@@ -64,6 +69,11 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Investor" asp-action="MyRequests">My Requests</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Message" asp-action="Index">
+                                    Messages @await Component.InvokeAsync("UnreadCount")
+                                </a>
                             </li>
                         }
                         else

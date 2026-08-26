@@ -1,0 +1,90 @@
+﻿@model List<TechNova.Controllers.ConversationSummary>
+@{
+    ViewData["Title"] = "Messages";
+    var isStartup = (bool)ViewBag.IsStartup;
+    var totalUnread = Model.Sum(t => t.Unread);
+}
+
+<div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>Messages</h1>
+        <p>
+            @if (totalUnread > 0)
+            {
+                <text>@totalUnread unread message@(totalUnread == 1 ? "" : "s") across @Model.Count conversation@(Model.Count == 1 ? "" : "s").</text>
+            }
+            else
+            {
+                <text>@Model.Count conversation@(Model.Count == 1 ? "" : "s"). You're all caught up.</text>
+            }
+        </p>
+    </div>
+
+    @if (!isStartup)
+    {
+        <a asp-action="New" class="btn btn-primary btn-sm">Start a conversation</a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h3 class="mb-2">No conversations yet</h3>
+
+            @if (isStartup)
+            {
+                <p class="text-muted mb-0">
+                    When an investor reaches out about your startup, the conversation
+                    will appear here.
+                </p>
+            }
+            else
+            {
+                <p class="text-muted mb-3">
+                    Find a startup worth exploring and open a conversation with its founders.
+                </p>
+                <a asp-action="New" class="btn btn-primary">Browse startups</a>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <ul class="thread-list">
+            @foreach (var t in Model)
+            {
+                <li>
+                    <a asp-action="Thread" asp-route-id="@t.CounterpartyId"
+                       class="thread-row @(t.Unread > 0 ? "is-unread" : "")">
+
+                        <span class="thread-avatar">
+                            @(string.Concat(t.CounterpartyName
+                                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                .Take(2)
+                                .Select(w => w[0])))
+                        </span>
+
+                        <span class="thread-body">
+                            <span class="thread-top">
+                                <strong>@t.CounterpartyName</strong>
+                                <time datetime="@t.LastAt.ToString("o")">
+                                    @t.LastAt.ToLocalTime().ToString("dd MMM, HH:mm")
+                                </time>
+                            </span>
+
+                            <span class="thread-preview">@t.LastMessage</span>
+                        </span>
+
+                        @if (t.Unread > 0)
+                        {
+                            <span class="thread-badge">@t.Unread</span>
+                        }
+
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}

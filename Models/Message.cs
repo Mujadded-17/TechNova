@@ -14,6 +14,12 @@
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
+        /// <summary>
+        /// False until the counterparty opens the thread. Drives the
+        /// unread badges in the navbar and conversation list.
+        /// </summary>
+        public bool IsRead { get; set; } = false;
+
         // Relationships
         public Startup Startup { get; set; } = null!;
 
