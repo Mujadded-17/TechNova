@@ -12,7 +12,12 @@ namespace TechNova.Models
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required.")]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
+        [StringLength(100, MinimumLength = 8,
+    ErrorMessage = "Password must be at least 8 characters long.")]
+        [DataType(DataType.Password)]
+        [RegularExpression(
+    @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$",
+    ErrorMessage = "Password must contain at least 8 characters, including an uppercase letter, lowercase letter, number, and special character.")]
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please confirm your password.")]

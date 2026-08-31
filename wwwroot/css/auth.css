@@ -100,6 +100,11 @@
     line-height: 1.66;
     color: var(--hero-fg-70);
 }
+.required {
+    color: red;
+    margin-left: 3px;
+    font-weight: bold;
+}
 
 .auth__points {
     display: grid;
