@@ -1,0 +1,169 @@
+@model TechNova.Models.Investor
+@{
+    ViewData["Title"] = Model.Name;
+
+    var isStartup = User.IsInRole("Startup");
+
+    var firstName = Model.Name
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .FirstOrDefault() ?? Model.Name;
+
+    var initials = string.Concat(Model.Name
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(w => w[0])).ToUpperInvariant();
+
+    if (string.IsNullOrEmpty(initials))
+    {
+        initials = "?";
+    }
+
+    var bio = string.IsNullOrWhiteSpace(Model.Bio)
+        ? "This investor hasn't added a bio yet."
+        : Model.Bio!;
+
+    var industries = (Model.InvestedIndustries ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+
+@* Reached from a startup's investment-request list, so send startups back
+   there; everyone else goes to the investor directory. The page is
+   signed-in only, so there is no anonymous case to handle. *@
+<div class="mb-3">
+    @if (isStartup)
+    {
+        <a asp-controller="Startup" asp-action="InvestmentRequests" class="back-link">&larr; Investment requests</a>
+    }
+    else
+    {
+        <a asp-controller="Explore" asp-action="Investors" class="back-link">&larr; All investors</a>
+    }
+</div>
+
+<div class="card profile-hero mb-3">
+    <div class="profile-hero__cover profile-hero__cover--investor"></div>
+
+    <div class="card-body">
+        <div class="profile-hero__ident">
+            <span class="profile-hero__avatar profile-hero__avatar--investor">@initials</span>
+
+            <div class="flex-grow-1">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h1 class="mb-0">@Model.Name</h1>
+                    <partial name="_StatusPill" model="@Model.VerificationStatus" />
+                </div>
+
+                <p class="text-muted mb-0 mt-1">
+                    @(string.IsNullOrWhiteSpace(Model.CompanyName) ? "Independent investor" : Model.CompanyName)
+                    @if (!string.IsNullOrWhiteSpace(Model.Location))
+                    {
+                        <text>&middot; @Model.Location</text>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="stat-strip">
+            <div>
+                <span class="stat-label">Invests up to</span>
+                <span class="stat-value">
+                    @(Model.InvestmentRange.HasValue ? Model.InvestmentRange.Value.ToString("N0") : "—")
+                </span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.InvestorType))
+            {
+                <div>
+                    <span class="stat-label">Type</span>
+                    <span class="stat-value">@Model.InvestorType</span>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Preference))
+            {
+                <div>
+                    <span class="stat-label">Focus</span>
+                    <span class="stat-value">@Model.Preference</span>
+                </div>
+            }
+
+            <div>
+                <span class="stat-label">Member since</span>
+                <span class="stat-value">@Model.CreatedAt.ToString("MMM yyyy")</span>
+            </div>
+        </div>
+
+        @if (isStartup)
+        {
+            <div class="mt-3">
+                <a class="btn btn-primary btn-sm"
+                   asp-controller="Message" asp-action="Thread" asp-route-id="@Model.InvestorID">
+                    Message @firstName
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">About</div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space:pre-wrap">@bio</p>
+            </div>
+        </div>
+
+        @if (industries.Length > 0)
+        {
+            <div class="card mt-3">
+                <div class="card-header">Industries invested in</div>
+                <div class="card-body">
+                    @foreach (var industry in industries)
+                    {
+                        <span class="badge bg-info me-2 mb-2">@industry</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Investment preferences</div>
+            <div class="card-body">
+
+                <div class="pay-row">
+                    <span>Focus areas</span>
+                    <strong>@(string.IsNullOrWhiteSpace(Model.Preference) ? "—" : Model.Preference)</strong>
+                </div>
+
+                @if (Model.MinInvestmentAmount.HasValue)
+                {
+                    <div class="pay-row">
+                        <span>Minimum</span>
+                        <strong>@Model.MinInvestmentAmount.Value.ToString("N0")</strong>
+                    </div>
+                }
+
+                @if (Model.MaxInvestmentAmount.HasValue)
+                {
+                    <div class="pay-row">
+                        <span>Maximum</span>
+                        <strong>@Model.MaxInvestmentAmount.Value.ToString("N0")</strong>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Website))
+                {
+                    <div class="pay-row">
+                        <span>Website</span>
+                        <strong><a href="@Model.Website" target="_blank" rel="noopener noreferrer">Visit</a></strong>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+
+</div>

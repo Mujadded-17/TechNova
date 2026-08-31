@@ -71,7 +71,10 @@ namespace TechNova.Controllers
         // INVESTOR PROFILE
         // ============================
 
-        [AllowAnonymous]
+        // Signed-in only, but not investors only: a startup opens this from
+        // its investment-request list, so the controller's Investor role has
+        // to be stood down without letting the public in.
+        [RequiresSignedIn]
         [HttpGet]
         public async Task<IActionResult> Profile(int id)
         {
