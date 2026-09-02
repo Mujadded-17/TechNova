@@ -26,3 +26,4 @@ appsettings.Development.json
 
 # Dev email output
 App_Data/
+.mailmap
