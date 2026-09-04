@@ -20,11 +20,16 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly SubscriptionService _subs;
+        private readonly IEmailSender _email;
 
-        public AdminController(ApplicationDbContext context, SubscriptionService subs)
+        public AdminController(
+    ApplicationDbContext context,
+    SubscriptionService subs,
+    IEmailSender email)
         {
             _context = context;
             _subs = subs;
+            _email = email;
         }
 
         // Allowed VerificationStatus values.
@@ -149,10 +154,10 @@ namespace TechNova.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetStartupStatus(
-            int id,
-            string status,
-            string? returnStatus,
-            string? returnQuery)
+    int id,
+    string status,
+    string? returnStatus,
+    string? returnQuery)
         {
             if (!Statuses.Contains(status))
             {
@@ -166,18 +171,33 @@ namespace TechNova.Controllers
                 return NotFound();
             }
 
+            bool wasPending = startup.VerificationStatus == "Pending";
+
             startup.VerificationStatus = status;
 
-            // Record who made the call; clear it when returning to Pending.
-            startup.VerifiedByAdminID = status == "Pending" ? null : CurrentAdminId;
+            startup.VerifiedByAdminID =
+                status == "Pending" ? null : CurrentAdminId;
 
             await _context.SaveChangesAsync();
+
+            if (wasPending && status == "Verified")
+            {
+                await SendApprovalEmailAsync(
+                    startup.Email,
+                    startup.CompanyName,
+                    "Startup");
+            }
 
             TempData["AdminMessage"] =
                 $"{startup.CompanyName} is now {status}.";
 
-            return RedirectToAction(nameof(Startups),
-                new { status = returnStatus, q = returnQuery });
+            return RedirectToAction(
+                nameof(Startups),
+                new
+                {
+                    status = returnStatus,
+                    q = returnQuery
+                });
         }
 
 
@@ -201,10 +221,22 @@ namespace TechNova.Controllers
                 return NotFound();
             }
 
+            bool wasPending = investor.VerificationStatus == "Pending";
+
             investor.VerificationStatus = status;
-            investor.VerifiedByAdminID = status == "Pending" ? null : CurrentAdminId;
+
+            investor.VerifiedByAdminID =
+                status == "Pending" ? null : CurrentAdminId;
 
             await _context.SaveChangesAsync();
+
+            if (wasPending && status == "Verified")
+            {
+                await SendApprovalEmailAsync(
+                    investor.Email,
+                    investor.Name,
+                    "Investor");
+            }
 
             TempData["AdminMessage"] =
                 $"{investor.Name} is now {status}.";
@@ -393,5 +425,62 @@ namespace TechNova.Controllers
 
             return RedirectToAction(nameof(Billing), new { status = returnStatus });
         }
+        private async Task SendApprovalEmailAsync(
+    string email,
+    string name,
+    string accountType)
+        {
+            var html = $@"
+<div style=""font-family:Segoe UI,Arial,sans-serif;
+            max-width:560px;
+            margin:0 auto;
+            color:#0a0c0e"">
+
+    <h1 style=""font-size:26px;margin-bottom:16px"">
+        Your Tech Nova account has been approved
+    </h1>
+
+    <p style=""font-size:15px;line-height:1.6;color:#626d78"">
+        Hi {System.Net.WebUtility.HtmlEncode(name)},
+    </p>
+
+    <p style=""font-size:15px;line-height:1.6;color:#626d78"">
+        Your Tech Nova {accountType.ToLower()} account has been reviewed
+        and approved by our administrator.
+    </p>
+
+    <p style=""font-size:15px;line-height:1.6;color:#626d78"">
+        You can now sign in using the email address and password you used
+        during registration.
+    </p>
+
+    <p style=""margin:28px 0"">
+        <a href=""{Url.Action("Login", "Account", null, Request.Scheme)}""
+           style=""display:inline-block;
+                  background:#0f7a5c;
+                  color:#fff;
+                  text-decoration:none;
+                  padding:13px 24px;
+                  border-radius:999px;
+                  font-weight:600;
+                  font-size:15px"">
+            Sign in to Tech Nova
+        </a>
+    </p>
+
+    <p style=""font-size:13px;color:#8b959e"">
+        If you did not create this account, please contact the Tech Nova
+        administrator.
+    </p>
+
+</div>";
+
+            await _email.SendAsync(
+                email,
+                name,
+                "Your Tech Nova account has been approved",
+                html);
+        }
     }
+
 }

@@ -14,17 +14,8 @@
 
 @if (ViewBag.Error != null)
 {
-    <div class="auth-alert" role="alert">
-        <svg class="ico ico--sm"><use href="#i-alert" /></svg>
-        <span>
-            @ViewBag.Error
-            @if (ViewBag.Unverified != null)
-            {
-                <a asp-action="ResendVerification" asp-route-email="@ViewBag.Unverified">
-                    Send a new link
-                </a>
-            }
-        </span>
+    <div class="alert alert-danger">
+        @ViewBag.Error
     </div>
 }
 
