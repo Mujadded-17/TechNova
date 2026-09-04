@@ -21,6 +21,8 @@ namespace TechNova.Data
         public DbSet<StartupInvestmentOpportunity> StartupInvestmentOpportunities { get; set; }
         public DbSet<FavoriteStartup> FavoriteStartups { get; set; }
 
+        public DbSet<NfcCardRequest> NfcCardRequests { get; set; }
+
         // Billing
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
@@ -59,6 +61,9 @@ namespace TechNova.Data
 
             modelBuilder.Entity<FavoriteStartup>()
                 .HasKey(f => f.FavoriteID);
+
+            modelBuilder.Entity<NfcCardRequest>()
+    .HasKey(n => n.NfcCardRequestID);
 
             // -------------------------
             // Startup -> Founder
