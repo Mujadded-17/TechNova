@@ -1,0 +1,228 @@
+﻿@{
+    ViewData["Title"] = "NFC Business Card";
+
+    var request = ViewBag.ExistingRequest as TechNova.Models.NfcCardRequest;
+    var userType = ViewBag.UserType as string;
+    var userName = ViewBag.UserName as string;
+    var companyName = ViewBag.CompanyName as string;
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="text-center mb-5">
+                <h1 class="fw-bold">NFC Business Card</h1>
+
+                <p class="text-muted">
+                    Take your Tech Nova profile with you.
+                    Anyone can tap your NFC card to view your professional profile.
+                </p>
+            </div>
+
+            <!-- User Information -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-bold mb-3">Card Information</h5>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Account Type</small>
+                        <div class="fw-semibold">
+                            @userType
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Name</small>
+                        <div class="fw-semibold">
+                            @userName
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(companyName))
+                    {
+                        <div>
+                            <small class="text-muted">Company</small>
+                            <div class="fw-semibold">
+                                @companyName
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+
+            @if (request == null)
+            {
+                <!-- No request yet -->
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 text-center">
+
+                        <div class="mb-3">
+                            <span style="font-size: 48px;">📱</span>
+                        </div>
+
+                        <h3 class="fw-bold">
+                            Get Your NFC Business Card
+                        </h3>
+
+                        <p class="text-muted">
+                            Your NFC card will contain a secure Tech Nova
+                            profile link. When someone taps the card with
+                            their phone, they can view your professional profile.
+                        </p>
+
+                        <div class="my-4">
+                            <h4 class="fw-bold">
+                                ৳500
+                            </h4>
+
+                            <small class="text-muted">
+                                One-time payment
+                            </small>
+                        </div>
+
+                        <form asp-controller="NfcCard"
+                              asp-action="CreateCheckout"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-primary btn-lg px-5">
+                                Request NFC Card
+                            </button>
+
+                        </form>
+
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Existing request -->
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+
+                        <h3 class="fw-bold mb-4">
+                            Your NFC Card Request
+                        </h3>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    Payment
+                                </small>
+
+                                <div class="mt-1">
+                                    @if (request.PaymentStatus == "Paid")
+                                    {
+                                        <span class="badge bg-success">
+                                            Paid
+                                        </span>
+                                    }
+                                    else if (request.PaymentStatus == "Failed")
+                                    {
+                                        <span class="badge bg-danger">
+                                            Failed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    Request Status
+                                </small>
+
+                                <div class="mt-1">
+                                    @if (request.RequestStatus == "Issued")
+                                    {
+                                        <span class="badge bg-success">
+                                            Card Issued
+                                        </span>
+                                    }
+                                    else if (request.RequestStatus == "Approved")
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            Approved
+                                        </span>
+                                    }
+                                    else if (request.RequestStatus == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">
+                                            Rejected
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            @request.RequestStatus
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <hr class="my-4" />
+
+                        @if (request.PaymentStatus != "Paid")
+                        {
+                            <p class="text-muted">
+                                Your payment has not been completed yet.
+                            </p>
+
+                            <form asp-controller="NfcCard"
+                                  asp-action="CreateCheckout"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+                                    Continue to Payment
+                                </button>
+
+                            </form>
+                        }
+                        else if (request.RequestStatus == "Paid")
+                        {
+                            <div class="alert alert-info mb-0">
+                                Payment received successfully.
+                                Your request is now waiting for administrator approval.
+                            </div>
+                        }
+                        else if (request.RequestStatus == "Approved")
+                        {
+                            <div class="alert alert-info mb-0">
+                                Your NFC card has been approved and is being prepared.
+                            </div>
+                        }
+                        else if (request.RequestStatus == "Issued")
+                        {
+                            <div class="alert alert-success mb-0">
+                                Your NFC business card has been issued.
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>

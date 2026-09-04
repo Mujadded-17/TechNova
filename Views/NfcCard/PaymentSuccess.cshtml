@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "Payment Successful";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body text-center p-5">
+
+            ```
+            <h2 class="text-success mb-3">
+                Payment Submitted Successfully!
+            </h2>
+
+            <p class="lead">
+                Your Stripe test payment was completed successfully.
+            </p>
+
+            <p class="text-muted">
+                Your NFC Business Card request has been received.
+                The card will be reviewed and confirmed by the TechNova admin.
+            </p>
+
+            @if (!string.IsNullOrEmpty(ViewBag.SessionId))
+            {
+                <p class="small text-muted mt-3">
+                    Test Session ID:
+                    <br />
+                    <strong>@ViewBag.SessionId</strong>
+                </p>
+            }
+
+            <a asp-controller="NfcCard"
+               asp-action="Index"
+               class="btn btn-primary mt-3">
+                Back to NFC Business Card
+            </a>
+
+        </div>
+    </div>
+    ```
+
+</div>
