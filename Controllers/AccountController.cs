@@ -15,14 +15,15 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<object> _passwordHasher;
-        private readonly EmailVerificationService _verification;
+
+        private readonly IEmailSender _email;
 
         public AccountController(
             ApplicationDbContext context,
-            EmailVerificationService verification)
+            IEmailSender email)
         {
             _context = context;
-            _verification = verification;
+            _email = email;
             _passwordHasher = new PasswordHasher<object>();
         }
 
@@ -81,15 +82,37 @@ namespace TechNova.Controllers
             // ----------------------------
 
             var startup = await _context.Startups
-                .FirstOrDefaultAsync(s => s.Email == email);
+    .FirstOrDefaultAsync(s => s.Email == email);
 
             if (startup != null &&
                 VerifyPassword(startup.PasswordHash, password))
             {
-                if (!startup.EmailVerified)
+                if (startup.VerificationStatus == "Pending")
                 {
-                    ViewBag.Unverified = startup.Email;
-                    ViewBag.Error = "Confirm your email address before signing in.";
+                    ViewBag.Error =
+                        "Your account is waiting for admin approval. " +
+                        "You will receive an email when your account is approved.";
+                    return View();
+                }
+
+                if (startup.VerificationStatus == "Rejected")
+                {
+                    ViewBag.Error =
+                        "Your account registration was rejected by the administrator.";
+                    return View();
+                }
+
+                if (startup.VerificationStatus == "Suspended")
+                {
+                    ViewBag.Error =
+                        "Your account has been suspended. Please contact the administrator.";
+                    return View();
+                }
+
+                if (startup.VerificationStatus != "Verified")
+                {
+                    ViewBag.Error =
+                        "Your account is not approved for login.";
                     return View();
                 }
 
@@ -98,6 +121,7 @@ namespace TechNova.Controllers
                     startup.Email,
                     "Startup",
                     startup.CompanyName);
+
                 return RedirectToAction("Dashboard", "Startup");
             }
 
@@ -106,15 +130,37 @@ namespace TechNova.Controllers
             // ----------------------------
 
             var investor = await _context.Investors
-                .FirstOrDefaultAsync(i => i.Email == email);
+    .FirstOrDefaultAsync(i => i.Email == email);
 
             if (investor != null &&
                 VerifyPassword(investor.PasswordHash, password))
             {
-                if (!investor.EmailVerified)
+                if (investor.VerificationStatus == "Pending")
                 {
-                    ViewBag.Unverified = investor.Email;
-                    ViewBag.Error = "Confirm your email address before signing in.";
+                    ViewBag.Error =
+                        "Your account is waiting for admin approval. " +
+                        "You will receive an email when your account is approved.";
+                    return View();
+                }
+
+                if (investor.VerificationStatus == "Rejected")
+                {
+                    ViewBag.Error =
+                        "Your account registration was rejected by the administrator.";
+                    return View();
+                }
+
+                if (investor.VerificationStatus == "Suspended")
+                {
+                    ViewBag.Error =
+                        "Your account has been suspended. Please contact the administrator.";
+                    return View();
+                }
+
+                if (investor.VerificationStatus != "Verified")
+                {
+                    ViewBag.Error =
+                        "Your account is not approved for login.";
                     return View();
                 }
 
@@ -188,9 +234,7 @@ namespace TechNova.Controllers
 
             await _context.SaveChangesAsync();
 
-            await _verification.SendForStartupAsync(startup.StartupID, VerifyUrlTemplate);
-
-            return RedirectToAction(nameof(VerifyEmailSent), new { email });
+            return RedirectToAction(nameof(RegistrationPending));
         }
 
         // ============================
@@ -250,9 +294,7 @@ namespace TechNova.Controllers
 
             await _context.SaveChangesAsync();
 
-            await _verification.SendForInvestorAsync(investor.InvestorID, VerifyUrlTemplate);
-
-            return RedirectToAction(nameof(VerifyEmailSent), new { email });
+            return RedirectToAction(nameof(RegistrationPending));
         }
         // ============================
         // EMAIL VERIFICATION

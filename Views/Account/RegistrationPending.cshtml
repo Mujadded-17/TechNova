@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Registration Submitted";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-5">
+
+                    <h1 class="mb-3">Registration Submitted</h1>
+
+                    <p class="text-muted mb-4">
+                        Your Tech Nova account has been created successfully.
+                    </p>
+
+                    <p class="text-muted">
+                        Your account is currently waiting for administrator approval.
+                        You will receive an email once your account has been approved.
+                    </p>
+
+                    <p class="text-muted mb-4">
+                        After approval, you can use your registered email and password
+                        to sign in.
+                    </p>
+
+                    <a asp-controller="Account"
+                       asp-action="Login"
+                       class="btn btn-primary">
+                        Go to Login
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
