@@ -15,8 +15,16 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<object> _passwordHasher;
+        private readonly EmailVerificationService _verification;
+
 
         private readonly IEmailSender _email;
+
+        [HttpGet]
+        public IActionResult RegistrationPending()
+        {
+            return View();
+        }
 
         public AccountController(
             ApplicationDbContext context,
@@ -201,9 +209,9 @@ namespace TechNova.Controllers
 
             // Check duplicate email
             bool emailExists =
-                await _context.Startups.AnyAsync(s => s.Email == email)||
-                await _context.Investors.AnyAsync(i => i.Email == email); //||
-                //await _context.Admins.AnyAsync(a => a.Email == email);
+                await _context.Startups.AnyAsync(s => s.Email == email) ||
+                await _context.Investors.AnyAsync(i => i.Email == email) ||
+                await _context.Admins.AnyAsync(a => a.Email == email);
 
             if (emailExists)
             {
