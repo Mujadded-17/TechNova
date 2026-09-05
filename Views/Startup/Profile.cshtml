@@ -1,311 +1,292 @@
 @model TechNova.Models.Startup
 
 @{
-	ViewData["Title"] = "Startup Profile";
+	ViewData["Title"] = $"{Model.CompanyName} - Startup Profile";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5 mb-5">
-	<!-- Cover Section -->
+<link rel="stylesheet" href="~/css/facebook-style.css" />
+
+<!-- Hero Section with Cover Image -->
+<div class="startup-hero">
 	@if (!string.IsNullOrEmpty(Model.CoverImagePath))
 	{
-		<div class="row mb-4">
-			<div class="col-12">
-				<div class="startup-cover" style="background-image: url('@Model.CoverImagePath'); height: 300px; background-size: cover; background-position: center; border-radius: 8px;"></div>
-			</div>
-		</div>
+		<img src="@Model.CoverImagePath" alt="@Model.CompanyName Cover" class="startup-cover-image" />
 	}
+	else
+	{
+		<div class="startup-cover-image"></div>
+	}
+</div>
 
-	<!-- Header Section -->
-	<div class="row mb-5">
-		<div class="col-md-3 mb-4">
-			@if (!string.IsNullOrEmpty(Model.LogoPath))
-			{
-				<img src="@Model.LogoPath" alt="@Model.CompanyName Logo" class="img-fluid rounded" style="max-width: 200px;">
-			}
-			else
-			{
-				<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 200px; height: 200px; font-size: 3rem; color: #ccc;">
-					📦
-				</div>
-			}
-		</div>
-		<div class="col-md-9">
-			<h1 class="mb-2">@Model.CompanyName</h1>
-			@if (!string.IsNullOrEmpty(Model.Tagline))
-			{
-				<p class="lead text-muted mb-3">@Model.Tagline</p>
-			}
+<!-- Header and Profile Info -->
+<div class="startup-header-container">
+	<div class="startup-profile-meta">
+		@if (!string.IsNullOrEmpty(Model.LogoPath))
+		{
+			<div class="startup-logo-wrapper">
+				<img src="@Model.LogoPath" alt="@Model.CompanyName Logo" class="startup-logo" />
+			</div>
+		}
+		else
+		{
+			<div class="startup-logo-wrapper">
+				<div class="startup-logo"></div>
+			</div>
+		}
 
-			<div class="mb-4">
-				@if (!string.IsNullOrEmpty(Model.Industry))
+		<div class="startup-info-section">
+			<div class="startup-name-and-tagline">
+				<h1>@Model.CompanyName</h1>
+				@if (!string.IsNullOrEmpty(Model.Tagline))
 				{
-					<span class="badge bg-info me-2">@Model.Industry</span>
-				}
-				@if (!string.IsNullOrEmpty(Model.Location))
-				{
-					<span class="badge bg-info me-2">📍 @Model.Location</span>
-				}
-				@if (Model.FoundedYear.HasValue)
-				{
-					<span class="badge bg-secondary">Founded @Model.FoundedYear</span>
+					<p class="startup-tagline">@Model.Tagline</p>
 				}
 			</div>
-
-			<div class="row">
-				<div class="col-md-6">
-					<button class="btn btn-primary btn-lg me-2">Express Interest</button>
-				</div>
-				<div class="col-md-6 text-end">
-					@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Investor"))
-					{
-						<button class="btn btn-outline-primary btn-lg" onclick="toggleFavorite(@Model.StartupID)">♡ Save</button>
-					}
-				</div>
+			<div class="startup-quick-actions">
+				<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contactModal">
+					Get In Touch
+				</button>
 			</div>
-		</div>
-	</div>
-
-	<!-- About Section -->
-	<div class="row">
-		<div class="col-md-8">
-			<!-- Description -->
-			@if (!string.IsNullOrEmpty(Model.Description))
-			{
-				<div class="card mb-4">
-					<div class="card-header">
-						<h5>About @Model.CompanyName</h5>
-					</div>
-					<div class="card-body">
-						<p>@Model.Description</p>
-					</div>
-				</div>
-			}
-
-			<!-- Problem & Solution -->
-			<div class="row mb-4">
-				@if (!string.IsNullOrEmpty(Model.ProblemStatement))
-				{
-					<div class="col-md-6 mb-3">
-						<div class="card h-100">
-							<div class="card-header">
-								<h6 class="mb-0">Problem</h6>
-							</div>
-							<div class="card-body">
-								<p>@Model.ProblemStatement</p>
-							</div>
-						</div>
-					</div>
-				}
-				@if (!string.IsNullOrEmpty(Model.Solution))
-				{
-					<div class="col-md-6 mb-3">
-						<div class="card h-100">
-							<div class="card-header">
-								<h6 class="mb-0">Solution</h6>
-							</div>
-							<div class="card-body">
-								<p>@Model.Solution</p>
-							</div>
-						</div>
-					</div>
-				}
-			</div>
-
-			<!-- Key Information -->
-			@if (!string.IsNullOrEmpty(Model.TargetMarket) || !string.IsNullOrEmpty(Model.CompetitiveAdvantage) || !string.IsNullOrEmpty(Model.Traction))
-			{
-				<div class="card mb-4">
-					<div class="card-header">
-						<h5>Key Information</h5>
-					</div>
-					<div class="card-body">
-						@if (!string.IsNullOrEmpty(Model.TargetMarket))
-						{
-							<div class="mb-3">
-								<h6 class="text-muted">Target Market</h6>
-								<p>@Model.TargetMarket</p>
-							</div>
-						}
-						@if (!string.IsNullOrEmpty(Model.CompetitiveAdvantage))
-						{
-							<div class="mb-3">
-								<h6 class="text-muted">Competitive Advantage</h6>
-								<p>@Model.CompetitiveAdvantage</p>
-							</div>
-						}
-						@if (!string.IsNullOrEmpty(Model.Traction))
-						{
-							<div>
-								<h6 class="text-muted">Current Traction</h6>
-								<p>@Model.Traction</p>
-							</div>
-						}
-					</div>
-				</div>
-			}
-
-			<!-- Business Model -->
-			@if (!string.IsNullOrEmpty(Model.BusinessModel))
-			{
-				<div class="card mb-4">
-					<div class="card-header">
-						<h5>Business Model</h5>
-					</div>
-					<div class="card-body">
-						<p>@Model.BusinessModel</p>
-					</div>
-				</div>
-			}
-		</div>
-
-		<!-- Sidebar -->
-		<div class="col-md-4">
-			<!-- Funding Card -->
-			<div class="card mb-4">
-				<div class="card-header bg-light">
-					<h5 class="mb-0">Funding Details</h5>
-				</div>
-				<div class="card-body">
-					<div class="funding-stat mb-3">
-						<span class="label">Funding Goal:</span>
-						<span class="value">${@Model.FundingRequired:N0}</span>
-					</div>
-					<div class="funding-stat mb-3">
-						<span class="label">Amount Raised:</span>
-						<span class="value">${@Model.AmountRaised:N0}</span>
-					</div>
-					<div class="progress mb-3" style="height: 25px;">
-						@{
-							var percentage = Model.FundingRequired > 0 ? (Model.AmountRaised / Model.FundingRequired) * 100 : 0;
-						}
-						<div class="progress-bar" role="progressbar" style="width: @(Math.Min(percentage, 100))%;" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100">
-							@percentage.ToString("F0")%
-						</div>
-					</div>
-					@if (Model.MinimumInvestment.HasValue)
-					{
-						<div class="funding-stat mb-3">
-							<span class="label">Min Investment:</span>
-							<span class="value">${@Model.MinimumInvestment:N0}</span>
-						</div>
-					}
-					@if (Model.EquityOffered.HasValue)
-					{
-						<div class="funding-stat mb-3">
-							<span class="label">Equity Offered:</span>
-							<span class="value">@Model.EquityOffered.Value.ToString("F1")%</span>
-						</div>
-					}
-					@if (Model.FundingDeadline.HasValue)
-					{
-						<div class="funding-stat">
-							<span class="label">Investment Deadline:</span>
-							<span class="value">@Model.FundingDeadline.Value.ToString("MMM dd, yyyy")</span>
-						</div>
-					}
-				</div>
-			</div>
-
-			<!-- Company Stats -->
-			<div class="card mb-4">
-				<div class="card-header bg-light">
-					<h5 class="mb-0">Company Stats</h5>
-				</div>
-				<div class="card-body">
-					@if (Model.NumberOfEmployees.HasValue)
-					{
-						<div class="stat-row mb-3">
-							<span>Team Size:</span>
-							<strong>@Model.NumberOfEmployees employees</strong>
-						</div>
-					}
-					@if (Model.FoundedYear.HasValue)
-					{
-						<div class="stat-row mb-3">
-							<span>Founded:</span>
-							<strong>@Model.FoundedYear</strong>
-						</div>
-					}
-					@if (!string.IsNullOrEmpty(Model.BusinessStage))
-					{
-						<div class="stat-row">
-							<span>Stage:</span>
-							<strong>@Model.BusinessStage</strong>
-						</div>
-					}
-				</div>
-			</div>
-
-			<!-- Contact -->
-			@if (!string.IsNullOrEmpty(Model.ContactPerson) || !string.IsNullOrEmpty(Model.ContactPhone) || !string.IsNullOrEmpty(Model.Website))
-			{
-				<div class="card">
-					<div class="card-header bg-light">
-						<h5 class="mb-0">Contact Information</h5>
-					</div>
-					<div class="card-body">
-						@if (!string.IsNullOrEmpty(Model.ContactPerson))
-						{
-							<div class="mb-2">
-								<strong>Contact:</strong> @Model.ContactPerson
-							</div>
-						}
-						@if (!string.IsNullOrEmpty(Model.ContactPhone))
-						{
-							<div class="mb-2">
-								<strong>Phone:</strong> <a href="tel:@Model.ContactPhone">@Model.ContactPhone</a>
-							</div>
-						}
-						@if (!string.IsNullOrEmpty(Model.Website))
-						{
-							<div>
-								<strong>Website:</strong> <a href="@Model.Website" target="_blank">@Model.Website</a>
-							</div>
-						}
-					</div>
-				</div>
-			}
 		</div>
 	</div>
 </div>
 
-<style>
-	.funding-stat, .stat-row {
-		display: flex;
-		justify-content: space-between;
-		padding: 0.5rem 0;
-		border-bottom: 1px solid #f0f0f0;
-	}
+<!-- Main Content Area: Feed + Sidebar -->
+<div class="startup-feed-container">
+	<!-- Feed Column -->
+	<div class="startup-feed-column">
+		<!-- About Section -->
+		@if (!string.IsNullOrEmpty(Model.Description))
+		{
+			<div class="feed-create-post">
+				<h3 style="margin-top: 0; font-size: 1.1rem; color: var(--ink); font-weight: 600; margin-bottom: 1rem;">About</h3>
+				<p style="color: var(--ink); line-height: 1.6; margin: 0;">@Model.Description</p>
+			</div>
+		}
 
-	.funding-stat .label, .stat-row span {
-		color: #626d78;
-		font-weight: 500;
-	}
+		<!-- Posts Feed -->
+		<div id="postsFeed" class="startup-feed">
+			<div class="empty-state">
+				<div class="empty-state-icon">📝</div>
+				<div class="empty-state-title">No posts yet</div>
+				<div class="empty-state-text">This startup hasn't shared any updates</div>
+			</div>
+		</div>
 
-	.funding-stat .value, .stat-row strong {
-		color: #0a0c0e;
-		font-weight: 600;
-	}
-</style>
+		<!-- Photo Gallery Section -->
+		<div class="photo-gallery" id="photoGallerySection" style="display: none;">
+			<div class="gallery-header">
+				<h3>Gallery</h3>
+			</div>
+			<div id="photoGallery" class="gallery-grid">
+				<!-- Photos will be dynamically loaded here -->
+			</div>
+		</div>
+	</div>
+
+	<!-- Sidebar Column -->
+	<div class="startup-sidebar">
+		<!-- Key Metrics Widget -->
+		@if (Model.FundingRequired > 0)
+		{
+			<div class="sidebar-widget">
+				<h4 class="widget-title">Funding</h4>
+				<div class="startup-stats">
+					<div class="stat-item">
+						<span class="stat-label">Funding Goal</span>
+						<span class="stat-value">${@Model.FundingRequired:N0}</span>
+					</div>
+					<div class="stat-item">
+						<span class="stat-label">Amount Raised</span>
+						<span class="stat-value text-success">${@Model.AmountRaised:N0}</span>
+					</div>
+					<div class="stat-item">
+						<span class="stat-label">Progress</span>
+						<span class="stat-value">
+							@{
+								var progress = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
+							}
+							@progress%
+						</span>
+					</div>
+				</div>
+				<div style="margin-top: 1rem;">
+					<div class="progress" style="height: 8px;">
+						@{
+							var progressPercent = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
+						}
+						<div class="progress-bar bg-success" style="width: @progressPercent%"></div>
+					</div>
+				</div>
+			</div>
+		}
+
+		<!-- Company Info Widget -->
+		<div class="sidebar-widget">
+			<h4 class="widget-title">Information</h4>
+			<div class="startup-info-widget">
+				@if (!string.IsNullOrEmpty(Model.Industry))
+				{
+					<div class="info-row">
+						<span class="info-label">Industry</span>
+						<span class="info-value">@Model.Industry</span>
+					</div>
+				}
+				@if (!string.IsNullOrEmpty(Model.Location))
+				{
+					<div class="info-row">
+						<span class="info-label">Location</span>
+						<span class="info-value">@Model.Location</span>
+					</div>
+				}
+				@if (Model.FoundedYear.HasValue)
+				{
+					<div class="info-row">
+						<span class="info-label">Founded</span>
+						<span class="info-value">@Model.FoundedYear</span>
+					</div>
+				}
+				@if (Model.NumberOfEmployees.HasValue)
+				{
+					<div class="info-row">
+						<span class="info-label">Team Size</span>
+						<span class="info-value">@Model.NumberOfEmployees+ employees</span>
+					</div>
+				}
+				@if (!string.IsNullOrEmpty(Model.Website))
+				{
+					<div class="info-row">
+						<span class="info-label">Website</span>
+						<span class="info-value"><a href="@Model.Website" target="_blank" style="color: var(--brand);">Visit →</a></span>
+					</div>
+				}
+			</div>
+		</div>
+
+		<!-- Business Model Widget -->
+		@if (!string.IsNullOrEmpty(Model.BusinessStage) || !string.IsNullOrEmpty(Model.BusinessModel))
+		{
+			<div class="sidebar-widget">
+				<h4 class="widget-title">Business</h4>
+				<div class="startup-info-widget">
+					@if (!string.IsNullOrEmpty(Model.BusinessStage))
+					{
+						<div class="info-row">
+							<span class="info-label">Stage</span>
+							<span class="info-value">@Model.BusinessStage</span>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.BusinessModel))
+					{
+						<div class="info-row">
+							<span class="info-label">Model</span>
+							<span class="info-value">@Model.BusinessModel</span>
+						</div>
+					}
+					@if (Model.EquityOffered.HasValue)
+					{
+						<div class="info-row">
+							<span class="info-label">Equity Offered</span>
+							<span class="info-value">@Model.EquityOffered%</span>
+						</div>
+					}
+					@if (Model.MinimumInvestment.HasValue)
+					{
+						<div class="info-row">
+							<span class="info-label">Min Investment</span>
+							<span class="info-value">${@Model.MinimumInvestment:N0}</span>
+						</div>
+					}
+				</div>
+			</div>
+		}
+
+		<!-- Key Metrics -->
+		@if (!string.IsNullOrEmpty(Model.ProblemStatement) || !string.IsNullOrEmpty(Model.Solution) || !string.IsNullOrEmpty(Model.TargetMarket))
+		{
+			<div class="sidebar-widget">
+				<h4 class="widget-title">Opportunity</h4>
+				<div class="startup-info-widget">
+					@if (!string.IsNullOrEmpty(Model.ProblemStatement))
+					{
+						<div class="info-row">
+							<span class="info-label" style="font-weight: 600;">Problem</span>
+							<span class="info-value">@Model.ProblemStatement</span>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.Solution))
+					{
+						<div class="info-row">
+							<span class="info-label" style="font-weight: 600;">Solution</span>
+							<span class="info-value">@Model.Solution</span>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.TargetMarket))
+					{
+						<div class="info-row">
+							<span class="info-label" style="font-weight: 600;">Market</span>
+							<span class="info-value">@Model.TargetMarket</span>
+						</div>
+					}
+				</div>
+			</div>
+		}
+
+		<!-- Contact CTA -->
+		<div class="sidebar-widget">
+			<button type="button" class="btn btn-primary" style="width: 100%; font-weight: 600; padding: 0.75rem;" data-bs-toggle="modal" data-bs-target="#contactModal">
+				💬 Request Information
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- Contact Modal -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Contact @Model.CompanyName</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<p>Use the messaging system to request more information about this startup.</p>
+				@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Investor"))
+				{
+					<a href="@Url.Action("SendMessage", "Message", new { startupId = Model.StartupID })" class="btn btn-primary w-100">
+						Send Message
+					</a>
+				}
+				else
+				{
+					<p class="alert alert-info mb-0">
+						Please <a href="@Url.Action("Login", "Account")">log in as an investor</a> to contact this startup.
+					</p>
+				}
+			</div>
+		</div>
+	</div>
+</div>
 
 <script>
-	async function toggleFavorite(startupId) {
-		try {
-			const response = await fetch('@Url.Action("ToggleFavorite", "Investor")', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ startupId: startupId })
-			});
+document.addEventListener('DOMContentLoaded', function() {
+	// Load posts for read-only profile view
+	loadPublicFeed(@Model.StartupID);
+});
 
-			const data = await response.json();
-			if (data.success) {
-				alert(data.action === 'added' ? 'Added to favorites' : 'Removed from favorites');
-			}
-		} catch (error) {
-			console.error('Error:', error);
-		}
+async function loadPublicFeed(startupId) {
+	try {
+		// This would fetch posts from an API endpoint that returns public posts
+		// For now, we'll show a simple message since the endpoint is startup-specific
+		const feedElement = document.getElementById('postsFeed');
+		const photoGallerySection = document.getElementById('photoGallerySection');
+		const photoGallery = document.getElementById('photoGallery');
+
+		// Load photos gallery if exists
+		// This should be replaced with actual API call
+	} catch (error) {
+		console.error('Error loading feed:', error);
 	}
+}
 </script>

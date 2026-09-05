@@ -1,136 +1,272 @@
 @model TechNova.Models.Startup
 
 @{
-	ViewData["Title"] = "Startup Dashboard";
+	ViewData["Title"] = $"{Model.CompanyName} Dashboard";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-	<div class="row mb-4">
-		<div class="col-md-8">
-			<h1 class="mb-2">@Model.CompanyName Dashboard</h1>
-			<p class="text-muted">Manage your startup profile and investment opportunities</p>
-		</div>
-		<div class="col-md-4 text-end">
-			<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary me-2">
-				Edit Profile
-			</a>
-			<a href="@Url.Action("CreateOpportunity", "Startup")" class="btn btn-primary">
-				New Opportunity
-			</a>
-		</div>
-	</div>
+<!-- Hidden form for CSRF token -->
+<form id="hiddenForm" method="post" style="display: none;">
+	@Html.AntiForgeryToken()
+</form>
 
-	<!-- Quick Stats -->
-	<div class="row mb-4">
-		<div class="col-md-3 mb-3">
-			<div class="card">
-				<div class="card-body text-center">
-					<strong class="text-muted d-block mb-2">Funding Goal</strong>
-					<h4 class="text-primary">${@Model.FundingRequired:N0}</h4>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-3 mb-3">
-			<div class="card">
-				<div class="card-body text-center">
-					<strong class="text-muted d-block mb-2">Amount Raised</strong>
-					<h4 class="text-success">${@Model.AmountRaised:N0}</h4>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-3 mb-3">
-			<div class="card">
-				<div class="card-body text-center">
-					<strong class="text-muted d-block mb-2">Opportunities</strong>
-					<h4>—</h4>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-3 mb-3">
-			<div class="card">
-				<div class="card-body text-center">
-					<strong class="text-muted d-block mb-2">Profile Status</strong>
-					<h4>@Model.IsPublished</h4>
-				</div>
-			</div>
-		</div>
-	</div>
+<link rel="stylesheet" href="~/css/facebook-style.css" />
 
-	<!-- Funding Progress -->
-	<div class="row mb-4">
-		<div class="col-12">
-			<div class="card">
-				<div class="card-body">
-					<h5 class="card-title">Funding Progress</h5>
-					<div class="progress" style="height: 25px;">
-						@{
-							var progress = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
-						}
-						<div class="progress-bar bg-success" style="width: @progress%">
-							@progress%
-						</div>
-					</div>
-					<small class="text-muted mt-2 d-block">
-						${@Model.AmountRaised:N0} of ${@Model.FundingRequired:N0} raised
-					</small>
-				</div>
-			</div>
-		</div>
-	</div>
+<!-- Hero Section with Cover Image -->
+<div class="startup-hero">
+	@if (!string.IsNullOrEmpty(Model.CoverImagePath))
+	{
+		<img src="@Model.CoverImagePath" alt="@Model.CompanyName Cover" class="startup-cover-image" />
+	}
+	else
+	{
+		<div class="startup-cover-image"></div>
+	}
+</div>
 
-	<!-- Investment Opportunities -->
-	<div class="row mb-4">
-		<div class="col-12">
-			<div class="d-flex justify-content-between align-items-center mb-3">
-				<h3>Investment Opportunities</h3>
-				<a href="@Url.Action("CreateOpportunity", "Startup")" class="btn btn-sm btn-primary">
-					Create
+<!-- Header and Profile Info -->
+<div class="startup-header-container">
+	<div class="startup-profile-meta">
+		@if (!string.IsNullOrEmpty(Model.LogoPath))
+		{
+			<div class="startup-logo-wrapper">
+				<img src="@Model.LogoPath" alt="@Model.CompanyName Logo" class="startup-logo" />
+			</div>
+		}
+		else
+		{
+			<div class="startup-logo-wrapper">
+				<div class="startup-logo"></div>
+			</div>
+		}
+
+		<div class="startup-info-section">
+			<div class="startup-name-and-tagline">
+				<h1>@Model.CompanyName</h1>
+				@if (!string.IsNullOrEmpty(Model.Tagline))
+				{
+					<p class="startup-tagline">@Model.Tagline</p>
+				}
+			</div>
+			<div class="startup-quick-actions">
+				<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary">
+					Edit Profile
 				</a>
-			</div>
-			<div id="opportunitiesList">
-				<p class="text-muted">Loading opportunities...</p>
-			</div>
-		</div>
-	</div>
-
-	<!-- Investment Requests -->
-	<div class="row">
-		<div class="col-12">
-			<div class="d-flex justify-content-between align-items-center mb-3">
-				<h3>Investment Requests</h3>
-				<a href="@Url.Action("InvestmentRequests", "Startup")" class="btn btn-sm btn-outline-primary">
-					View All
-				</a>
-			</div>
-			<div class="table-responsive">
-				<table class="table table-hover">
-					<thead>
-						<tr>
-							<th>Investor</th>
-							<th>Amount Requested</th>
-							<th>Status</th>
-							<th>Date</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td colspan="5" class="text-center text-muted">No requests yet</td>
-						</tr>
-					</tbody>
-				</table>
+				<button type="button" class="btn btn-primary" id="openCreatePost">
+					Create Post
+				</button>
 			</div>
 		</div>
 	</div>
 </div>
 
-<style>
-	.card {
-		border: 1px solid #e3e7ea;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-	}
-	.card-body {
-		padding: 1.5rem;
-	}
-</style>
+<!-- Main Content Area: Feed + Sidebar -->
+<div class="startup-feed-container">
+	<!-- Feed Column -->
+	<div class="startup-feed-column">
+		<!-- Create Post Card -->
+		<div class="feed-create-post">
+			<div class="create-post-input-group">
+				<div class="create-post-avatar">
+					@if (!string.IsNullOrEmpty(Model.LogoPath))
+					{
+						<img src="@Model.LogoPath" alt="Logo" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />
+					}
+				</div>
+				<input type="text" class="create-post-input" id="postContentInput" placeholder="Share a startup update...">
+			</div>
+			<div class="create-post-actions">
+				<button type="button" id="postPhotoBtn" title="Add Photo">📷 Photo</button>
+				<button type="button" id="postVideoBtn" title="Add Video">🎥 Video</button>
+				<button type="button" id="postBtn" class="btn btn-primary" style="flex: 0 0 auto; width: auto; color: white; background: var(--brand);">Post</button>
+			</div>
+		</div>
+
+		<!-- Posts Feed -->
+		<div id="postsFeed" class="startup-feed">
+			<div class="empty-state">
+				<div class="empty-state-icon">📝</div>
+				<div class="empty-state-title">No posts yet</div>
+				<div class="empty-state-text">Share your first startup update to get started</div>
+			</div>
+		</div>
+
+		<!-- Photo Gallery Section -->
+		<div class="photo-gallery" id="photoGallerySection" style="display: none;">
+			<div class="gallery-header">
+				<h3>Photos</h3>
+				<button type="button" class="btn btn-sm btn-primary" id="uploadPhotoBtn">+ Upload</button>
+			</div>
+			<div id="photoGallery" class="gallery-grid">
+				<!-- Photos will be dynamically loaded here -->
+			</div>
+		</div>
+	</div>
+
+	<!-- Sidebar Column -->
+	<div class="startup-sidebar">
+		<!-- Key Metrics Widget -->
+		<div class="sidebar-widget">
+			<h4 class="widget-title">Funding Progress</h4>
+			<div class="startup-stats">
+				<div class="stat-item">
+					<span class="stat-label">Funding Goal</span>
+					<span class="stat-value">${@Model.FundingRequired:N0}</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">Amount Raised</span>
+					<span class="stat-value text-success">${@Model.AmountRaised:N0}</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">Progress</span>
+					<span class="stat-value">
+						@{
+							var progress = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
+						}
+						@progress%
+					</span>
+				</div>
+			</div>
+			<div style="margin-top: 1rem;">
+				<div class="progress" style="height: 8px;">
+					@{
+						var progressPercent = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
+					}
+					<div class="progress-bar bg-success" style="width: @progressPercent%"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Company Info Widget -->
+		@if (!string.IsNullOrEmpty(Model.Description) || !string.IsNullOrEmpty(Model.Industry) || !string.IsNullOrEmpty(Model.Location))
+		{
+			<div class="sidebar-widget">
+				<h4 class="widget-title">About</h4>
+				<div class="startup-info-widget">
+					@if (!string.IsNullOrEmpty(Model.Description))
+					{
+						<div class="info-row">
+							<div class="info-value">@Model.Description</div>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.Industry))
+					{
+						<div class="info-row">
+							<span class="info-label">Industry</span>
+							<span class="info-value">@Model.Industry</span>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.Location))
+					{
+						<div class="info-row">
+							<span class="info-label">Location</span>
+							<span class="info-value">@Model.Location</span>
+						</div>
+					}
+					@if (Model.FoundedYear.HasValue)
+					{
+						<div class="info-row">
+							<span class="info-label">Founded</span>
+							<span class="info-value">@Model.FoundedYear</span>
+						</div>
+					}
+					@if (Model.NumberOfEmployees.HasValue)
+					{
+						<div class="info-row">
+							<span class="info-label">Team Size</span>
+							<span class="info-value">@Model.NumberOfEmployees+ employees</span>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.Website))
+					{
+						<div class="info-row">
+							<span class="info-label">Website</span>
+							<span class="info-value"><a href="@Model.Website" target="_blank" style="color: var(--brand);">Visit →</a></span>
+						</div>
+					}
+				</div>
+			</div>
+		}
+
+		<!-- Business Details -->
+		@if (!string.IsNullOrEmpty(Model.BusinessStage) || !string.IsNullOrEmpty(Model.BusinessModel))
+		{
+			<div class="sidebar-widget">
+				<h4 class="widget-title">Business</h4>
+				<div class="startup-info-widget">
+					@if (!string.IsNullOrEmpty(Model.BusinessStage))
+					{
+						<div class="info-row">
+							<span class="info-label">Stage</span>
+							<span class="info-value">@Model.BusinessStage</span>
+						</div>
+					}
+					@if (!string.IsNullOrEmpty(Model.BusinessModel))
+					{
+						<div class="info-row">
+							<span class="info-label">Model</span>
+							<span class="info-value">@Model.BusinessModel</span>
+						</div>
+					}
+					@if (Model.EquityOffered.HasValue)
+					{
+						<div class="info-row">
+							<span class="info-label">Equity</span>
+							<span class="info-value">@Model.EquityOffered%</span>
+						</div>
+					}
+					@if (Model.MinimumInvestment.HasValue)
+					{
+						<div class="info-row">
+							<span class="info-label">Min Investment</span>
+							<span class="info-value">${@Model.MinimumInvestment:N0}</span>
+						</div>
+					}
+				</div>
+			</div>
+		}
+
+		<!-- Quick Links -->
+		<div class="sidebar-widget">
+			<h4 class="widget-title">Quick Links</h4>
+			<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+				<a href="@Url.Action("Opportunities", "Startup")" class="btn btn-outline-primary" style="text-align: center; width: 100%;">
+					View Opportunities
+				</a>
+				<a href="@Url.Action("InvestmentRequests", "Startup")" class="btn btn-outline-primary" style="text-align: center; width: 100%;">
+					Investment Requests
+				</a>
+				<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary" style="text-align: center; width: 100%;">
+					Edit Full Profile
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Post Modal -->
+<div id="postModal" class="edit-modal">
+	<div class="edit-modal-content">
+		<div class="edit-modal-header">
+			<h3>Create Post</h3>
+			<button type="button" class="edit-modal-close" id="closePostModal">×</button>
+		</div>
+		<div class="edit-modal-body">
+			<textarea id="postModalContent" placeholder="What's on your mind?" style="min-height: 150px; margin-bottom: 1rem;"></textarea>
+			<div id="photoPreviewContainer" style="display: none;">
+				<label style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Attached Photos</label>
+				<div id="photoPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;"></div>
+			</div>
+		</div>
+		<div class="edit-modal-footer">
+			<button type="button" class="btn btn-secondary" id="cancelPostModal">Cancel</button>
+			<button type="button" class="btn btn-primary" id="submitPost">Post</button>
+		</div>
+	</div>
+</div>
+
+<!-- File Upload Input (hidden) -->
+<input type="file" id="photoFileInput" accept="image/*" style="display: none;" multiple />
+<input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
+
+<script src="~/js/startup-dashboard.js"></script>

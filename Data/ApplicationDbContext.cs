@@ -23,6 +23,11 @@ namespace TechNova.Data
 
         public DbSet<NfcCardRequest> NfcCardRequests { get; set; }
 
+        // Social Media Feed
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Photo> Photos { get; set; }
+        public DbSet<Video> Videos { get; set; }
+
         // Billing
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
@@ -310,6 +315,65 @@ namespace TechNova.Data
             modelBuilder.Entity<FavoriteStartup>()
                 .HasIndex(f => new { f.InvestorID, f.StartupID })
                 .IsUnique();
+
+            // -------------------------
+            // Startup -> Post
+            // One Startup has many Posts
+            // -------------------------
+            modelBuilder.Entity<Post>()
+                .HasKey(p => p.PostID);
+
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.Startup)
+                .WithMany(s => s.Posts)
+                .HasForeignKey(p => p.StartupID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------------------------
+            // Startup -> Photo
+            // One Startup has many Photos
+            // -------------------------
+            modelBuilder.Entity<Photo>()
+                .HasKey(p => p.PhotoID);
+
+            modelBuilder.Entity<Photo>()
+                .HasOne(p => p.Startup)
+                .WithMany(s => s.Photos)
+                .HasForeignKey(p => p.StartupID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // -------------------------
+            // Post -> Photo
+            // One Post has many Photos
+            // -------------------------
+            modelBuilder.Entity<Photo>()
+                .HasOne(p => p.Post)
+                .WithMany(po => po.Photos)
+                .HasForeignKey(p => p.PostID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------------------------
+            // Startup -> Video
+            // One Startup has many Videos
+            // -------------------------
+            modelBuilder.Entity<Video>()
+                .HasKey(v => v.VideoID);
+
+            modelBuilder.Entity<Video>()
+                .HasOne(v => v.Startup)
+                .WithMany(s => s.Videos)
+                .HasForeignKey(v => v.StartupID)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // -------------------------
+            // Post -> Video
+            // One Post has many Videos
+            // -------------------------
+            modelBuilder.Entity<Video>()
+                .HasOne(v => v.Post)
+                .WithMany()
+                .HasForeignKey(v => v.PostID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

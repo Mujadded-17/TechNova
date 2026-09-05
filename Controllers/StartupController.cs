@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using TechNova.Data;
 using TechNova.Models;
+using TechNova.Services;
 using System.Security.Claims;
 
 namespace TechNova.Controllers
@@ -11,10 +12,12 @@ namespace TechNova.Controllers
     public class StartupController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMediaUploadService _mediaUploadService;
 
-        public StartupController(ApplicationDbContext context)
+        public StartupController(ApplicationDbContext context, IMediaUploadService mediaUploadService)
         {
             _context = context;
+            _mediaUploadService = mediaUploadService;
         }
 
         // ============================
@@ -88,7 +91,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(Startup model)
+        public async Task<IActionResult> EditProfile(Startup model, IFormFile? logoFile, IFormFile? coverFile)
         {
             var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(startupIdClaim, out int startupId) || model.StartupID != startupId)
@@ -100,6 +103,34 @@ namespace TechNova.Controllers
             if (startup == null)
             {
                 return NotFound();
+            }
+
+            // Handle logo upload
+            if (logoFile != null && logoFile.Length > 0)
+            {
+                var (success, message, filePath) = await _mediaUploadService.UploadPhotoAsync(logoFile, startupId);
+                if (success)
+                {
+                    startup.LogoPath = filePath;
+                }
+                else
+                {
+                    TempData["Error"] = $"Logo upload failed: {message}";
+                }
+            }
+
+            // Handle cover image upload
+            if (coverFile != null && coverFile.Length > 0)
+            {
+                var (success, message, filePath) = await _mediaUploadService.UploadPhotoAsync(coverFile, startupId);
+                if (success)
+                {
+                    startup.CoverImagePath = filePath;
+                }
+                else
+                {
+                    TempData["Error"] = $"Cover image upload failed: {message}";
+                }
             }
 
             // Update profile fields (don't update email or password here)
@@ -328,6 +359,364 @@ namespace TechNova.Controllers
 
             TempData["Success"] = $"Investment request status updated to {status}.";
             return RedirectToAction("InvestmentRequests");
+        }
+
+        // ============================
+        // POSTS (FEED)
+        // ============================
+
+        [HttpGet]
+        public async Task<IActionResult> GetFeed()
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var posts = await _context.Posts
+                .AsNoTracking()
+                .Where(p => p.StartupID == startupId && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .Include(p => p.Photos)
+                .ToListAsync();
+
+            return Json(posts);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreatePost([FromForm] string content)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return BadRequest("Post content is required.");
+            }
+
+            var post = new Post
+            {
+                StartupID = startupId,
+                Content = content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Posts.Add(post);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { postId = post.PostID });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPost(int postId, [FromForm] string content)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(p => p.PostID == postId && p.StartupID == startupId);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            post.Content = content;
+            post.UpdatedAt = DateTime.UtcNow;
+
+            _context.Posts.Update(post);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePost(int postId)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var post = await _context.Posts
+                .FirstOrDefaultAsync(p => p.PostID == postId && p.StartupID == startupId);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            post.IsDeleted = true;
+            post.DeletedAt = DateTime.UtcNow;
+
+            _context.Posts.Update(post);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        // ============================
+        // PHOTOS
+        // ============================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadPhoto([FromForm] IFormFile file, [FromForm] string caption = "", [FromForm] int? postId = null)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("File is required.");
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var ext = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtensions.Contains(ext))
+            {
+                return BadRequest("Invalid file type. Only image files are allowed.");
+            }
+
+            if (file.Length > 10 * 1024 * 1024) // 10MB
+            {
+                return BadRequest("File size exceeds 10MB limit.");
+            }
+
+            // Create media directory if it doesn't exist
+            var mediaDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "startup-media");
+            if (!Directory.Exists(mediaDir))
+            {
+                Directory.CreateDirectory(mediaDir);
+            }
+
+            var fileName = $"{startupId}_{DateTime.UtcNow.Ticks}{ext}";
+            var filePath = Path.Combine(mediaDir, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var photo = new Photo
+            {
+                StartupID = startupId,
+                PostID = postId,
+                FilePath = $"/startup-media/{fileName}",
+                Caption = caption,
+                MimeType = file.ContentType,
+                FileSizeBytes = file.Length,
+                UploadedAt = DateTime.UtcNow
+            };
+
+            _context.Photos.Add(photo);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { photoId = photo.PhotoID, filePath = photo.FilePath });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPhoto(int photoId, [FromForm] string caption)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var photo = await _context.Photos
+                .FirstOrDefaultAsync(p => p.PhotoID == photoId && p.StartupID == startupId);
+
+            if (photo == null)
+            {
+                return NotFound();
+            }
+
+            photo.Caption = caption;
+
+            _context.Photos.Update(photo);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePhoto(int photoId)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var photo = await _context.Photos
+                .FirstOrDefaultAsync(p => p.PhotoID == photoId && p.StartupID == startupId);
+
+            if (photo == null)
+            {
+                return NotFound();
+            }
+
+            // Delete the file
+            if (!string.IsNullOrEmpty(photo.FilePath))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", photo.FilePath.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
+            photo.IsDeleted = true;
+            photo.DeletedAt = DateTime.UtcNow;
+
+            _context.Photos.Update(photo);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        // ============================
+        // VIDEOS
+        // ============================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadVideo([FromForm] IFormFile file, [FromForm] string title = "", [FromForm] string description = "")
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("File is required.");
+            }
+
+            var allowedExtensions = new[] { ".mp4", ".webm", ".avi", ".mov", ".mkv" };
+            var ext = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtensions.Contains(ext))
+            {
+                return BadRequest("Invalid file type. Only video files are allowed.");
+            }
+
+            if (file.Length > 100 * 1024 * 1024) // 100MB
+            {
+                return BadRequest("File size exceeds 100MB limit.");
+            }
+
+            // Create media directory if it doesn't exist
+            var mediaDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "startup-media");
+            if (!Directory.Exists(mediaDir))
+            {
+                Directory.CreateDirectory(mediaDir);
+            }
+
+            var fileName = $"video_{startupId}_{DateTime.UtcNow.Ticks}{ext}";
+            var filePath = Path.Combine(mediaDir, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var video = new Video
+            {
+                StartupID = startupId,
+                FilePath = $"/startup-media/{fileName}",
+                Title = title,
+                Description = description,
+                MimeType = file.ContentType,
+                FileSizeBytes = file.Length,
+                UploadedAt = DateTime.UtcNow
+            };
+
+            _context.Videos.Add(video);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { videoId = video.VideoID, filePath = video.FilePath });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditVideo(int videoId, [FromForm] string title, [FromForm] string description)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var video = await _context.Videos
+                .FirstOrDefaultAsync(v => v.VideoID == videoId && v.StartupID == startupId);
+
+            if (video == null)
+            {
+                return NotFound();
+            }
+
+            video.Title = title;
+            video.Description = description;
+
+            _context.Videos.Update(video);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteVideo(int videoId)
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return Unauthorized();
+            }
+
+            var video = await _context.Videos
+                .FirstOrDefaultAsync(v => v.VideoID == videoId && v.StartupID == startupId);
+
+            if (video == null)
+            {
+                return NotFound();
+            }
+
+            // Delete the file
+            if (!string.IsNullOrEmpty(video.FilePath))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", video.FilePath.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
+            video.IsDeleted = true;
+            video.DeletedAt = DateTime.UtcNow;
+
+            _context.Videos.Update(video);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }

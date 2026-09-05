@@ -95,5 +95,11 @@ namespace TechNova.Models
         public ICollection<Message> Messages { get; set; } = new List<Message>();
 
         public ICollection<FavoriteStartup> FavoredByInvestors { get; set; } = new List<FavoriteStartup>();
+
+        public ICollection<Post> Posts { get; set; } = new List<Post>();
+
+        public ICollection<Photo> Photos { get; set; } = new List<Photo>();
+
+        public ICollection<Video> Videos { get; set; } = new List<Video>();
     }
 }
