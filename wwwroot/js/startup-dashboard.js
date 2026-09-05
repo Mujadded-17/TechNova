@@ -165,10 +165,9 @@
 			const createResponse = await fetch(config.endpoints.createPost, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-					'X-CSRF-TOKEN': getCSRFToken()
+					'Content-Type': 'application/x-www-form-urlencoded'
 				},
-				body: `content=${encodeURIComponent(content)}`
+				body: `content=${encodeURIComponent(content)}&__RequestVerificationToken=${encodeURIComponent(getCSRFToken())}`
 			});
 
 			if (!createResponse.ok) {
@@ -186,12 +185,10 @@
 					formData.append('file', photo.file);
 					formData.append('caption', '');
 					formData.append('postId', postId);
+					formData.append('__RequestVerificationToken', getCSRFToken());
 
 					const uploadResponse = await fetch(config.endpoints.uploadPhoto, {
 						method: 'POST',
-						headers: {
-							'X-CSRF-TOKEN': getCSRFToken()
-						},
 						body: formData
 					});
 
@@ -319,10 +316,9 @@
 			const response = await fetch(config.endpoints.deletePost, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-					'X-CSRF-TOKEN': getCSRFToken()
+					'Content-Type': 'application/x-www-form-urlencoded'
 				},
-				body: `postId=${postId}`
+				body: `postId=${postId}&__RequestVerificationToken=${encodeURIComponent(getCSRFToken())}`
 			});
 
 			if (!response.ok) {
@@ -404,10 +400,9 @@
 			const response = await fetch(config.endpoints.deletePhoto, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-					'X-CSRF-TOKEN': getCSRFToken()
+					'Content-Type': 'application/x-www-form-urlencoded'
 				},
-				body: `photoId=${photoId}`
+				body: `photoId=${photoId}&__RequestVerificationToken=${encodeURIComponent(getCSRFToken())}`
 			});
 
 			if (!response.ok) {
