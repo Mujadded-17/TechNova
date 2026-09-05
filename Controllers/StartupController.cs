@@ -378,7 +378,7 @@ namespace TechNova.Controllers
                 .AsNoTracking()
                 .Where(p => p.StartupID == startupId && !p.IsDeleted)
                 .OrderByDescending(p => p.CreatedAt)
-                .Include(p => p.Photos)
+                .Include(p => p.Photos.Where(ph => !ph.IsDeleted))
                 .ToListAsync();
 
             return Json(posts);
@@ -409,7 +409,13 @@ namespace TechNova.Controllers
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
-            return Ok(new { postId = post.PostID });
+            // Reload the post to include any related data (though there won't be photos yet)
+            var createdPost = await _context.Posts
+                .AsNoTracking()
+                .Include(p => p.Photos.Where(ph => !ph.IsDeleted))
+                .FirstOrDefaultAsync(p => p.PostID == post.PostID);
+
+            return Ok(new { postId = post.PostID, post = createdPost });
         }
 
         [HttpPost]

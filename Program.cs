@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using TechNova.Data;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddScoped<TechNova.Services.SubscriptionService>();
 
 // Real SMTP when configured; otherwise a development sender that writes
@@ -29,6 +35,7 @@ builder.Services.AddScoped<TechNova.Services.EmailVerificationService>();
 builder.Services.AddScoped<TechNova.Services.PitchDeckStorage>();
 builder.Services.AddScoped<TechNova.Services.IStartupMediaService, TechNova.Services.StartupMediaService>();
 builder.Services.AddScoped<TechNova.Services.IMediaUploadService, TechNova.Services.MediaUploadService>();
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
