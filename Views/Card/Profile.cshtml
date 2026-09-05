@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = "TechNova Business Card";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center p-5">
+
+                    <h2 class="mb-2">TechNova</h2>
+
+                    <p class="text-muted mb-4">
+                        NFC Business Card
+                    </p>
+
+                    <hr />
+
+                    <h4 class="mt-4">
+                        @ViewBag.Name
+                    </h4>
+
+                    <p class="text-muted">
+                        @ViewBag.UserType
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(ViewBag.CompanyName))
+                    {
+                        <p class="mb-3">
+                            <strong>Company:</strong>
+                            @ViewBag.CompanyName
+                        </p>
+                    }
+
+                    <div class="alert alert-light mt-4">
+                        <small>
+                            This digital profile was accessed through a
+                            TechNova NFC Business Card.
+                        </small>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

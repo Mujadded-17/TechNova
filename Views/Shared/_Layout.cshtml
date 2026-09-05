@@ -54,6 +54,11 @@
                                 <a class="nav-link" asp-controller="PitchDeck" asp-action="Index">Pitch Decks</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" asp-controller="NfcCard" asp-action="Index">
+                                    NFC Business Card
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="Explore" asp-action="Investors">Investors</a>
                             </li>
                             <li class="nav-item">
@@ -86,6 +91,11 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Billing" asp-action="Plans">Plans</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="NfcCard" asp-action="Index">
+                                    NFC Business Card
+                                </a>
                             </li>
                         }
                         else
@@ -125,6 +135,11 @@
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Admin Dashboard</a></li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" asp-controller="AdminNfcCard" asp-action="Index">
+                                                NFC Card Requests
+                                            </a>
+                                        </li>
                                     }
                                     <li><hr class="dropdown-divider"></li>
                                     <li>

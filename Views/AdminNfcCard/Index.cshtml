@@ -1,4 +1,5 @@
-﻿@model IEnumerable<TechNova.Models.NfcCardRequest>
+﻿```cshtml
+@model IEnumerable<TechNova.Models.NfcCardRequest>
 
 @{
     ViewData["Title"] = "NFC Card Requests";
@@ -6,58 +7,137 @@
 
 <div class="container mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2>NFC Business Card Requests</h2>
-            <p class="text-muted">
-                Review payments and approve NFC business card requests.
-            </p>
+    <!-- Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
         </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- Header -->
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold">
+            NFC Business Card Requests
+        </h2>
+
+        <p class="text-muted">
+            Review payments and approve NFC business card requests.
+        </p>
+
     </div>
+
 
     @if (!Model.Any())
     {
         <div class="alert alert-info">
+
             No NFC business card requests have been submitted yet.
+
         </div>
     }
     else
     {
         <div class="table-responsive">
+
             <table class="table table-bordered table-hover align-middle">
 
                 <thead class="table-dark">
+
                     <tr>
-                        <th>Request ID</th>
-                        <th>User ID</th>
-                        <th>User Type</th>
-                        <th>Amount</th>
-                        <th>Payment</th>
-                        <th>Request Status</th>
-                        <th>Requested At</th>
-                        <th>Action</th>
+
+                        <th>
+                            Request ID
+                        </th>
+
+                        <th>
+                            User ID
+                        </th>
+
+                        <th>
+                            User Type
+                        </th>
+
+                        <th>
+                            Amount
+                        </th>
+
+                        <th>
+                            Payment
+                        </th>
+
+                        <th>
+                            Request Status
+                        </th>
+
+                        <th>
+                            Requested At
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
                     </tr>
+
                 </thead>
 
+
                 <tbody>
+
                     @foreach (var request in Model)
                     {
                         <tr>
-                            <td>@request.NfcCardRequestID</td>
-
-                            <td>@request.UserID</td>
 
                             <td>
+                                @request.NfcCardRequestID
+                            </td>
+
+                            <td>
+                                @request.UserID
+                            </td>
+
+                            <td>
+
                                 <span class="badge bg-secondary">
                                     @request.UserType
                                 </span>
+
                             </td>
 
                             <td>
                                 $@request.Amount.ToString("0.00")
                             </td>
 
+
+                            <!-- PAYMENT -->
+
                             <td>
+
                                 @if (request.PaymentStatus == "Paid")
                                 {
                                     <span class="badge bg-success">
@@ -70,9 +150,14 @@
                                         @request.PaymentStatus
                                     </span>
                                 }
+
                             </td>
 
+
+                            <!-- REQUEST STATUS -->
+
                             <td>
+
                                 @if (request.RequestStatus == "PendingAdminApproval")
                                 {
                                     <span class="badge bg-warning text-dark">
@@ -91,37 +176,68 @@
                                         Issued
                                     </span>
                                 }
+                                else if (request.RequestStatus == "PendingPayment")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Payment Pending
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="badge bg-secondary">
                                         @request.RequestStatus
                                     </span>
                                 }
+
                             </td>
 
-                            <td>
-                                @request.RequestedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
-                            </td>
+
+                            <!-- DATE -->
 
                             <td>
+                                @request.RequestedAt
+                                .ToLocalTime()
+                                .ToString("dd MMM yyyy, hh:mm tt")
+                            </td>
+
+
+                            <!-- ACTION -->
+
+                            <td>
+
                                 @if (request.PaymentStatus == "Paid" &&
                                      request.RequestStatus == "PendingAdminApproval")
                                 {
-                                    <form asp-action="Approve"
+                                    <form asp-controller="AdminNfcCard"
+                                          asp-action="Approve"
                                           method="post">
+
+                                        @Html.AntiForgeryToken()
 
                                         <input type="hidden"
                                                name="id"
                                                value="@request.NfcCardRequestID" />
 
-                                        @Html.AntiForgeryToken()
-
                                         <button type="submit"
                                                 class="btn btn-success btn-sm">
+
                                             Approve
+
                                         </button>
 
                                     </form>
+                                }
+                                else if (request.RequestStatus == "Approved")
+                                {
+                                    <span class="text-success">
+                                        Approved
+                                    </span>
+                                }
+                                else if (request.RequestStatus == "Issued")
+                                {
+                                    <span class="text-primary">
+                                        Issued
+                                    </span>
                                 }
                                 else
                                 {
@@ -129,13 +245,18 @@
                                         No action
                                     </span>
                                 }
+
                             </td>
+
                         </tr>
                     }
+
                 </tbody>
 
             </table>
+
         </div>
     }
 
 </div>
+```

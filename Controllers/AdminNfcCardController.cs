@@ -25,5 +25,48 @@ namespace TechNova.Controllers
 
             return View(requests);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var request = await _context.NfcCardRequests
+                .FirstOrDefaultAsync(n => n.NfcCardRequestID == id);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            // Only paid requests can be approved
+            if (request.PaymentStatus != "Paid")
+            {
+                TempData["Error"] =
+                    "This NFC card request cannot be approved because payment has not been completed.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Prevent approving an already approved/issued request
+            if (request.RequestStatus != "PendingAdminApproval")
+            {
+                TempData["Error"] =
+                    "This NFC card request has already been processed.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Generate a unique token for the NFC card
+            request.CardToken = Guid.NewGuid().ToString("N");
+
+            request.ApprovedAt = DateTime.UtcNow;
+            request.RequestStatus = "Approved";
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] =
+                "NFC business card request approved successfully.";
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

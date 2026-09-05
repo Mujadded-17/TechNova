@@ -260,9 +260,7 @@ namespace TechNova.Controllers
         [HttpGet]
         public IActionResult PaymentSuccess(string? session_id)
         {
-            ViewBag.SessionId = session_id;
-
-            return View();
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
