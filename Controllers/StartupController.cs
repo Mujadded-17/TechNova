@@ -384,6 +384,37 @@ namespace TechNova.Controllers
             return Json(posts);
         }
 
+        /// <summary>
+        /// Public endpoint to get posts from a specific startup.
+        /// Accessible to investors and other authenticated users.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetStartupPosts(int startupId, int page = 1, int pageSize = 10)
+        {
+            var startup = await _context.Startups
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StartupID == startupId && s.IsPublished 
+                    && s.VerificationStatus != "Rejected" 
+                    && s.VerificationStatus != "Suspended");
+
+            if (startup == null)
+            {
+                return NotFound();
+            }
+
+            var posts = await _context.Posts
+                .AsNoTracking()
+                .Where(p => p.StartupID == startupId && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Include(p => p.Photos.Where(ph => !ph.IsDeleted))
+                .ToListAsync();
+
+            return Json(posts);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost([FromForm] string content)

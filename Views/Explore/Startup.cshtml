@@ -121,6 +121,18 @@
             </div>
         </div>
 
+        <!-- Posts Section -->
+        <div class="card mb-3">
+            <div class="card-header">Updates</div>
+            <div class="card-body">
+                <div id="startup-posts-feed" class="startup-posts-feed">
+                    <div class="text-center text-muted py-4">
+                        <p>Loading updates...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         @foreach (var (heading, body) in new[]
         {
             ("The problem", Model.ProblemStatement),
@@ -247,3 +259,76 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStartupPosts();
+        });
+
+        async function loadStartupPosts() {
+            const startupId = @Model.StartupID;
+            const feedContainer = document.getElementById('startup-posts-feed');
+
+            try {
+                const response = await fetch(`/Startup/GetStartupPosts?startupId=${startupId}&page=1&pageSize=10`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to load posts');
+                }
+
+                const posts = await response.json();
+
+                if (!posts || posts.length === 0) {
+                    feedContainer.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <p>No updates yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                feedContainer.innerHTML = posts.map(post => buildPostHtml(post)).join('');
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                feedContainer.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        Failed to load updates. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function buildPostHtml(post) {
+            const createdDate = new Date(post.createdAt);
+            const formattedDate = createdDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+
+            let photosHtml = '';
+            if (post.photos && post.photos.length > 0) {
+                photosHtml = `
+                    <div class="post-photos mt-3">
+                        ${post.photos.map(photo => `
+                            <img src="${photo.filePath}" alt="Post photo" class="post-photo" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 8px;">
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="post-item mb-3 pb-3" style="border-bottom: 1px solid #e5e7eb;">
+                    <div class="d-flex align-items-center mb-2">
+                        <small class="text-muted">${formattedDate}</small>
+                    </div>
+                    <div style="color: #333;">
+                        ${post.content}
+                    </div>
+                    ${photosHtml}
+                </div>
+            `;
+        }
+    </script>
+}
