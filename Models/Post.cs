@@ -29,5 +29,6 @@ namespace TechNova.Models
         public Startup? Startup { get; set; }
 
         public ICollection<Photo> Photos { get; set; } = new List<Photo>();
+        public ICollection<Video> Videos { get; set; } = new List<Video>();
     }
 }

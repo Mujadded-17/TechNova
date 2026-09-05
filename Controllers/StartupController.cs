@@ -167,6 +167,56 @@ namespace TechNova.Controllers
         }
 
         // ============================
+        // MESSAGE INVESTOR
+        // ============================
+
+        /// <summary>
+        /// Startups can search for and message investors.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> MessageInvestor(string q = "")
+        {
+            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(startupIdClaim, out int startupId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            IQueryable<Investor> query = _context.Investors
+                .AsNoTracking()
+                .Where(i => i.EmailVerified == true); // Only show verified investors
+
+            // Filter by search query
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var search = q.ToLower().Trim();
+                query = query.Where(i => 
+                    i.Name.ToLower().Contains(search) ||
+                    i.CompanyName.ToLower().Contains(search) ||
+                    i.Bio.ToLower().Contains(search) ||
+                    i.InvestedIndustries.ToLower().Contains(search));
+            }
+
+            var investors = await query
+                .OrderBy(i => i.Name)
+                .Take(50)
+                .ToListAsync();
+
+            // Get existing threads to know which investors we're already talking to
+            var existingThreads = await _context.Messages
+                .AsNoTracking()
+                .Where(m => m.StartupID == startupId)
+                .Select(m => m.InvestorID)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.ExistingThreads = existingThreads;
+            ViewBag.Query = q;
+
+            return View(investors);
+        }
+
+        // ============================
         // INVESTMENT OPPORTUNITIES
         // ============================
 
@@ -387,6 +437,7 @@ namespace TechNova.Controllers
         /// <summary>
         /// Public endpoint to get posts from a specific startup.
         /// Accessible to investors and other authenticated users.
+        /// Includes photos and videos attached to each post.
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
@@ -406,10 +457,11 @@ namespace TechNova.Controllers
             var posts = await _context.Posts
                 .AsNoTracking()
                 .Where(p => p.StartupID == startupId && !p.IsDeleted)
+                .Include(p => p.Photos.Where(ph => !ph.IsDeleted))
+                .Include(p => p.Videos.Where(v => !v.IsDeleted))
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Include(p => p.Photos.Where(ph => !ph.IsDeleted))
                 .ToListAsync();
 
             return Json(posts);

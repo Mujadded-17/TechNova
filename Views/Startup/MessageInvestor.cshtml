@@ -1,0 +1,118 @@
+@model List<TechNova.Models.Investor>
+@{
+	ViewData["Title"] = "Message an Investor";
+	var existing = ViewBag.ExistingThreads as List<int> ?? new List<int>();
+	var query = (string?)ViewBag.Query;
+}
+
+<div class="mb-3">
+	<a asp-action="Dashboard" class="back-link">&larr; Back to dashboard</a>
+</div>
+
+<div class="page-head">
+	<h1>Message an Investor</h1>
+	<p>Connect with investors who might be interested in your startup.</p>
+</div>
+
+<div class="card mb-3">
+	<div class="card-body">
+		<form method="get" class="row g-2 align-items-end">
+
+			<div class="col-md-10">
+				<label class="form-label" for="q">Search investors</label>
+				<input class="form-control" id="q" name="q" value="@query"
+					   placeholder="Name, company, or investment focus" />
+			</div>
+
+			<div class="col-md-2">
+				<button type="submit" class="btn btn-primary w-100">Search</button>
+			</div>
+
+		</form>
+	</div>
+</div>
+
+@if (!Model.Any())
+{
+	<div class="card">
+		<div class="card-body text-center py-5">
+			<p class="text-muted mb-0">
+				@if (string.IsNullOrWhiteSpace(query))
+				{
+					<text>No investors found yet. Try adjusting your search criteria.</text>
+				}
+				else
+				{
+					<text>No investors match "@query". Try a different search.</text>
+				}
+			</p>
+		</div>
+	</div>
+}
+else
+{
+	<div class="row g-3">
+		@foreach (var investor in Model)
+		{
+			var hasThread = existing.Contains(investor.InvestorID);
+
+			<div class="col-md-6">
+				<div class="card h-100 shadow-sm">
+					<div class="card-body d-flex flex-column">
+
+						<!-- Header with name and verification badge -->
+						<div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+							<h3 class="card-title h5 mb-0">@investor.Name</h3>
+							<span class="badge bg-success">Verified</span>
+						</div>
+
+						<!-- Company/Role info -->
+						@if (!string.IsNullOrWhiteSpace(investor.CompanyName))
+						{
+							<p class="text-muted small mb-2">
+								<strong>@investor.CompanyName</strong>
+							</p>
+						}
+
+						<!-- Investment focus -->
+						@if (!string.IsNullOrWhiteSpace(investor.InvestedIndustries))
+						{
+							<p class="text-muted small mb-2">
+								<i class="bi bi-graph-up"></i>
+								Invests in: @investor.InvestedIndustries
+							</p>
+						}
+
+						<!-- Bio/Description -->
+						@if (!string.IsNullOrWhiteSpace(investor.Bio))
+						{
+							<p class="card-text small flex-grow-1">
+								@(investor.Bio.Length > 150
+									? investor.Bio.Substring(0, 150) + "…"
+									: investor.Bio)
+							</p>
+						}
+
+						<!-- Investment Range -->
+						@if (investor.InvestmentRange.HasValue)
+						{
+							<p class="text-muted small mb-3">
+								<strong>Investment Range:</strong> $@investor.InvestmentRange.Value.ToString("N0")
+							</p>
+						}
+
+						<!-- Action Button -->
+						<div class="mt-auto">
+							<a asp-controller="Message" asp-action="Thread" 
+							   asp-route-id="@investor.InvestorID"
+							   class="btn @(hasThread ? "btn-outline-primary" : "btn-primary") btn-sm w-100">
+								@(hasThread ? "Continue Conversation" : "Send Message")
+							</a>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
