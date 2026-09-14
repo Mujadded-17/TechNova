@@ -185,6 +185,10 @@ namespace TechNova.Data
                 .Property(i => i.InvestmentRange)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<NfcCardRequest>()
+                .Property(n => n.Amount)
+                .HasPrecision(18, 2);
+
             // -------------------------
             // Post -> Photos
             // One Post has many Photos
@@ -209,25 +213,7 @@ namespace TechNova.Data
                 .Property(i => i.InvestmentRange)
                 .HasPrecision(18, 2);
 
-            // -------------------------
-            // Post -> Photos
-            // One Post has many Photos
-            // -------------------------
-            modelBuilder.Entity<Photo>()
-                .HasOne(ph => ph.Post)
-                .WithMany(p => p.Photos)
-                .HasForeignKey(ph => ph.PostID)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // -------------------------
-            // Post -> Videos
-            // One Post has many Videos
-            // -------------------------
-            modelBuilder.Entity<Video>()
-                .HasOne(v => v.Post)
-                .WithMany(p => p.Videos)
-                .HasForeignKey(v => v.PostID)
-                .OnDelete(DeleteBehavior.Cascade);
+            
 
             // -------------------------
             // Billing
@@ -414,7 +400,7 @@ namespace TechNova.Data
             // -------------------------
             modelBuilder.Entity<Video>()
                 .HasOne(v => v.Post)
-                .WithMany()
+                .WithMany(p => p.Videos)
                 .HasForeignKey(v => v.PostID)
                 .OnDelete(DeleteBehavior.Cascade);
         }
