@@ -6,9 +6,8 @@
     <div class="card shadow-sm">
         <div class="card-body text-center p-5">
 
-            ```
             <h2 class="text-success mb-3">
-                Payment Submitted Successfully!
+                Payment Successful!
             </h2>
 
             <p class="lead">
@@ -16,8 +15,8 @@
             </p>
 
             <p class="text-muted">
-                Your NFC Business Card request has been received.
-                The card will be reviewed and confirmed by the TechNova admin.
+                Your NFC Business Card request has been received
+                and is now waiting for TechNova admin approval.
             </p>
 
             @if (!string.IsNullOrEmpty(ViewBag.SessionId))
@@ -32,11 +31,11 @@
             <a asp-controller="NfcCard"
                asp-action="Index"
                class="btn btn-primary mt-3">
+
                 Back to NFC Business Card
+
             </a>
 
         </div>
     </div>
-    ```
-
 </div>

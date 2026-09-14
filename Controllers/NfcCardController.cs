@@ -258,9 +258,108 @@ namespace TechNova.Controllers
         }
 
         [HttpGet]
-        public IActionResult PaymentSuccess(string? session_id)
+        public async Task<IActionResult> PaymentSuccess(string? session_id)
         {
-            return RedirectToAction(nameof(Index));
+            if (string.IsNullOrWhiteSpace(session_id))
+            {
+                TempData["Error"] = "Payment session was not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var userIdClaim =
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userType = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userType != "Investor" && userType != "Startup")
+            {
+                return Forbid();
+            }
+
+            StripeConfiguration.ApiKey =
+                _configuration["Stripe:SecretKey"];
+
+            if (string.IsNullOrWhiteSpace(StripeConfiguration.ApiKey))
+            {
+                TempData["Error"] = "Stripe SecretKey is not configured.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var service = new SessionService();
+
+                var session = await service.GetAsync(session_id);
+
+                if (session == null)
+                {
+                    TempData["Error"] = "Stripe payment session could not be found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (session.PaymentStatus != "paid")
+                {
+                    TempData["Error"] =
+                        "Payment has not been completed.";
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (!session.Metadata.TryGetValue(
+                        "NfcCardRequestID",
+                        out var requestIdString) ||
+                    !int.TryParse(requestIdString, out var requestId))
+                {
+                    TempData["Error"] =
+                        "Invalid NFC card payment session.";
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var request = await _context.NfcCardRequests
+                    .FirstOrDefaultAsync(n =>
+                        n.NfcCardRequestID == requestId &&
+                        n.UserID == userId &&
+                        n.UserType == userType);
+
+                if (request == null)
+                {
+                    TempData["Error"] =
+                        "NFC card request could not be found.";
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                request.PaymentStatus = "Paid";
+                request.RequestStatus = "PendingAdminApproval";
+                request.PaidAt = DateTime.UtcNow;
+                request.StripeSessionID = session.Id;
+
+                if (!string.IsNullOrWhiteSpace(session.PaymentIntentId))
+                {
+                    request.StripePaymentIntentID =
+                        session.PaymentIntentId;
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] =
+                    "Payment completed successfully. Your NFC card request is now waiting for admin approval.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (StripeException)
+            {
+                TempData["Error"] =
+                    "There was a problem verifying your Stripe payment.";
+
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost]
@@ -301,12 +400,11 @@ namespace TechNova.Controllers
                             .FirstOrDefaultAsync(
                                 n => n.NfcCardRequestID == requestId);
 
-                        if (request != null &&
-                            request.PaymentStatus != "Paid")
+                        if (request != null && session.PaymentStatus == "paid")
                         {
                             request.PaymentStatus = "Paid";
                             request.RequestStatus = "PendingAdminApproval";
-                            request.PaidAt = DateTime.UtcNow;
+                            request.PaidAt ??= DateTime.UtcNow;
 
                             request.StripeSessionID = session.Id;
 
