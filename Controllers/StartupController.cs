@@ -54,11 +54,12 @@ namespace TechNova.Controllers
         public async Task<IActionResult> Profile(int id)
         {
             var startup = await _context.Startups
-     .AsNoTracking()
-     .FirstOrDefaultAsync(s =>
-         s.StartupID == id &&
-         s.IsPublished &&
-         s.ProfileVerificationStatus == "Verified");
+                .AsNoTracking()
+                .Include(s => s.PitchDecks)
+                .FirstOrDefaultAsync(s =>
+                    s.StartupID == id &&
+                    s.IsPublished &&
+                    s.ProfileVerificationStatus == "Verified");
 
             if (startup == null)
             {
@@ -67,7 +68,6 @@ namespace TechNova.Controllers
 
             return View(startup);
         }
-
         // ============================
         // STARTUP PROFILE EDIT
         // ============================
