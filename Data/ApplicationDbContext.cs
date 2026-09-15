@@ -45,6 +45,11 @@ namespace TechNova.Data
 
             modelBuilder.Entity<Startup>()
                 .HasKey(s => s.StartupID);
+            modelBuilder.Entity<Startup>()
+    .HasOne(s => s.ProfileVerifiedByAdmin)
+    .WithMany()
+    .HasForeignKey(s => s.ProfileVerifiedByAdminID)
+    .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Founder>()
                 .HasKey(f => f.FounderID);
