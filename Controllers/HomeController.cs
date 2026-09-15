@@ -20,14 +20,13 @@ namespace TechNova.Controllers
             // The discovery section shows real startups. Only ones the
             // founder published and an admin hasn't rejected or suspended.
             ViewBag.Startups = await _context.Startups
-                .AsNoTracking()
-                .Where(s => s.IsPublished
-                            && s.VerificationStatus != "Rejected"
-                            && s.VerificationStatus != "Suspended")
-                .OrderByDescending(s => s.VerificationStatus == "Verified")
-                .ThenByDescending(s => s.StartupID)
-                .Take(6)
-                .ToListAsync();
+     .AsNoTracking()
+     .Where(s =>
+         s.IsPublished &&
+         s.ProfileVerificationStatus == "Verified")
+     .OrderByDescending(s => s.StartupID)
+     .Take(6)
+     .ToListAsync();
 
             ViewBag.StartupCount = await _context.Startups
                 .CountAsync(s => s.IsPublished);
