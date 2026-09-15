@@ -60,11 +60,22 @@ namespace TechNova.Controllers
                 .Take(10)
                 .ToListAsync();
 
+            // Counts for the stat cards
+            var activeRequestsCount = await _context.InvestmentRequests
+                .AsNoTracking()
+                .CountAsync(r => r.InvestorID == investorId && r.Status == "Pending");
+
+            var savedStartupsCount = await _context.FavoriteStartups
+                .AsNoTracking()
+                .CountAsync(f => f.InvestorID == investorId);
+
             var dashboardData = new
             {
                 Investor = investor,
                 RecentStartups = recentStartups,
-                MyRequests = myRequests
+                MyRequests = myRequests,
+                ActiveRequestsCount = activeRequestsCount,
+                SavedStartupsCount = savedStartupsCount
             };
 
             return View((object)dashboardData);
