@@ -1,0 +1,311 @@
+﻿@model TechNova.Models.Startup
+
+@{
+    ViewData["Title"] = "Review Startup Profile";
+}
+
+<div class="page-head d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+    <div>
+        <h1>Review Startup Profile</h1>
+        <p>
+            Carefully review the complete profile before approving publication.
+        </p>
+    </div>
+
+    <a asp-action="ProfileVerification"
+       class="btn btn-outline-secondary">
+        ← Back
+    </a>
+
+</div>
+
+<div class="card mb-4">
+
+    @if (!string.IsNullOrEmpty(Model.CoverImagePath))
+    {
+        <img src="@Model.CoverImagePath"
+             style="width:100%; max-height:300px; object-fit:cover;"
+             alt="@Model.CompanyName cover" />
+    }
+
+    <div class="card-body">
+
+        <div class="d-flex align-items-center gap-3">
+
+            @if (!string.IsNullOrEmpty(Model.LogoPath))
+            {
+                <img src="@Model.LogoPath"
+                     style="width:100px;height:100px;border-radius:50%;object-fit:cover;"
+                     alt="@Model.CompanyName logo" />
+            }
+
+            <div>
+                <h2>@Model.CompanyName</h2>
+
+                @if (!string.IsNullOrEmpty(Model.Tagline))
+                {
+                    <p class="text-muted mb-0">
+                        @Model.Tagline
+                    </p>
+                }
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- BASIC INFORMATION -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <h5 class="mb-0">Basic Information</h5>
+    </div>
+
+    <div class="card-body">
+
+        <dl class="row">
+
+            <dt class="col-sm-3">Company Name</dt>
+            <dd class="col-sm-9">@Model.CompanyName</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Website</dt>
+            <dd class="col-sm-9">
+                @(string.IsNullOrEmpty(Model.Website) ? "—" : Model.Website)
+            </dd>
+
+            <dt class="col-sm-3">Industry</dt>
+            <dd class="col-sm-9">
+                @(string.IsNullOrEmpty(Model.Industry) ? "—" : Model.Industry)
+            </dd>
+
+            <dt class="col-sm-3">Location</dt>
+            <dd class="col-sm-9">
+                @(string.IsNullOrEmpty(Model.Location) ? "—" : Model.Location)
+            </dd>
+
+            <dt class="col-sm-3">Founded Year</dt>
+            <dd class="col-sm-9">
+                @(Model.FoundedYear?.ToString() ?? "—")
+            </dd>
+
+            <dt class="col-sm-3">Employees</dt>
+            <dd class="col-sm-9">
+                @(Model.NumberOfEmployees?.ToString() ?? "—")
+            </dd>
+
+        </dl>
+
+    </div>
+</div>
+
+
+<!-- DESCRIPTION -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <h5 class="mb-0">Description</h5>
+    </div>
+
+    <div class="card-body">
+        <p style="white-space:pre-line">
+            @(string.IsNullOrEmpty(Model.Description)
+                ? "No description provided."
+                : Model.Description)
+        </p>
+    </div>
+
+</div>
+
+
+<!-- BUSINESS DETAILS -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <h5 class="mb-0">Business Details</h5>
+    </div>
+
+    <div class="card-body">
+
+        <dl class="row">
+
+            <dt class="col-sm-3">Business Stage</dt>
+            <dd class="col-sm-9">@Model.BusinessStage</dd>
+
+            <dt class="col-sm-3">Business Model</dt>
+            <dd class="col-sm-9">
+                @(Model.BusinessModel ?? "—")
+            </dd>
+
+            <dt class="col-sm-3">Funding Required</dt>
+            <dd class="col-sm-9">
+                $@Model.FundingRequired.ToString("N0")
+            </dd>
+
+            <dt class="col-sm-3">Amount Raised</dt>
+            <dd class="col-sm-9">
+                $@Model.AmountRaised.ToString("N0")
+            </dd>
+
+            <dt class="col-sm-3">Minimum Investment</dt>
+            <dd class="col-sm-9">
+                @(Model.MinimumInvestment.HasValue
+                    ? "$" + Model.MinimumInvestment.Value.ToString("N0")
+                    : "—")
+            </dd>
+
+            <dt class="col-sm-3">Equity Offered</dt>
+            <dd class="col-sm-9">
+                @(Model.EquityOffered.HasValue
+                    ? Model.EquityOffered + "%"
+                    : "—")
+            </dd>
+
+            <dt class="col-sm-3">Funding Deadline</dt>
+            <dd class="col-sm-9">
+                @(Model.FundingDeadline?.ToString("dd MMM yyyy") ?? "—")
+            </dd>
+
+        </dl>
+
+    </div>
+</div>
+
+
+<!-- PROBLEM & SOLUTION -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <h5 class="mb-0">Problem & Solution</h5>
+    </div>
+
+    <div class="card-body">
+
+        <h6>Problem Statement</h6>
+        <p style="white-space:pre-line">
+            @(Model.ProblemStatement ?? "—")
+        </p>
+
+        <h6>Solution</h6>
+        <p style="white-space:pre-line">
+            @(Model.Solution ?? "—")
+        </p>
+
+        <h6>Target Market</h6>
+        <p style="white-space:pre-line">
+            @(Model.TargetMarket ?? "—")
+        </p>
+
+        <h6>Competitive Advantage</h6>
+        <p style="white-space:pre-line">
+            @(Model.CompetitiveAdvantage ?? "—")
+        </p>
+
+        <h6>Traction</h6>
+        <p style="white-space:pre-line">
+            @(Model.Traction ?? "—")
+        </p>
+
+    </div>
+</div>
+
+
+<!-- CONTACT -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <h5 class="mb-0">Contact Information</h5>
+    </div>
+
+    <div class="card-body">
+
+        <dl class="row">
+
+            <dt class="col-sm-3">Contact Person</dt>
+            <dd class="col-sm-9">
+                @(Model.ContactPerson ?? "—")
+            </dd>
+
+            <dt class="col-sm-3">Contact Phone</dt>
+            <dd class="col-sm-9">
+                @(Model.ContactPhone ?? "—")
+            </dd>
+
+        </dl>
+
+    </div>
+</div>
+
+
+<!-- VERIFICATION -->
+
+<div class="card mb-5">
+
+    <div class="card-header">
+        <h5 class="mb-0">Profile Publication Decision</h5>
+    </div>
+
+    <div class="card-body">
+
+        <div class="alert alert-warning">
+            This decision controls whether this startup appears on the
+            public Explore page.
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <form asp-action="SetStartupProfileStatus"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.StartupID" />
+
+                <input type="hidden"
+                       name="status"
+                       value="Verified" />
+
+                <button type="submit"
+                        class="btn btn-success">
+                    ✓ Verify Profile
+                </button>
+
+            </form>
+
+
+            <form asp-action="SetStartupProfileStatus"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.StartupID" />
+
+                <input type="hidden"
+                       name="status"
+                       value="Rejected" />
+
+                <button type="submit"
+                        class="btn btn-outline-danger">
+                    ✕ Reject Profile
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
