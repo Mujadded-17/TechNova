@@ -114,11 +114,11 @@
 			<div class="startup-stats">
 				<div class="stat-item">
 					<span class="stat-label">Funding Goal</span>
-					<span class="stat-value">${@Model.FundingRequired:N0}</span>
+					<span class="stat-value">@Model.FundingRequired</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">Amount Raised</span>
-					<span class="stat-value text-success">${@Model.AmountRaised:N0}</span>
+					<span class="stat-value text-success">@Model.AmountRaised</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">Progress</span>
@@ -222,7 +222,7 @@
 					{
 						<div class="info-row">
 							<span class="info-label">Min Investment</span>
-							<span class="info-value">${@Model.MinimumInvestment:N0}</span>
+							<span class="info-value">@Model.MinimumInvestment</span>
 						</div>
 					}
 				</div>
