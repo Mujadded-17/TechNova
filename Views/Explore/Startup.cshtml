@@ -21,11 +21,24 @@
 </div>
 
 <div class="card profile-hero mb-3">
-    <div class="profile-hero__cover"></div>
-
+    <div class="profile-hero__cover" style="@(string.IsNullOrEmpty(Model.CoverImagePath) ? "" : $"background-image: url('{Model.CoverImagePath}'); background-size: cover; background-position: center;")"></div>
     <div class="card-body">
         <div class="profile-hero__ident">
-            <span class="profile-hero__avatar">@initials</span>
+            @if (!string.IsNullOrEmpty(Model.LogoPath))
+            {
+                <img src="@Model.LogoPath" alt="@Model.CompanyName" class="profile-hero__avatar" style="object-fit: cover;">
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(Model.LogoPath))
+                {
+                    <img src="@Model.LogoPath" alt="@Model.CompanyName" class="profile-hero__avatar" style="object-fit: cover;">
+                }
+                else
+                {
+                    <span class="profile-hero__avatar">@initials</span>
+                }
+            }
 
             <div class="flex-grow-1">
                 <div class="d-flex flex-wrap align-items-center gap-2">
