@@ -106,10 +106,10 @@
 												@startup.Industry @(string.IsNullOrEmpty(startup.Industry) ? "" : "•") @startup.Location
 											</p>
 										</div>
-										<button class="btn btn-sm btn-outline-primary favorite-btn" 
-												data-startup-id="@startup.StartupID" 
+										<button class="btn btn-sm btn-outline-primary favorite-btn @(((HashSet<int>)ViewBag.FavoritedStartupIds).Contains(startup.StartupID) ? "favorited" : "")"
+												data-startup-id="@startup.StartupID"
 												onclick="toggleFavorite(@startup.StartupID)">
-											♡
+											@(((HashSet<int>)ViewBag.FavoritedStartupIds).Contains(startup.StartupID) ? "♥" : "♡")
 										</button>
 									</div>
 

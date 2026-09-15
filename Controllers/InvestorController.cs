@@ -267,7 +267,25 @@ namespace TechNova.Controllers
                 _ => query.OrderByDescending(s => s.CreatedAt) // "newest" default
             };
 
+           
             var startups = await query.ToListAsync();
+
+            // Which of these startups has the current investor already saved?
+            // Discover is [AllowAnonymous], so guard for a logged-out visitor.
+            var favoritedIds = new HashSet<int>();
+            var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(investorIdClaim, out int investorId))
+            {
+                favoritedIds = (await _context.FavoriteStartups
+                    .AsNoTracking()
+                    .Where(f => f.InvestorID == investorId)
+                    .Select(f => f.StartupID)
+                    .ToListAsync())
+                    .ToHashSet();
+            }
+            ViewBag.FavoritedStartupIds = favoritedIds;
+
+            ViewBag.Search = search;
 
             ViewBag.Search = search;
             ViewBag.Industry = industry;
