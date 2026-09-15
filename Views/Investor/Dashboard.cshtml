@@ -1,14 +1,28 @@
 @{
 	ViewData["Title"] = "Investor Dashboard";
 	Layout = "~/Views/Shared/_Layout.cshtml";
-	var dashboardData = ViewData.Model;
+	dynamic dashboardData = ViewData.Model!;
 }
 
 <div class="container mt-5">
 	<div class="row mb-4">
-		<div class="col-md-8">
-			<h1 class="mb-2">Welcome, Investor</h1>
-			<p class="text-muted">Discover and invest in promising startups</p>
+		<div class="col-md-8 d-flex align-items-center gap-3">
+			@if (!string.IsNullOrEmpty(dashboardData.Investor.ProfileImagePath))
+			{
+				<img src="@dashboardData.Investor.ProfileImagePath" alt="@dashboardData.Investor.Name"
+					 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+			}
+			else
+			{
+				<div style="width: 100px; height: 100px; border-radius: 50%; background: #e3e7ea;
+					display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 2rem;">
+					@dashboardData.Investor.Name.Substring(0, 1).ToUpper()
+				</div>
+			}
+			<div>
+				<h1 class="mb-1">Welcome, @dashboardData.Investor.Name</h1>
+				<p class="text-muted mb-0">Discover and invest in promising startups</p>
+			</div>
 		</div>
 		<div class="col-md-4 text-end">
 			<a href="@Url.Action("EditProfile", "Investor")" class="btn btn-outline-primary">

@@ -5,6 +5,7 @@ using TechNova.Data;
 using TechNova.Filters;
 using TechNova.Models;
 using System.Security.Claims;
+using TechNova.Services;
 
 namespace TechNova.Controllers
 {
@@ -12,10 +13,12 @@ namespace TechNova.Controllers
     public class InvestorController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMediaUploadService _mediaUploadService;
 
-        public InvestorController(ApplicationDbContext context)
+        public InvestorController(ApplicationDbContext context, IMediaUploadService mediaUploadService)
         {
             _context = context;
+            _mediaUploadService = mediaUploadService;
         }
 
         // ============================
@@ -116,7 +119,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(Investor model)
+        public async Task<IActionResult> EditProfile(Investor model, IFormFile? profileImageFile)
         {
             var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(investorIdClaim, out int investorId) || model.InvestorID != investorId)
@@ -130,6 +133,19 @@ namespace TechNova.Controllers
                 return NotFound();
             }
 
+            // Handle profile picture upload
+            if (profileImageFile != null && profileImageFile.Length > 0)
+            {
+                var (success, message, filePath) = await _mediaUploadService.UploadPhotoAsync(profileImageFile, investorId);
+                if (success)
+                {
+                    investor.ProfileImagePath = filePath;
+                }
+                else
+                {
+                    TempData["Error"] = $"Profile picture upload failed: {message}";
+                }
+            }
             investor.Name = model.Name;
             investor.Bio = model.Bio;
             investor.CompanyName = model.CompanyName;
@@ -144,7 +160,6 @@ namespace TechNova.Controllers
             investor.InvestedIndustries = model.InvestedIndustries;
             investor.ReceiveNotifications = model.ReceiveNotifications;
             investor.UpdatedAt = DateTime.UtcNow;
-
             _context.Investors.Update(investor);
             await _context.SaveChangesAsync();
 

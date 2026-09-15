@@ -44,7 +44,14 @@
 
     <div class="card-body">
         <div class="profile-hero__ident">
-            <span class="profile-hero__avatar profile-hero__avatar--investor">@initials</span>
+            @if (!string.IsNullOrEmpty(Model.ProfileImagePath))
+            {
+                <img src="@Model.ProfileImagePath" alt="@Model.Name" class="profile-hero__avatar profile-hero__avatar--investor" style="object-fit: cover;">
+            }
+            else
+            {
+                <span class="profile-hero__avatar profile-hero__avatar--investor">@initials</span>
+            }
 
             <div class="flex-grow-1">
                 <div class="d-flex flex-wrap align-items-center gap-2">
