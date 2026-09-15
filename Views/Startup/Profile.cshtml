@@ -254,8 +254,8 @@
 				<p>Use the messaging system to request more information about this startup.</p>
 				@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Investor"))
 				{
-					<a href="@Url.Action("SendMessage", "Message", new { startupId = Model.StartupID })" class="btn btn-primary w-100">
-						Send Message
+					<a href="@Url.Action("Thread", "Message", new { id = Model.StartupID })" class="btn btn-primary w-100">
+						Message
 					</a>
 				}
 				else
