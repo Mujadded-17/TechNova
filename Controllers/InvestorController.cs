@@ -29,6 +29,7 @@ namespace TechNova.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (!int.TryParse(investorIdClaim, out int investorId))
             {
                 return RedirectToAction("Login", "Account");
@@ -60,11 +61,14 @@ namespace TechNova.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            // Counts for the stat cards
-            var activeRequestsCount = await _context.InvestmentRequests
-                .AsNoTracking()
-                .CountAsync(r => r.InvestorID == investorId && r.Status == "Pending");
+            // Count Accepted requests for Active Requests bubble
+            var activeRequestCount = await _context.InvestmentRequests
+     .AsNoTracking()
+     .CountAsync(r =>
+         r.InvestorID == investorId &&
+         r.Status == "Pending");
 
+            // Count saved startups
             var savedStartupsCount = await _context.FavoriteStartups
                 .AsNoTracking()
                 .CountAsync(f => f.InvestorID == investorId);
@@ -74,13 +78,12 @@ namespace TechNova.Controllers
                 Investor = investor,
                 RecentStartups = recentStartups,
                 MyRequests = myRequests,
-                ActiveRequestsCount = activeRequestsCount,
-                SavedStartupsCount = savedStartupsCount
+                SavedStartupsCount = savedStartupsCount,
+                ActiveRequestCount = activeRequestCount
             };
 
             return View((object)dashboardData);
         }
-
         // ============================
         // INVESTOR PROFILE
         // ============================
@@ -325,49 +328,7 @@ namespace TechNova.Controllers
             return View(requests);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [RequiresSubscription]
-        public async Task<IActionResult> CreateRequest(int startupId, decimal investmentAmount, string? message)
-        {
-            var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(investorIdClaim, out int investorId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var startup = await _context.Startups.FindAsync(startupId);
-            if (startup == null)
-            {
-                return NotFound();
-            }
-
-            // Check if request already exists
-            var existingRequest = await _context.InvestmentRequests
-                .FirstOrDefaultAsync(r => r.InvestorID == investorId && r.StartupID == startupId);
-
-            if (existingRequest != null)
-            {
-                TempData["Error"] = "You have already submitted a request to this startup.";
-                return RedirectToAction("Discover");
-            }
-
-            var request = new InvestmentRequest
-            {
-                InvestorID = investorId,
-                StartupID = startupId,
-                InvestmentAmount = investmentAmount,
-                RequestDate = DateTime.UtcNow,
-                Status = "Pending"
-            };
-
-            _context.InvestmentRequests.Add(request);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Investment request submitted successfully.";
-            return RedirectToAction("MyRequests");
-        }
-
+       
         // ============================
         // FAVORITE STARTUPS
         // ============================

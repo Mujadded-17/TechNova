@@ -76,7 +76,19 @@
 								}
 							</td>
 							<td>
-								<a href="@Url.Action("Profile", "Startup", new { id = request.StartupID })" class="btn btn-sm btn-primary">View Startup</a>
+
+								<a href="@Url.Action("Thread", "Message",
+												   new { id = request.StartupID })"
+								   class="btn btn-sm btn-success mb-1">
+									Open Conversation
+								</a>
+
+								<a href="@Url.Action("Profile", "Startup",
+												   new { id = request.StartupID })"
+								   class="btn btn-sm btn-primary">
+									View Startup
+								</a>
+
 							</td>
 						</tr>
 					}

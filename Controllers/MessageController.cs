@@ -146,6 +146,13 @@ namespace TechNova.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Check whether an investment request already exists
+            var existingRequest = await _context.InvestmentRequests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r =>
+                    r.StartupID == startupId &&
+                    r.InvestorID == investorId);
+
             ViewBag.IsStartup = IsStartup;
             ViewBag.CounterpartyId = id;
             ViewBag.CounterpartyName = IsStartup ? investor.Name : startup.CompanyName;
@@ -153,15 +160,17 @@ namespace TechNova.Controllers
                 ? (string.IsNullOrWhiteSpace(investor.CompanyName) ? "Investor" : investor.CompanyName!)
                 : (string.IsNullOrWhiteSpace(startup.Industry) ? "Startup" : startup.Industry!);
 
+            ViewBag.ExistingInvestmentRequest = existingRequest;
+
             return View(messages);
         }
 
 
-        // ============================
-        // SEND
-        // ============================
+            // ============================
+            // SEND
+            // ============================
 
-        [HttpPost]
+            [HttpPost]
         [ValidateAntiForgeryToken]
         [RequiresSubscription]
         public async Task<IActionResult> Send(int id, string content)
@@ -209,13 +218,96 @@ namespace TechNova.Controllers
             return RedirectToAction(nameof(Thread), new { id });
         }
 
+            // ============================
+            // CREATE INVESTMENT REQUEST
+            // ============================
 
-        // ============================
-        // START A NEW CONVERSATION
-        // Investors reach out first, so this is investor-only.
-        // ============================
+            [HttpPost]
+            [Authorize(Roles = "Investor")]
+            [ValidateAntiForgeryToken]
+            [RequiresSubscription]
+            public async Task<IActionResult> CreateInvestmentRequest(
+                int startupId,
+                decimal investmentAmount,
+                string? message)
+            {
+                var investorId = CurrentId;
 
-        [HttpGet]
+                // Validate amount
+                if (investmentAmount <= 0)
+                {
+                    TempData["MessageError"] =
+                        "Investment amount must be greater than 0.";
+
+                    return RedirectToAction(nameof(Thread), new { id = startupId });
+                }
+
+                // Check startup exists
+                var startup = await _context.Startups
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.StartupID == startupId);
+
+                if (startup == null)
+                {
+                    return NotFound();
+                }
+
+                // Check if a request already exists
+                var existingRequest = await _context.InvestmentRequests
+                    .FirstOrDefaultAsync(r =>
+                        r.InvestorID == investorId &&
+                        r.StartupID == startupId);
+
+                if (existingRequest != null)
+                {
+                    TempData["MessageError"] =
+                        $"You already have an investment request with this startup. " +
+                        $"Current status: {existingRequest.Status}";
+
+                    return RedirectToAction(nameof(Thread), new { id = startupId });
+                }
+
+                // Create the formal investment request
+                var request = new InvestmentRequest
+                {
+                    InvestorID = investorId,
+                    StartupID = startupId,
+                    InvestmentAmount = investmentAmount,
+                    RequestDate = DateTime.UtcNow,
+                    Status = "Pending"
+                };
+
+                _context.InvestmentRequests.Add(request);
+
+                // Optional final message
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    _context.Messages.Add(new Message
+                    {
+                        StartupID = startupId,
+                        InvestorID = investorId,
+                        SenderType = "Investor",
+                        Content = message.Trim(),
+                        Timestamp = DateTime.UtcNow,
+                        IsRead = false
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["MessageSuccess"] =
+                    "Investment request sent successfully. It is now pending.";
+
+                return RedirectToAction(nameof(Thread), new { id = startupId });
+            }
+
+
+            // ============================
+            // START A NEW CONVERSATION
+            // Investors reach out first, so this is investor-only.
+            // ============================
+
+            [HttpGet]
         [Authorize(Roles = "Investor")]
         [RequiresSubscription]
         public async Task<IActionResult> New(string? q)

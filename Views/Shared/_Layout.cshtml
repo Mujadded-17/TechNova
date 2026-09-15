@@ -1,5 +1,33 @@
 @using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using TechNova.Data
+@inject ApplicationDbContext _context
+
 @{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    int? currentUserId = int.TryParse(userIdClaim, out var parsedUserId)
+        ? parsedUserId
+        : null;
+
+    var pendingRequestCount = 0;
+
+    if (currentUserId.HasValue && User.IsInRole("Startup"))
+    {
+        pendingRequestCount = await _context.InvestmentRequests
+            .AsNoTracking()
+            .CountAsync(r =>
+                r.StartupID == currentUserId.Value &&
+                r.Status == "Pending");
+    }
+    else if (currentUserId.HasValue && User.IsInRole("Investor"))
+    {
+        pendingRequestCount = await _context.InvestmentRequests
+            .AsNoTracking()
+            .CountAsync(r =>
+                r.InvestorID == currentUserId.Value &&
+                r.Status == "Pending");
+    }
     var displayName = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
     var initials = string.IsNullOrWhiteSpace(displayName)
         ? "?"
@@ -48,7 +76,16 @@
                                 <a class="nav-link" asp-controller="Startup" asp-action="Opportunities">Opportunities</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Startup" asp-action="InvestmentRequests">Requests</a>
+                                <a class="nav-link" asp-controller="Startup" asp-action="InvestmentRequests">
+                                    Requests
+
+                                    @if (pendingRequestCount > 0)
+                                    {
+                                        <span class="badge bg-danger ms-1">
+                                            @pendingRequestCount
+                                        </span>
+                                    }
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="PitchDeck" asp-action="Index">Pitch Decks</a>
@@ -82,7 +119,16 @@
                                 <a class="nav-link" asp-controller="Investor" asp-action="Favorites">Saved</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Investor" asp-action="MyRequests">My Requests</a>
+                                <a class="nav-link" asp-controller="Investor" asp-action="MyRequests">
+                                    My Requests
+
+                                    @if (pendingRequestCount > 0)
+                                    {
+                                        <span class="badge bg-danger ms-1">
+                                            @pendingRequestCount
+                                        </span>
+                                    }
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Message" asp-action="Index">

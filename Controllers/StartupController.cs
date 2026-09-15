@@ -28,6 +28,7 @@ namespace TechNova.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (!int.TryParse(startupIdClaim, out int startupId))
             {
                 return RedirectToAction("Login", "Account");
@@ -42,9 +43,16 @@ namespace TechNova.Controllers
                 return NotFound();
             }
 
+            var pendingRequestCount = await _context.InvestmentRequests
+                .AsNoTracking()
+                .CountAsync(r =>
+                    r.StartupID == startupId &&
+                    r.Status == "Pending");
+
+            ViewBag.PendingRequestCount = pendingRequestCount;
+
             return View(startup);
         }
-
         // ============================
         // STARTUP PROFILE (VIEW)
         // ============================
@@ -409,20 +417,34 @@ namespace TechNova.Controllers
 
             return View(requests);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateRequestStatus(int requestId, string status)
+        public async Task<IActionResult> UpdateRequestStatus(
+            int requestId,
+            string status,
+            bool returnToThread = false,
+            int? investorId = null)
         {
-            var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var startupIdClaim =
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (!int.TryParse(startupIdClaim, out int startupId))
             {
                 return RedirectToAction("Login", "Account");
             }
 
+            // Only allow valid statuses
+            if (status != "Pending" &&
+                status != "Accepted" &&
+                status != "Rejected")
+            {
+                return BadRequest("Invalid request status.");
+            }
+
             var request = await _context.InvestmentRequests
-                .Where(r => r.Startup.StartupID == startupId)
-                .FirstOrDefaultAsync(r => r.RequestID == requestId);
+                .FirstOrDefaultAsync(r =>
+                    r.RequestID == requestId &&
+                    r.StartupID == startupId);
 
             if (request == null)
             {
@@ -430,10 +452,22 @@ namespace TechNova.Controllers
             }
 
             request.Status = status;
-            _context.InvestmentRequests.Update(request);
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Investment request status updated to {status}.";
+            TempData["Success"] =
+                $"Investment request status updated to {status}.";
+
+            // If action came from messaging conversation
+            if (returnToThread)
+            {
+                return RedirectToAction(
+                    "Thread",
+                    "Message",
+                    new { id = request.InvestorID });
+            }
+
+            // Otherwise keep normal Requests page behavior
             return RedirectToAction("InvestmentRequests");
         }
 
