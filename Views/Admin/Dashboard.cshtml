@@ -1,9 +1,12 @@
 ﻿@using TechNova.Models
+
 @{
     ViewData["Title"] = "Admin Dashboard";
 
     var pendingStartups = ViewBag.PendingStartups as List<Startup> ?? new();
     var pendingInvestors = ViewBag.PendingInvestors as List<Investor> ?? new();
+    var pendingProfileRequests = ViewBag.PendingProfileRequests as List<Startup> ?? new();
+
     var queueCount = (int)ViewBag.StartupPending + (int)ViewBag.InvestorPending;
 }
 
@@ -14,8 +17,13 @@
     </div>
 
     <div class="d-flex gap-2">
-        <a asp-action="Reports" class="btn btn-outline-secondary btn-sm">View reports</a>
-        <a asp-action="Startups" class="btn btn-primary btn-sm">Manage accounts</a>
+        <a asp-action="Reports" class="btn btn-outline-secondary btn-sm">
+            View reports
+        </a>
+
+        <a asp-action="Startups" class="btn btn-primary btn-sm">
+            Manage accounts
+        </a>
     </div>
 </div>
 
@@ -25,14 +33,22 @@
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         @TempData["AdminMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close">
+        </button>
     </div>
 }
 
 @if (queueCount > 0)
 {
     <div class="alert alert-info">
-        <span class="alert-heading">@queueCount account@(queueCount == 1 ? "" : "s") awaiting review</span>
+        <span class="alert-heading">
+            @queueCount account@(queueCount == 1 ? "" : "s") awaiting review
+        </span>
+
         New startups and investors stay unverified until an administrator approves them.
     </div>
 }
@@ -45,134 +61,340 @@
         <div class="card h-100">
             <div class="card-body">
                 <span class="stat-label">Startups</span>
-                <span class="stat-value">@ViewBag.StartupTotal</span>
-                <span class="stat-note">@ViewBag.StartupVerified verified &middot; @ViewBag.StartupPending pending</span>
+
+                <span class="stat-value">
+                    @ViewBag.StartupTotal
+                </span>
+
+                <span class="stat-note">
+                    @ViewBag.StartupVerified verified
+                    &middot;
+                    @ViewBag.StartupPending pending
+                </span>
             </div>
         </div>
     </div>
+
 
     <div class="col-6 col-lg-3">
         <div class="card h-100">
             <div class="card-body">
                 <span class="stat-label">Investors</span>
-                <span class="stat-value">@ViewBag.InvestorTotal</span>
-                <span class="stat-note">@ViewBag.InvestorVerified verified &middot; @ViewBag.InvestorPending pending</span>
+
+                <span class="stat-value">
+                    @ViewBag.InvestorTotal
+                </span>
+
+                <span class="stat-note">
+                    @ViewBag.InvestorVerified verified
+                    &middot;
+                    @ViewBag.InvestorPending pending
+                </span>
             </div>
         </div>
     </div>
+
 
     <div class="col-6 col-lg-3">
         <div class="card h-100">
             <div class="card-body">
                 <span class="stat-label">Investment requests</span>
-                <span class="stat-value">@ViewBag.RequestTotal</span>
-                <span class="stat-note">@ViewBag.OpportunityTotal opportunit@(ViewBag.OpportunityTotal == 1 ? "y" : "ies") posted</span>
+
+                <span class="stat-value">
+                    @ViewBag.RequestTotal
+                </span>
+
+                <span class="stat-note">
+                    @ViewBag.OpportunityTotal
+                    opportunit@(ViewBag.OpportunityTotal == 1 ? "y" : "ies")
+                    posted
+                </span>
             </div>
         </div>
     </div>
+
 
     <div class="col-6 col-lg-3">
         <div class="card h-100">
             <div class="card-body">
                 <span class="stat-label">Suspended</span>
-                <span class="stat-value">@((int)ViewBag.StartupSuspended + (int)ViewBag.InvestorSuspended)</span>
-                <span class="stat-note">@ViewBag.MessageTotal message@(ViewBag.MessageTotal == 1 ? "" : "s") exchanged</span>
+
+                <span class="stat-value">
+                    @((int)ViewBag.StartupSuspended + (int)ViewBag.InvestorSuspended)
+                </span>
+
+                <span class="stat-note">
+                    @ViewBag.MessageTotal
+                    message@(ViewBag.MessageTotal == 1 ? "" : "s")
+                    exchanged
+                </span>
             </div>
         </div>
     </div>
 
 </div>
 
+
 <!-- REVIEW QUEUES -->
 
 <div class="row g-3">
 
+    <!-- EXISTING ACCOUNT VERIFICATION -->
     <div class="col-lg-6">
+
         <div class="card h-100">
 
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Startups awaiting verification</span>
-                <a asp-action="Startups" asp-route-status="Pending" class="btn btn-outline-primary btn-sm">See all</a>
+
+                <span>
+                    Startups awaiting verification
+                </span>
+
+                <a asp-action="Startups"
+                   asp-route-status="Pending"
+                   class="btn btn-outline-primary btn-sm">
+                    See all
+                </a>
+
             </div>
 
+
             <div class="card-body">
+
                 @if (!pendingStartups.Any())
                 {
-                    <p class="text-muted mb-0">Nothing waiting. All startup accounts have been reviewed.</p>
+                    <p class="text-muted mb-0">
+                        Nothing waiting. All startup accounts have been reviewed.
+                    </p>
                 }
                 else
                 {
                     <ul class="review-list">
+
                         @foreach (var s in pendingStartups)
                         {
                             <li>
+
                                 <div>
-                                    <strong>@s.CompanyName</strong>
-                                    <span class="d-block text-muted small">@s.Email</span>
+                                    <strong>
+                                        @s.CompanyName
+                                    </strong>
+
+                                    <span class="d-block text-muted small">
+                                        @s.Email
+                                    </span>
                                 </div>
 
-                                <form asp-action="SetStartupStatus" method="post" class="d-flex gap-2">
+
+                                <form asp-action="SetStartupStatus"
+                                      method="post"
+                                      class="d-flex gap-2">
+
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@s.StartupID" />
-                                    <input type="hidden" name="returnStatus" value="Pending" />
 
-                                    <button type="submit" name="status" value="Verified"
-                                            class="btn btn-primary btn-sm">Verify</button>
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@s.StartupID" />
 
-                                    <button type="submit" name="status" value="Rejected"
-                                            class="btn btn-outline-secondary btn-sm">Reject</button>
+                                    <input type="hidden"
+                                           name="returnStatus"
+                                           value="Pending" />
+
+
+                                    <button type="submit"
+                                            name="status"
+                                            value="Verified"
+                                            class="btn btn-primary btn-sm">
+                                        Verify
+                                    </button>
+
+
+                                    <button type="submit"
+                                            name="status"
+                                            value="Rejected"
+                                            class="btn btn-outline-secondary btn-sm">
+                                        Reject
+                                    </button>
+
                                 </form>
+
                             </li>
                         }
+
                     </ul>
                 }
+
             </div>
 
         </div>
+
     </div>
 
+
+    <!-- EXISTING INVESTOR ACCOUNT VERIFICATION -->
     <div class="col-lg-6">
+
         <div class="card h-100">
 
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Investors awaiting verification</span>
-                <a asp-action="Investors" asp-route-status="Pending" class="btn btn-outline-primary btn-sm">See all</a>
+
+                <span>
+                    Investors awaiting verification
+                </span>
+
+                <a asp-action="Investors"
+                   asp-route-status="Pending"
+                   class="btn btn-outline-primary btn-sm">
+                    See all
+                </a>
+
             </div>
 
+
             <div class="card-body">
+
                 @if (!pendingInvestors.Any())
                 {
-                    <p class="text-muted mb-0">Nothing waiting. All investor accounts have been reviewed.</p>
+                    <p class="text-muted mb-0">
+                        Nothing waiting. All investor accounts have been reviewed.
+                    </p>
                 }
                 else
                 {
                     <ul class="review-list">
+
                         @foreach (var i in pendingInvestors)
                         {
                             <li>
+
                                 <div>
-                                    <strong>@i.Name</strong>
-                                    <span class="d-block text-muted small">@i.Email</span>
+                                    <strong>
+                                        @i.Name
+                                    </strong>
+
+                                    <span class="d-block text-muted small">
+                                        @i.Email
+                                    </span>
                                 </div>
 
-                                <form asp-action="SetInvestorStatus" method="post" class="d-flex gap-2">
+
+                                <form asp-action="SetInvestorStatus"
+                                      method="post"
+                                      class="d-flex gap-2">
+
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@i.InvestorID" />
-                                    <input type="hidden" name="returnStatus" value="Pending" />
 
-                                    <button type="submit" name="status" value="Verified"
-                                            class="btn btn-primary btn-sm">Verify</button>
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@i.InvestorID" />
 
-                                    <button type="submit" name="status" value="Rejected"
-                                            class="btn btn-outline-secondary btn-sm">Reject</button>
+                                    <input type="hidden"
+                                           name="returnStatus"
+                                           value="Pending" />
+
+
+                                    <button type="submit"
+                                            name="status"
+                                            value="Verified"
+                                            class="btn btn-primary btn-sm">
+                                        Verify
+                                    </button>
+
+
+                                    <button type="submit"
+                                            name="status"
+                                            value="Rejected"
+                                            class="btn btn-outline-secondary btn-sm">
+                                        Reject
+                                    </button>
+
                                 </form>
+
                             </li>
                         }
+
                     </ul>
                 }
+
             </div>
 
         </div>
+
+    </div>
+
+</div>
+
+
+<!-- STARTUP PUBLIC PROFILE VERIFICATION -->
+
+<div class="card mt-4">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <span>
+            Startup Profiles Awaiting Publication Verification
+        </span>
+
+        <a asp-action="ProfileVerification"
+           class="btn btn-outline-primary btn-sm">
+            See all
+        </a>
+
+    </div>
+
+
+    <div class="card-body">
+
+        @if (!pendingProfileRequests.Any())
+        {
+            <p class="text-muted mb-0">
+                No startup profiles are waiting for publication verification.
+            </p>
+        }
+        else
+        {
+            <p class="text-muted">
+                These startups requested their profiles to be publicly displayed.
+                Review the complete profile before allowing it to appear on Explore.
+            </p>
+
+
+            <div class="list-group">
+
+                @foreach (var startup in pendingProfileRequests)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <strong>
+                                @startup.CompanyName
+                            </strong>
+
+                            <span class="d-block text-muted small">
+                                @startup.Industry
+                            </span>
+
+                            <span class="d-block text-muted small">
+                                Profile status:
+                                @startup.ProfileVerificationStatus
+                            </span>
+
+                        </div>
+
+
+                        <a asp-action="ReviewStartupProfile"
+                           asp-route-id="@startup.StartupID"
+                           class="btn btn-primary btn-sm">
+                            Review Full Profile
+                        </a>
+
+                    </div>
+                }
+
+            </div>
+        }
+
     </div>
 
 </div>
