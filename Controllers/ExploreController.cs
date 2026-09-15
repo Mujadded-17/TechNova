@@ -30,12 +30,9 @@ namespace TechNova.Controllers
         /// rejected or suspended by an administrator.
         /// </summary>
         private IQueryable<Startup> VisibleStartups =>
-            _context.Startups.AsNoTracking()
-                .Where(s => s.IsPublished
-                            && s.VerificationStatus != "Rejected"
-                            && s.VerificationStatus != "Suspended");
-
-
+     _context.Startups.AsNoTracking()
+         .Where(s => s.IsPublished
+                     && s.ProfileVerificationStatus == "Verified");
         // ============================
         // STARTUP GRID  (public)
         // ============================
