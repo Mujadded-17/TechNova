@@ -128,14 +128,16 @@
 		font-weight: 600;
 	}
 </style>
-
 <script>
 	async function toggleFavorite(startupId) {
 		try {
+			const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
 			const response = await fetch('@Url.Action("ToggleFavorite", "Investor")', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					'RequestVerificationToken': token
 				},
 				body: JSON.stringify({ startupId: startupId })
 			});
