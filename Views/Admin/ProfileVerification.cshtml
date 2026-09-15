@@ -1,0 +1,108 @@
+﻿@model List<TechNova.Models.Startup>
+
+@{
+    ViewData["Title"] = "Startup Profile Verification";
+}
+
+<div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>Startup Profile Verification</h1>
+        <p>
+            Review startup profiles before they become visible on the Explore page.
+        </p>
+    </div>
+</div>
+
+<partial name="_AdminTabs" />
+
+@if (TempData["AdminMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["AdminMessage"]
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h5>No profiles waiting for verification</h5>
+            <p class="text-muted mb-0">
+                All requested startup profiles have been reviewed.
+            </p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Startup</th>
+                        <th>Industry</th>
+                        <th>Stage</th>
+                        <th>Requested</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var startup in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                <strong>@startup.CompanyName</strong>
+
+                                @if (!string.IsNullOrEmpty(startup.Email))
+                                {
+                                    <span class="d-block text-muted small">
+                                        @startup.Email
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrEmpty(startup.Industry)
+                                    ? "—"
+                                    : startup.Industry)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrEmpty(startup.BusinessStage)
+                                    ? "—"
+                                    : startup.BusinessStage)
+                            </td>
+
+                            <td>
+                                @startup.UpdatedAt?.ToLocalTime().ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    Pending Review
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-action="ReviewStartupProfile"
+                                   asp-route-id="@startup.StartupID"
+                                   class="btn btn-primary btn-sm">
+                                    Review Full Profile
+                                </a>
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+}
