@@ -471,9 +471,9 @@ namespace TechNova.Controllers
         {
             var startup = await _context.Startups
                 .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.StartupID == startupId && s.IsPublished 
-                    && s.VerificationStatus != "Rejected" 
-                    && s.VerificationStatus != "Suspended");
+                .FirstOrDefaultAsync(s => s.StartupID == startupId
+                    && s.IsPublished
+                    && s.ProfileVerificationStatus == "Verified");
 
             if (startup == null)
             {
