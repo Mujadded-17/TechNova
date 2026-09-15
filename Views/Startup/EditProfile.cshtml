@@ -227,11 +227,43 @@
 					</div>
 					<div class="card-body">
 						<div class="form-check">
-							<input class="form-check-input" type="checkbox" id="IsPublished" asp-for="IsPublished">
+							<input class="form-check-input"
+								   type="checkbox"
+								   id="IsPublished"
+								   asp-for="IsPublished">
+
 							<label class="form-check-label" for="IsPublished">
 								Publish this profile publicly so investors can discover it
 							</label>
 						</div>
+
+						@if (Model.ProfileVerificationStatus == "Pending")
+						{
+							<div class="alert alert-warning mt-3 mb-0">
+								<strong>Profile verification pending</strong>
+								<br />
+								Your profile has been submitted for admin verification.
+								It will appear on the Explore page after an administrator verifies it.
+							</div>
+						}
+						else if (Model.ProfileVerificationStatus == "Verified")
+						{
+							<div class="alert alert-success mt-3 mb-0">
+								<strong>Profile verified</strong>
+								<br />
+								Your profile has been verified by an administrator
+								and is visible on the Explore page.
+							</div>
+						}
+						else if (Model.ProfileVerificationStatus == "Rejected")
+						{
+							<div class="alert alert-danger mt-3 mb-0">
+								<strong>Profile verification rejected</strong>
+								<br />
+								Your profile was not approved for public display.
+								Please update your profile and submit it again for verification.
+							</div>
+						}
 					</div>
 				</div>
 
@@ -258,3 +290,45 @@
 		color: #0a0c0e;
 	}
 </style>
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+
+		const checkbox = document.getElementById("IsPublished");
+
+		if (!checkbox) return;
+
+		checkbox.addEventListener("change", function() {
+
+			if (this.checked) {
+
+				const message = document.createElement("div");
+
+				message.className = "alert alert-info mt-3";
+				message.id = "profileVerificationMessage";
+
+				message.innerHTML =
+					"<strong>Admin verification required</strong><br>" +
+					"Your profile will be submitted to the administrator for verification. " +
+					"It will appear on the Explore page only after the admin verifies it.";
+
+				const existing =
+					document.getElementById("profileVerificationMessage");
+
+				if (!existing) {
+					checkbox.closest(".form-check")
+						.insertAdjacentElement("afterend", message);
+				}
+			}
+			else {
+
+				const message =
+					document.getElementById("profileVerificationMessage");
+
+				if (message) {
+					message.remove();
+				}
+			}
+		});
+
+	});
+</script>
