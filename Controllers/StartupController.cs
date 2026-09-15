@@ -54,8 +54,11 @@ namespace TechNova.Controllers
         public async Task<IActionResult> Profile(int id)
         {
             var startup = await _context.Startups
-                .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.StartupID == id && s.IsPublished);
+     .AsNoTracking()
+     .FirstOrDefaultAsync(s =>
+         s.StartupID == id &&
+         s.IsPublished &&
+         s.ProfileVerificationStatus == "Verified");
 
             if (startup == null)
             {
@@ -156,7 +159,30 @@ namespace TechNova.Controllers
             startup.NumberOfEmployees = model.NumberOfEmployees;
             startup.BusinessModel = model.BusinessModel;
             startup.MinimumInvestment = model.MinimumInvestment;
-            startup.IsPublished = model.IsPublished;
+            // Handle public profile publication request.
+            // This is separate from account verification.
+
+            if (model.IsPublished)
+            {
+                startup.IsPublished = true;
+
+                // Only create a verification request if the profile
+                // has not already been approved.
+                if (startup.ProfileVerificationStatus != "Verified")
+                {
+                    startup.ProfileVerificationStatus = "Pending";
+                    startup.ProfileVerifiedByAdminID = null;
+                    startup.ProfileVerifiedAt = null;
+                }
+            }
+            else
+            {
+                // Startup removed the public publishing request.
+                startup.IsPublished = false;
+                startup.ProfileVerificationStatus = "NotRequested";
+                startup.ProfileVerifiedByAdminID = null;
+                startup.ProfileVerifiedAt = null;
+            }
             startup.UpdatedAt = DateTime.UtcNow;
 
             _context.Startups.Update(startup);
