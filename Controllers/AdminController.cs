@@ -51,6 +51,13 @@ namespace TechNova.Controllers
         {
             var startups = _context.Startups.AsNoTracking();
             var investors = _context.Investors.AsNoTracking();
+            ViewBag.PendingProfileRequests = await startups
+    .Where(s =>
+        s.IsPublished &&
+        s.ProfileVerificationStatus == "Pending")
+    .OrderByDescending(s => s.UpdatedAt)
+    .Take(5)
+    .ToListAsync();
 
             ViewBag.StartupTotal = await startups.CountAsync();
             ViewBag.StartupPending = await startups.CountAsync(s => s.VerificationStatus == "Pending");
@@ -114,6 +121,86 @@ namespace TechNova.Controllers
                 .ToListAsync());
         }
 
+        // ============================================
+        // STARTUP PROFILE VERIFICATION
+        // ============================================
+
+        [HttpGet]
+        public async Task<IActionResult> ProfileVerification()
+        {
+            var pendingProfiles = await _context.Startups
+                .AsNoTracking()
+                .Where(s =>
+                    s.IsPublished &&
+                    s.ProfileVerificationStatus == "Pending")
+                .OrderByDescending(s => s.UpdatedAt)
+                .ToListAsync();
+
+            return View(pendingProfiles);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetStartupProfileStatus(
+    int id,
+    string status)
+        {
+            var allowedStatuses = new[] { "Verified", "Rejected" };
+
+            if (!allowedStatuses.Contains(status))
+            {
+                return BadRequest("Invalid profile verification status.");
+            }
+
+            var startup = await _context.Startups
+                .FirstOrDefaultAsync(s => s.StartupID == id);
+
+            if (startup == null)
+            {
+                return NotFound();
+            }
+
+            startup.ProfileVerificationStatus = status;
+
+            if (status == "Verified")
+            {
+                startup.IsPublished = true;
+                startup.ProfileVerifiedByAdminID = CurrentAdminId;
+                startup.ProfileVerifiedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                startup.IsPublished = false;
+                startup.ProfileVerifiedByAdminID = null;
+                startup.ProfileVerifiedAt = null;
+            }
+
+            startup.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["AdminMessage"] =
+                $"{startup.CompanyName}'s public profile is now {status}.";
+
+            return RedirectToAction(nameof(ProfileVerification));
+        }
+        [HttpGet]
+        public async Task<IActionResult> ReviewStartupProfile(int id)
+        {
+            var startup = await _context.Startups
+                .Include(s => s.Founders)
+                .Include(s => s.PitchDecks)
+                .Include(s => s.Photos)
+                .Include(s => s.Videos)
+                .FirstOrDefaultAsync(s => s.StartupID == id);
+
+            if (startup == null)
+            {
+                return NotFound();
+            }
+
+            return View(startup);
+        }
 
         // ============================
         // INVESTOR ACCOUNTS
