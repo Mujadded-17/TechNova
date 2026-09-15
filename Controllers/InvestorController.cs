@@ -349,7 +349,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleFavorite(int startupId)
+        public async Task<IActionResult> ToggleFavorite([FromBody] ToggleFavoriteRequest request)
         {
             var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(investorIdClaim, out int investorId))
@@ -357,19 +357,19 @@ namespace TechNova.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            int startupId = request.StartupId;   
+
             var favorite = await _context.FavoriteStartups
                 .FirstOrDefaultAsync(f => f.InvestorID == investorId && f.StartupID == startupId);
 
             if (favorite != null)
             {
-                // Remove favorite
                 _context.FavoriteStartups.Remove(favorite);
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, action = "removed" });
             }
             else
             {
-                // Add favorite
                 var startup = await _context.Startups.FindAsync(startupId);
                 if (startup == null)
                 {
@@ -387,6 +387,10 @@ namespace TechNova.Controllers
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, action = "added" });
             }
+        }
+        public class ToggleFavoriteRequest
+        {
+            public int StartupId { get; set; }
         }
 
         // ============================
