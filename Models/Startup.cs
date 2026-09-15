@@ -60,6 +60,22 @@ namespace TechNova.Models
         public decimal? MinimumInvestment { get; set; }
 
         public bool IsPublished { get; set; } = false;
+        // ---- Public profile verification ----
+
+        /// <summary>
+        /// Controls whether the startup's public profile has been reviewed
+        /// by an administrator.
+        /// Pending = waiting for admin review
+        /// Verified = visible on Explore
+        /// Rejected = not visible on Explore
+        /// </summary>
+        public string ProfileVerificationStatus { get; set; } = "NotRequested";
+
+        public int? ProfileVerifiedByAdminID { get; set; }
+
+        public DateTime? ProfileVerifiedAt { get; set; }
+
+        public Admin? ProfileVerifiedByAdmin { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
