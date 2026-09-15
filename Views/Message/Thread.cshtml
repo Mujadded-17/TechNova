@@ -1,7 +1,8 @@
 ﻿@model List<TechNova.Models.Message>
 @{
     ViewData["Title"] = (string)ViewBag.CounterpartyName;
-
+    var existingRequest =
+    ViewBag.ExistingInvestmentRequest as TechNova.Models.InvestmentRequest;
     var isStartup = (bool)ViewBag.IsStartup;
     var myType = isStartup ? "Startup" : "Investor";
     var counterId = (int)ViewBag.CounterpartyId;
@@ -69,6 +70,235 @@
         }
 
     </div>
+    @if (!isStartup)
+    {
+        @if (existingRequest == null)
+        {
+            <div class="investment-request-area">
+
+                <button type="button"
+                        class="btn btn-outline-success w-100"
+                        id="showInvestmentRequest">
+                    Request for Investment
+                </button>
+
+                <div id="investmentRequestForm"
+                     style="display: none;"
+                     class="mt-3 p-3 border rounded">
+
+                    <h5>Request for Investment</h5>
+
+                    <p class="text-muted small">
+                        Enter the final investment amount agreed upon during your discussion.
+                    </p>
+
+                    <form asp-controller="Message"
+                          asp-action="CreateInvestmentRequest"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="startupId"
+                               value="@counterId" />
+
+                        <div class="mb-3">
+                            <label for="investmentAmount"
+                                   class="form-label">
+                                Final Investment Amount
+                            </label>
+
+                            <input type="number"
+                                   class="form-control"
+                                   id="investmentAmount"
+                                   name="investmentAmount"
+                                   min="1"
+                                   step="0.01"
+                                   required
+                                   placeholder="Enter agreed amount" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="investmentMessage"
+                                   class="form-label">
+                                Message
+                                <span class="text-muted">(Optional)</span>
+                            </label>
+
+                            <textarea class="form-control"
+                                      id="investmentMessage"
+                                      name="message"
+                                      rows="3"
+                                      maxlength="4000"
+                                      placeholder="Add a final note about the agreement..."></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-success">
+                                Submit Investment Request
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    id="cancelInvestmentRequest">
+                                Cancel
+                            </button>
+
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border mt-3">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <strong>Investment Request</strong>
+
+                        <div class="small text-muted">
+                            Amount:
+                            $@existingRequest.InvestmentAmount.ToString("N0")
+                        </div>
+
+                        <div class="small">
+                            Status:
+                            <strong>@existingRequest.Status</strong>
+                        </div>
+                    </div>
+
+                    <span class="badge
+                        @(existingRequest.Status == "Pending"
+                            ? "bg-warning text-dark"
+                            : existingRequest.Status == "Accepted"
+                                ? "bg-success"
+                                : existingRequest.Status == "Rejected"
+                                    ? "bg-danger"
+                                    : "bg-secondary")">
+                        @existingRequest.Status
+                    </span>
+
+                </div>
+
+            </div>
+        }
+    }
+
+    @if (isStartup && existingRequest != null)
+    {
+        <div class="alert alert-light border mt-3">
+
+            <div class="d-flex justify-content-between align-items-start">
+
+                <div>
+                    <strong>Investment Request</strong>
+
+                    <div class="small text-muted mt-1">
+                        Investment Amount:
+                        <strong>
+                            $@existingRequest.InvestmentAmount.ToString("N0")
+                        </strong>
+                    </div>
+
+                    <div class="small text-muted">
+                        Requested:
+                        @existingRequest.RequestDate.ToLocalTime()
+                        .ToString("dd MMM yyyy, HH:mm")
+                    </div>
+
+                    <div class="mt-2">
+                        Status:
+
+                        <span class="badge
+                            @(existingRequest.Status == "Pending"
+                                ? "bg-warning text-dark"
+                                : existingRequest.Status == "Accepted"
+                                    ? "bg-success"
+                                    : existingRequest.Status == "Rejected"
+                                        ? "bg-danger"
+                                        : "bg-secondary")">
+
+                            @existingRequest.Status
+
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            @if (existingRequest.Status == "Pending")
+            {
+                <div class="d-flex gap-2 mt-3">
+
+                    <form asp-controller="Startup"
+                          asp-action="UpdateRequestStatus"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="requestId"
+                               value="@existingRequest.RequestID" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="Accepted" />
+
+                        <input type="hidden"
+                               name="returnToThread"
+                               value="true" />
+
+                        <input type="hidden"
+                               name="investorId"
+                               value="@existingRequest.InvestorID" />
+
+                        <button type="submit"
+                                class="btn btn-success">
+                            Accept
+                        </button>
+
+                    </form>
+
+
+                    <form asp-controller="Startup"
+                          asp-action="UpdateRequestStatus"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="requestId"
+                               value="@existingRequest.RequestID" />
+
+                        <input type="hidden"
+                               name="status"
+                               value="Rejected" />
+
+                        <input type="hidden"
+                               name="returnToThread"
+                               value="true" />
+
+                        <input type="hidden"
+                               name="investorId"
+                               value="@existingRequest.InvestorID" />
+
+                        <button type="submit"
+                                class="btn btn-danger">
+                            Reject
+                        </button>
+
+                    </form>
+
+                </div>
+            }
+
+        </div>
+    }
 
     <div class="thread-composer">
         <form asp-action="Send" method="post">
@@ -104,6 +334,48 @@
                     }
                 });
             }
+        })();
+        // Investment request form
+        (function() {
+
+            var showButton =
+                document.getElementById("showInvestmentRequest");
+
+            var requestForm =
+                document.getElementById("investmentRequestForm");
+
+            var cancelButton =
+                document.getElementById("cancelInvestmentRequest");
+
+            if (showButton && requestForm) {
+
+                showButton.addEventListener("click", function() {
+
+                    requestForm.style.display = "block";
+
+                    showButton.style.display = "none";
+
+                    var amountInput =
+                        document.getElementById("investmentAmount");
+
+                    if (amountInput) {
+                        amountInput.focus();
+                    }
+                });
+            }
+
+            if (cancelButton && requestForm) {
+
+                cancelButton.addEventListener("click", function() {
+
+                    requestForm.style.display = "none";
+
+                    if (showButton) {
+                        showButton.style.display = "block";
+                    }
+                });
+            }
+
         })();
     </script>
 }

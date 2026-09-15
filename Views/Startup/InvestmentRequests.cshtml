@@ -55,28 +55,93 @@
 							<td>
 								@request.RequestDate.ToString("MMM dd, yyyy")
 							</td>
-							<td>
-								@{
-									var statusClass = request.Status switch
-									{
-										"Pending" => "warning",
-										"Viewed" => "info",
-										"Accepted" => "success",
-										"Rejected" => "danger",
-										_ => "secondary"
-									};
-								}
-								<form method="post" asp-action="UpdateRequestStatus" asp-controller="Startup" style="display:inline;">
-									@Html.AntiForgeryToken()
-									<input type="hidden" name="requestId" value="@request.RequestID">
-									<select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-										<option value="Pending">Pending</option>
-										<option value="Viewed">Viewed</option>
-										<option value="Accepted">Accepted</option>
-										<option value="Rejected">Rejected</option>
-									</select>
-								</form>
-							</td>
+                            <td>
+                                @if (request.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+                                }
+                                else if (request.Status == "Accepted")
+                                {
+                                    <span class="badge bg-success">
+                                        Accepted
+                                    </span>
+                                }
+                                else if (request.Status == "Rejected")
+                                {
+                                    <span class="badge bg-danger">
+                                        Rejected
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        @request.Status
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+
+                                @if (request.Status == "Pending")
+                                {
+                                    <div class="d-flex gap-1">
+
+                                        <form method="post"
+                                              asp-action="UpdateRequestStatus"
+                                              asp-controller="Startup">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="requestId"
+                                                   value="@request.RequestID" />
+
+                                            <input type="hidden"
+                                                   name="status"
+                                                   value="Accepted" />
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success">
+                                                Accept
+                                            </button>
+
+                                        </form>
+
+                                        <form method="post"
+                                              asp-action="UpdateRequestStatus"
+                                              asp-controller="Startup">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="requestId"
+                                                   value="@request.RequestID" />
+
+                                            <input type="hidden"
+                                                   name="status"
+                                                   value="Rejected" />
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger">
+                                                Reject
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+                                }
+
+                                <a href="@Url.Action("Thread", "Message",
+                                                   new { id = request.InvestorID })"
+                                   class="btn btn-sm btn-outline-primary mt-1">
+                                    Open Conversation
+                                </a>
+
+                               
+
+                            </td>
 							<td>
 								<a href="@Url.Action("Profile", "Investor", new { id = request.InvestorID })" class="btn btn-sm btn-primary">View Profile</a>
 							</td>

@@ -236,8 +236,18 @@
 				<a href="@Url.Action("Opportunities", "Startup")" class="btn btn-outline-primary" style="text-align: center; width: 100%;">
 					View Opportunities
 				</a>
-				<a href="@Url.Action("InvestmentRequests", "Startup")" class="btn btn-outline-primary" style="text-align: center; width: 100%;">
+				<a href="@Url.Action("InvestmentRequests", "Startup")"
+				   class="btn btn-outline-primary"
+				   style="text-align: center; width: 100%;">
+
 					Investment Requests
+
+					@if (ViewBag.PendingRequestCount > 0)
+					{
+						<span class="badge bg-danger ms-2">
+							@ViewBag.PendingRequestCount
+						</span>
+					}
 				</a>
 				<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary" style="text-align: center; width: 100%;">
 					Edit Full Profile

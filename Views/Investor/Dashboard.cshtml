@@ -35,9 +35,21 @@
 		<div class="col-md-6 mb-3">
 			<div class="card">
 				<div class="card-body">
-					<h5 class="card-title">Active Requests</h5>
-					<p class="card-text fs-4 fw-bold">@dashboardData.ActiveRequestsCount</p>
-					<a href="@Url.Action("MyRequests", "Investor")" class="card-link">View All</a>
+					<h5 class="card-title">
+						Active Requests
+
+						@if (dashboardData.ActiveRequestCount > 0)
+						{
+							<span class="badge bg-danger ms-2">
+								@dashboardData.ActiveRequestCount
+							</span>
+						}
+					</h5>
+
+					<a href="@Url.Action("MyRequests", "Investor")"
+					   class="card-link">
+						View All
+					</a>
 				</div>
 			</div>
 		</div>
