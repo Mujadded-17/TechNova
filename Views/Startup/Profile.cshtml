@@ -287,25 +287,102 @@
 		</div>
 	</div>
 </div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-	// Load posts for read-only profile view
-	loadPublicFeed(@Model.StartupID);
-});
+	document.addEventListener('DOMContentLoaded', function() {
+		loadPublicFeed(@Model.StartupID);
+	});
 
-async function loadPublicFeed(startupId) {
-	try {
-		// This would fetch posts from an API endpoint that returns public posts
-		// For now, we'll show a simple message since the endpoint is startup-specific
+	async function loadPublicFeed(startupId) {
 		const feedElement = document.getElementById('postsFeed');
-		const photoGallerySection = document.getElementById('photoGallerySection');
-		const photoGallery = document.getElementById('photoGallery');
 
-		// Load photos gallery if exists
-		// This should be replaced with actual API call
-	} catch (error) {
-		console.error('Error loading feed:', error);
+		if (!feedElement) {
+			return;
+		}
+
+		try {
+			const response = await fetch(
+				`/Startup/GetStartupPosts?startupId=${startupId}&page=1&pageSize=10`
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to load startup posts');
+			}
+
+			// GetStartupPosts returns Json(posts), so this is an array
+			const posts = await response.json();
+
+			feedElement.innerHTML = '';
+
+			if (!posts || posts.length === 0) {
+				feedElement.innerHTML = `
+					<div class="text-center py-4">
+						<p class="text-muted">No posts available yet.</p>
+					</div>
+				`;
+				return;
+			}
+
+			posts.forEach(post => {
+				let photosHtml = '';
+
+				if (post.photos && post.photos.length > 0) {
+					photosHtml = `
+						<div class="post-photos">
+							${post.photos.map(photo => `
+								<img src="${photo.filePath}"
+									 class="post-image"
+									 alt="${photo.caption || 'Post image'}">
+							`).join('')}
+						</div>
+					`;
+				}
+
+				let videosHtml = '';
+
+				if (post.videos && post.videos.length > 0) {
+					videosHtml = `
+						<div class="post-videos">
+							${post.videos.map(video => `
+								<video controls class="post-video">
+									<source src="${video.filePath}" type="${video.mimeType || 'video/mp4'}">
+									Your browser does not support the video tag.
+								</video>
+							`).join('')}
+						</div>
+					`;
+				}
+
+				const createdAt = post.createdAt
+					? new Date(post.createdAt).toLocaleString()
+					: '';
+
+				const postElement = document.createElement('div');
+				postElement.className = 'startup-post';
+
+				postElement.innerHTML = `
+					<div class="post-header">
+						<span class="post-date">${createdAt}</span>
+					</div>
+
+					<div class="post-content">
+						${post.content || ''}
+					</div>
+
+					${photosHtml}
+					${videosHtml}
+				`;
+
+				feedElement.appendChild(postElement);
+			});
+
+		} catch (error) {
+			console.error('Error loading startup posts:', error);
+
+			feedElement.innerHTML = `
+				<div class="text-center py-4">
+					<p class="text-muted">Unable to load posts.</p>
+				</div>
+			`;
+		}
 	}
-}
 </script>
