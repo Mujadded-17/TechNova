@@ -30,14 +30,13 @@
 			</a>
 		</div>
 	</div>
-
 	<!-- Quick Stats -->
 	<div class="row mb-4">
 		<div class="col-md-6 mb-3">
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Active Requests</h5>
-					<p class="card-text fs-4 fw-bold">0</p>
+					<p class="card-text fs-4 fw-bold">@dashboardData.ActiveRequestsCount</p>
 					<a href="@Url.Action("MyRequests", "Investor")" class="card-link">View All</a>
 				</div>
 			</div>
@@ -46,7 +45,7 @@
 			<div class="card">
 				<div class="card-body">
 					<h5 class="card-title">Saved Startups</h5>
-					<p class="card-text fs-4 fw-bold">0</p>
+					<p class="card-text fs-4 fw-bold">@dashboardData.SavedStartupsCount</p>
 					<a href="@Url.Action("Favorites", "Investor")" class="card-link">View All</a>
 				</div>
 			</div>
@@ -63,11 +62,31 @@
 				</a>
 			</div>
 			<div class="row" id="recentStartups">
-				<p class="text-muted">Loading startups...</p>
+				@if (dashboardData.RecentStartups.Count == 0)
+				{
+					<p class="text-muted">No startups to show yet.</p>
+				}
+				else
+				{
+					@foreach (var startup in dashboardData.RecentStartups)
+					{
+						<div class="col-md-6 col-lg-4 mb-3">
+							<div class="card h-100">
+								<div class="card-body">
+									<h6 class="card-title">@startup.CompanyName</h6>
+									<p class="card-text text-muted small">@startup.Industry</p>
+									<p class="card-text small">@startup.Tagline</p>
+									<a href="@Url.Action("Profile", "Startup", new { id = startup.StartupID })" class="btn btn-sm btn-outline-primary">
+										View Profile
+									</a>
+								</div>
+							</div>
+						</div>
+					}
+				}
 			</div>
 		</div>
 	</div>
-
 	<!-- Recent Requests -->
 	<div class="row">
 		<div class="col-12">
@@ -84,9 +103,29 @@
 						</tr>
 					</thead>
 					<tbody id="requestsTable">
-						<tr>
-							<td colspan="5" class="text-center text-muted">No requests yet</td>
-						</tr>
+						@if (dashboardData.MyRequests.Count == 0)
+						{
+							<tr>
+								<td colspan="5" class="text-center text-muted">No requests yet</td>
+							</tr>
+						}
+						else
+						{
+							@foreach (var request in dashboardData.MyRequests)
+							{
+								<tr>
+									<td>@request.Startup.CompanyName</td>
+									<td>@request.InvestmentAmount.ToString("C0")</td>
+									<td>@request.Status</td>
+									<td>@request.RequestDate.ToString("MMM dd, yyyy")</td>
+									<td>
+										<a href="@Url.Action("Profile", "Startup", new { id = request.StartupID })" class="btn btn-sm btn-outline-primary">
+											View Startup
+										</a>
+									</td>
+								</tr>
+							}
+						}
 					</tbody>
 				</table>
 			</div>
