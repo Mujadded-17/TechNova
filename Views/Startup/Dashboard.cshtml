@@ -97,15 +97,17 @@
 			</div>
 		</div>
 
-		<!-- Photo Gallery Section -->
-		<div class="photo-gallery" id="photoGallerySection" style="display: none;">
+		<!-- Media Library (Facebook-style Photos / Videos tabs) -->
+		<div class="photo-gallery" id="mediaGallerySection" style="display: none;">
 			<div class="gallery-header">
-				<h3>Photos</h3>
-				<button type="button" class="btn btn-sm btn-primary" id="uploadPhotoBtn">+ Upload</button>
+				<div class="media-tabs">
+					<button type="button" class="media-tab active" id="mediaTabPhotos">📷 Photos <span class="media-tab-count" id="photoTabCount"></span></button>
+					<button type="button" class="media-tab" id="mediaTabVideos">🎥 Videos <span class="media-tab-count" id="videoTabCount"></span></button>
+				</div>
+				<button type="button" class="btn btn-sm btn-primary" id="uploadMediaBtn">+ Upload</button>
 			</div>
-			<div id="photoGallery" class="gallery-grid">
-				<!-- Photos will be dynamically loaded here -->
-			</div>
+			<div id="photoGallery" class="gallery-grid"></div>
+			<div id="videoGallery" class="gallery-grid" style="display: none;"></div>
 		</div>
 	</div>
 
@@ -260,23 +262,36 @@
 	</div>
 </div>
 
-<!-- Post Modal -->
+<!-- Post Modal (Facebook-style composer) -->
 <div id="postModal" class="edit-modal">
 	<div class="edit-modal-content">
 		<div class="edit-modal-header">
 			<h3>Create Post</h3>
-			<button type="button" class="edit-modal-close" id="closePostModal">×</button>
+			<button type="button" class="edit-modal-close" id="closePostModal" aria-label="Close">×</button>
 		</div>
 		<div class="edit-modal-body">
-			<textarea id="postModalContent" placeholder="What's on your mind?" style="min-height: 150px; margin-bottom: 1rem;"></textarea>
-			<div id="photoPreviewContainer" style="display: none;">
-				<label style="font-weight: 500; display: block; margin-bottom: 0.5rem;">Attached Photos</label>
-				<div id="photoPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;"></div>
+			<div class="post-modal-author">
+				<div class="create-post-avatar">
+					@if (!string.IsNullOrEmpty(Model.LogoPath))
+					{
+						<img src="@Model.LogoPath" alt="Logo" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />
+					}
+				</div>
+				<div class="post-modal-author-info">
+					<strong>@Model.CompanyName</strong>
+					<span class="post-modal-audience">🌐 Public</span>
+				</div>
+			</div>
+			<textarea id="postModalContent" placeholder="What's on your mind?"></textarea>
+			<div id="postMediaPreview" class="composer-media-grid" style="display: none;"></div>
+			<div class="composer-add-media">
+				<button type="button" id="modalAddPhotoBtn">📷 Photo</button>
+				<button type="button" id="modalAddVideoBtn">🎥 Video</button>
 			</div>
 		</div>
 		<div class="edit-modal-footer">
 			<button type="button" class="btn btn-secondary" id="cancelPostModal">Cancel</button>
-			<button type="button" class="btn btn-primary" id="submitPost">Post</button>
+			<button type="button" class="btn btn-primary" id="submitPost" disabled>Post</button>
 		</div>
 	</div>
 </div>

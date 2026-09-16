@@ -512,6 +512,7 @@ namespace TechNova.Controllers
                 .Where(p => p.StartupID == startupId && !p.IsDeleted)
                 .OrderByDescending(p => p.CreatedAt)
                 .Include(p => p.Photos.Where(ph => !ph.IsDeleted))
+                .Include(p => p.Videos.Where(v => !v.IsDeleted))
                 .ToListAsync();
 
             return Json(posts);
@@ -560,10 +561,8 @@ namespace TechNova.Controllers
                 return Unauthorized();
             }
 
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return BadRequest("Post content is required.");
-            }
+            // Media-only posts are allowed (like Facebook); content may be empty.
+            content = (content ?? string.Empty).Trim();
 
             var post = new Post
             {
@@ -770,7 +769,8 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadVideo([FromForm] IFormFile file, [FromForm] string title = "", [FromForm] string description = "")
+        [RequestSizeLimit(105_000_000)] // let the 100MB video limit through Kestrel's 30MB default
+        public async Task<IActionResult> UploadVideo([FromForm] IFormFile file, [FromForm] string title = "", [FromForm] string description = "", [FromForm] int? postId = null)
         {
             var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(startupIdClaim, out int startupId))
@@ -813,6 +813,7 @@ namespace TechNova.Controllers
             var video = new Video
             {
                 StartupID = startupId,
+                PostID = postId,
                 FilePath = $"/startup-media/{fileName}",
                 Title = title,
                 Description = description,
