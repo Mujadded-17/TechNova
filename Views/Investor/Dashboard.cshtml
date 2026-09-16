@@ -99,58 +99,136 @@
 			</div>
 		</div>
 	</div>
-	<!-- Recent Requests -->
-	<div class="row">
-		<div class="col-12">
-			<h3 class="mb-3">My Recent Requests</h3>
-			<div class="table-responsive">
-				<table class="table table-hover">
-					<thead>
-						<tr>
-							<th>Startup</th>
-							<th>Investment Amount</th>
-							<th>Status</th>
-							<th>Date</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody id="requestsTable">
-						@if (dashboardData.MyRequests.Count == 0)
-						{
-							<tr>
-								<td colspan="5" class="text-center text-muted">No requests yet</td>
-							</tr>
-						}
-						else
-						{
-							@foreach (var request in dashboardData.MyRequests)
-							{
-								<tr>
-									<td>@request.Startup.CompanyName</td>
-									<td>@request.InvestmentAmount.ToString("C0")</td>
-									<td>@request.Status</td>
-									<td>@request.RequestDate.ToString("MMM dd, yyyy")</td>
-									<td>
-										<a href="@Url.Action("Profile", "Startup", new { id = request.StartupID })" class="btn btn-sm btn-outline-primary">
-											View Startup
-										</a>
-									</td>
-								</tr>
-							}
-						}
-					</tbody>
-				</table>
-			</div>
-		</div>
-	</div>
+
+<!-- Recent Requests -->
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-3">My Recent Requests</h3>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Startup</th>
+                        <th>Investment Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="requestsTable">
+                    @if (dashboardData.MyRequests.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No requests yet
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var request in dashboardData.MyRequests)
+                        {
+                            <tr>
+                                <td>
+                                    @request.Startup.CompanyName
+                                </td>
+
+                                <td>
+                                   ৳@request.InvestmentAmount.ToString("N0")
+                                </td>
+
+                                <td>
+                                    @if (request.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+                                    }
+                                    else if (request.Status == "Accepted")
+                                    {
+                                        <span class="badge bg-success">
+                                            Accepted
+                                        </span>
+                                    }
+                                    else if (request.Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">
+                                            Rejected
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            @request.Status
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @request.RequestDate.ToString("MMM dd, yyyy")
+                                </td>
+
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1 align-items-center">
+
+                                        <!-- View Startup -->
+                                        <a href="@Url.Action("Profile", "Startup", new { id = request.StartupID })"
+                                           class="btn btn-sm btn-outline-primary">
+                                            View Startup
+                                        </a>
+
+                                      
+                                        <!-- Investment Confirmation PDF -->
+                                        @if (request.Status == "Accepted")
+                                        {
+                                            @if (!request.InvestorPdfDownloaded)
+                                            {
+                                                <a asp-controller="Message"
+                                                   asp-action="DownloadInvestmentConfirmation"
+                                                   asp-route-requestId="@request.RequestID"
+                                                   target="_blank"
+                                                   class="btn btn-sm btn-success"
+                                                   title="Download Investment Confirmation">
+                                                    📄
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-controller="Message"
+                                                   asp-action="DownloadInvestmentConfirmation"
+                                                   asp-route-requestId="@request.RequestID"
+                                                   target="_blank"
+                                                   class="btn btn-sm btn-outline-success"
+                                                   title="View Investment Confirmation PDF">
+                                                    📄
+                                                </a>
+                                            }
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 </div>
 
 <style>
-	.card {
-		border: 1px solid #e3e7ea;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-	}
-	.card-body {
-		padding: 1.5rem;
-	}
+    .card {
+        border: 1px solid #e3e7ea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
 </style>
+
+

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TechNova.Data;
 using TechNova.Filters;
 using TechNova.Models;
+using TechNova.Services;
 
 namespace TechNova.Controllers
 {
@@ -22,9 +23,15 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public MessageController(ApplicationDbContext context)
+        private readonly InvestmentPdfService _investmentPdfService;
+
+        public MessageController(
+
+            ApplicationDbContext context,
+            InvestmentPdfService investmentPdfService)
         {
             _context = context;
+            _investmentPdfService = investmentPdfService;
         }
 
         private const int MaxLength = 4000;
@@ -34,6 +41,69 @@ namespace TechNova.Controllers
         private int CurrentId =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+        [HttpGet]
+        [Authorize(Roles = "Startup,Investor")]
+        public async Task<IActionResult> DownloadInvestmentConfirmation(int requestId)
+        {
+            var me = CurrentId;
+
+            var request = await _context.InvestmentRequests
+                .Include(r => r.Investor)
+                .Include(r => r.Startup)
+                .FirstOrDefaultAsync(r => r.RequestID == requestId);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            // PDF is available only after acceptance
+            if (request.Status != "Accepted")
+            {
+                return BadRequest(
+                    "Investment confirmation is available only for accepted requests.");
+            }
+
+            // Startup
+            if (IsStartup)
+            {
+                if (request.StartupID != me)
+                {
+                    return Forbid();
+                }
+
+                // Only startup's download status changes
+                if (!request.StartupPdfDownloaded)
+                {
+                    request.StartupPdfDownloaded = true;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            // Investor
+            else
+            {
+                if (request.InvestorID != me)
+                {
+                    return Forbid();
+                }
+
+                // Only investor's download status changes
+                if (!request.InvestorPdfDownloaded)
+                {
+                    request.InvestorPdfDownloaded = true;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            var pdfBytes =
+                _investmentPdfService.GenerateInvestmentConfirmation(request);
+
+            // Tell the browser to DISPLAY the PDF instead of downloading it.
+            Response.Headers["Content-Disposition"] =
+                "inline; filename=\"InvestmentConfirmation.pdf\"";
+
+            return File(pdfBytes, "application/pdf");
+        }
 
         // ============================
         // CONVERSATION LIST

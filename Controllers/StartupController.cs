@@ -453,6 +453,15 @@ namespace TechNova.Controllers
 
             request.Status = status;
 
+            if (status == "Accepted")
+            {
+                request.AcceptedDate = DateTime.UtcNow;
+            }
+            else if (status == "Rejected")
+            {
+                request.AcceptedDate = null;
+            }
+
             await _context.SaveChangesAsync();
 
             TempData["Success"] =
