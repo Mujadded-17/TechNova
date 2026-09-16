@@ -66,7 +66,9 @@
 		}
 
 		<!-- Posts Feed -->
-		<div id="postsFeed" class="startup-feed">
+		<div id="postsFeed" class="startup-feed"
+			 data-company-name="@Model.CompanyName"
+			 data-company-logo="@(Model.LogoPath ?? "")">
 			<div class="empty-state">
 				<div class="empty-state-icon">📝</div>
 				<div class="empty-state-title">No posts yet</div>
@@ -292,12 +294,63 @@
 		loadPublicFeed(@Model.StartupID);
 	});
 
+	// SQL Server drops the UTC kind on datetimes, so JSON timestamps reach the
+	// browser without a zone suffix and get misread as local time — which made
+	// post dates look hours off. Treat zone-less values as UTC.
+	function parseFeedDate(value) {
+		if (!value) return null;
+		if (typeof value === 'string' && !/(Z|[+-]\d{2}:?\d{2})$/.test(value)) {
+			return new Date(value + 'Z');
+		}
+		return new Date(value);
+	}
+
+	// Facebook-style relative stamp: "just now" / "2h ago", falling back to
+	// the real date and time once the post is older than a week.
+	function getTimeAgo(date) {
+		const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+		if (isNaN(seconds)) return '';
+		if (seconds < 60) return 'just now';
+		if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+		if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+		if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
+
+		return formatDateTime(date);
+	}
+
+	function formatDateTime(date) {
+		return date.toLocaleString(undefined, {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit'
+		});
+	}
+
+	function escapeHtml(text) {
+		const map = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#039;'
+		};
+		return String(text ?? '').replace(/[&<>"']/g, m => map[m]);
+	}
+
 	async function loadPublicFeed(startupId) {
 		const feedElement = document.getElementById('postsFeed');
 
 		if (!feedElement) {
 			return;
 		}
+
+		// Author identity comes from data attributes rendered by Razor on the
+		// feed container (see #postsFeed above).
+		const companyName = feedElement.dataset.companyName || 'Startup';
+		const companyLogo = feedElement.dataset.companyLogo || '';
 
 		try {
 			const response = await fetch(
@@ -327,11 +380,11 @@
 
 				if (post.photos && post.photos.length > 0) {
 					photosHtml = `
-						<div class="post-photos">
+						<div class="post-media">
 							${post.photos.map(photo => `
-								<img src="${photo.filePath}"
+								<img src="${escapeHtml(photo.filePath)}"
 									 class="post-image"
-									 alt="${photo.caption || 'Post image'}">
+									 alt="${escapeHtml(photo.caption || 'Post image')}">
 							`).join('')}
 						</div>
 					`;
@@ -341,10 +394,10 @@
 
 				if (post.videos && post.videos.length > 0) {
 					videosHtml = `
-						<div class="post-videos">
+						<div class="post-media">
 							${post.videos.map(video => `
 								<video controls class="post-video">
-									<source src="${video.filePath}" type="${video.mimeType || 'video/mp4'}">
+									<source src="${escapeHtml(video.filePath)}" type="${escapeHtml(video.mimeType || 'video/mp4')}">
 									Your browser does not support the video tag.
 								</video>
 							`).join('')}
@@ -352,21 +405,28 @@
 					`;
 				}
 
-				const createdAt = post.createdAt
-					? new Date(post.createdAt).toLocaleString()
+				const date = parseFeedDate(post.createdAt);
+				const timeAgo = date ? getTimeAgo(date) : '';
+				const fullTime = date ? formatDateTime(date) : '';
+				const avatar = companyLogo
+					? `<img src="${escapeHtml(companyLogo)}" alt="${escapeHtml(companyName)} logo" />`
 					: '';
 
 				const postElement = document.createElement('div');
-				postElement.className = 'startup-post';
+				postElement.className = 'startup-post feed-post fade-in';
 
 				postElement.innerHTML = `
 					<div class="post-header">
-						<span class="post-date">${createdAt}</span>
+						<div class="post-author-info">
+							<div class="post-avatar">${avatar}</div>
+							<div class="post-author-details">
+								<h4>${escapeHtml(companyName)}</h4>
+								<p class="post-time" title="${escapeHtml(fullTime)}">${escapeHtml(timeAgo)}</p>
+							</div>
+						</div>
 					</div>
 
-					<div class="post-content">
-						${post.content || ''}
-					</div>
+					<div class="post-content">${escapeHtml(post.content || '')}</div>
 
 					${photosHtml}
 					${videosHtml}

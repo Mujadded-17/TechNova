@@ -85,8 +85,11 @@
 			</div>
 		</div>
 
-		<!-- Posts Feed -->
-		<div id="postsFeed" class="startup-feed">
+		<!-- Posts Feed (data attributes supply the JS-rendered post cards
+		     with the real company name and logo) -->
+		<div id="postsFeed" class="startup-feed"
+			 data-company-name="@Model.CompanyName"
+			 data-company-logo="@(Model.LogoPath ?? "")">
 			<div class="empty-state">
 				<div class="empty-state-icon">📝</div>
 				<div class="empty-state-title">No posts yet</div>

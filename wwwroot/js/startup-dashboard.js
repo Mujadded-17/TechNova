@@ -246,19 +246,57 @@
 		attachPostCardListeners();
 	}
 
+	// The dashboard feed only ever shows the signed-in startup's own posts,
+	// so the author name/logo come from the #postsFeed data attributes that
+	// Dashboard.cshtml renders. Razor does not run inside this static file —
+	// a literal "@Model.CompanyName" here is displayed as plain text.
+	function getProfile() {
+		if (!getProfile.cache) {
+			const feed = document.getElementById('postsFeed');
+			getProfile.cache = {
+				name: (feed && feed.dataset.companyName) || 'Your Startup',
+				logo: (feed && feed.dataset.companyLogo) || ''
+			};
+		}
+		return getProfile.cache;
+	}
+
+	// SQL Server drops the UTC kind on datetimes, so JSON timestamps reach
+	// the browser without a zone suffix and get misread as local time —
+	// which made brand-new posts look hours old. Treat zone-less values
+	// as UTC.
+	function parseFeedDate(value) {
+		if (!value) return new Date();
+		if (typeof value === 'string' && !/(Z|[+-]\d{2}:?\d{2})$/.test(value)) {
+			return new Date(value + 'Z');
+		}
+		return new Date(value);
+	}
+
 	function renderPostCard(post) {
-		const date = new Date(post.createdAt);
+		const profile = getProfile();
+		const date = parseFeedDate(post.createdAt);
 		const timeAgo = getTimeAgo(date);
+		const fullTime = date.toLocaleString(undefined, {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit'
+		});
 		const photos = post.photos || [];
+		const avatar = profile.logo
+			? `<img src="${escapeHtml(profile.logo)}" alt="${escapeHtml(profile.name)} logo" />`
+			: '';
 
 		return `
 			<div class="feed-post fade-in" data-post-id="${post.postID}">
 				<div class="post-header">
 					<div class="post-author-info">
-						<div class="post-avatar"></div>
+						<div class="post-avatar">${avatar}</div>
 						<div>
-							<h4>@Model.CompanyName</h4>
-							<p class="post-time">${timeAgo}</p>
+							<h4>${escapeHtml(profile.name)}</h4>
+							<p class="post-time" title="${fullTime}">${timeAgo}</p>
 						</div>
 					</div>
 					<button type="button" class="post-menu-btn" data-post-id="${post.postID}">⋮</button>
@@ -438,12 +476,20 @@
 		const now = new Date();
 		const seconds = Math.floor((now - date) / 1000);
 
+		if (isNaN(seconds)) return '';
 		if (seconds < 60) return 'just now';
 		if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
 		if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
 		if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
 
-		return date.toLocaleDateString();
+		// Older posts: show the real date and time, not just a bare date.
+		return date.toLocaleString(undefined, {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit'
+		});
 	}
 
 	function showNotification(message, type = 'info') {
