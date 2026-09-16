@@ -1,99 +1,210 @@
 @model List<TechNova.Models.InvestmentRequest>
 
 @{
-	ViewData["Title"] = "My Investment Requests";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Investment Requests";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5 mb-5">
-	<div class="row mb-4">
-		<div class="col-12">
-			<h1 class="mb-2">My Investment Requests</h1>
-			<p class="text-muted">Track the status of your investment inquiries</p>
-		</div>
-	</div>
 
-	@if (TempData["Success"] != null)
-	{
-		<div class="alert alert-success alert-dismissible fade show" role="alert">
-			@TempData["Success"]
-			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-		</div>
-	}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-2">My Investment Requests</h1>
 
-	@if (Model.Count == 0)
-	{
-		<div class="alert alert-info" role="alert">
-			<h4 class="alert-heading">No Requests Yet</h4>
-			<p><a href="@Url.Action("Discover", "Investor")">Explore startups</a> and express your interest to get started.</p>
-		</div>
-	}
-	else
-	{
-		<div class="table-responsive">
-			<table class="table table-hover">
-				<thead class="table-light">
-					<tr>
-						<th>Startup</th>
-						<th>Investment Amount</th>
-						<th>Date</th>
-						<th>Status</th>
-						<th>Action</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach (var request in Model)
-					{
-						<tr>
-							<td>
-								<strong>@request.Startup?.CompanyName</strong><br>
-								<small class="text-muted">@request.Startup?.Industry • @request.Startup?.Location</small>
-							</td>
-							<td>
-								<strong>${@request.InvestmentAmount:N0}</strong>
-							</td>
-							<td>
-								@request.RequestDate.ToString("MMM dd, yyyy")
-							</td>
-							<td>
-								@switch(request.Status)
-								{
-									case "Pending":
-										<span class="badge bg-warning">Pending</span>
-										break;
-									case "Viewed":
-										<span class="badge bg-info">Viewed</span>
-										break;
-									case "Accepted":
-										<span class="badge bg-success">Accepted</span>
-										break;
-									case "Rejected":
-										<span class="badge bg-danger">Rejected</span>
-										break;
-									default:
-										<span class="badge bg-secondary">@request.Status</span>
-										break;
-								}
-							</td>
-							<td>
+            <p class="text-muted">
+                Track the status of your investment inquiries
+            </p>
+        </div>
+    </div>
 
-								<a href="@Url.Action("Thread", "Message",
-												   new { id = request.StartupID })"
-								   class="btn btn-sm btn-success mb-1">
-									Open Conversation
-								</a>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
 
-								<a href="@Url.Action("Profile", "Startup",
-												   new { id = request.StartupID })"
-								   class="btn btn-sm btn-primary">
-									View Startup
-								</a>
+            @TempData["Success"]
 
-							</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-	}
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close">
+            </button>
+
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+
+            <h4 class="alert-heading">
+                No Requests Yet
+            </h4>
+
+            <p>
+                <a href="@Url.Action("Discover", "Investor")">
+                    Explore startups
+                </a>
+                and express your interest to get started.
+            </p>
+
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Startup</th>
+                        <th>Investment Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var request in Model)
+                    {
+                        <tr>
+
+                            <!-- Startup -->
+                            <td>
+                                <strong>
+                                    @request.Startup?.CompanyName
+                                </strong>
+
+                                <br>
+
+                                <small class="text-muted">
+                                    @request.Startup?.Industry
+                                    •
+                                    @request.Startup?.Location
+                                </small>
+                            </td>
+
+                            <!-- Amount -->
+                            <td>
+                                <strong>
+                                    ৳@request.InvestmentAmount.ToString("N0")
+                                </strong>
+                            </td>
+
+                            <!-- Date -->
+                            <td>
+                                @request.RequestDate.ToString("MMM dd, yyyy")
+                            </td>
+
+                            <!-- Status -->
+                            <td>
+
+                                @switch (request.Status)
+                                {
+                                    case "Pending":
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+                                        break;
+
+                                    case "Viewed":
+                                        <span class="badge bg-info">
+                                            Viewed
+                                        </span>
+                                        break;
+
+                                    case "Accepted":
+                                        <span class="badge bg-success">
+                                            Accepted
+                                        </span>
+                                        break;
+
+                                    case "Rejected":
+                                        <span class="badge bg-danger">
+                                            Rejected
+                                        </span>
+                                        break;
+
+                                    default:
+                                        <span class="badge bg-secondary">
+                                            @request.Status
+                                        </span>
+                                        break;
+                                }
+
+                            </td>
+
+                            <!-- Actions -->
+                            <td>
+
+                                <div class="d-flex flex-wrap gap-1 align-items-center">
+
+                                    <!-- Open Conversation -->
+                                    <a asp-controller="Message"
+                                       asp-action="Thread"
+                                       asp-route-id="@request.StartupID"
+                                       class="btn btn-sm btn-primary">
+
+                                        Open Conversation
+
+                                    </a>
+
+                                    <!-- View Startup -->
+                                    <a asp-controller="Startup"
+                                       asp-action="Details"
+                                       asp-route-id="@request.StartupID"
+                                       class="btn btn-sm btn-outline-secondary">
+
+                                        View Startup
+
+                                    </a>
+
+                                    <!-- PDF -->
+                                    @if (request.Status == "Accepted")
+                                    {
+                                        @if (!request.InvestorPdfDownloaded)
+                                        {
+                                            <a asp-controller="Message"
+                                               asp-action="DownloadInvestmentConfirmation"
+                                               asp-route-requestId="@request.RequestID"
+                                               target="_blank"
+                                               class="btn btn-sm btn-success">
+
+                                                📄 Download PDF
+
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Message"
+                                               asp-action="DownloadInvestmentConfirmation"
+                                               asp-route-requestId="@request.RequestID"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-success"
+                                               title="View Investment Confirmation PDF">
+
+                                                📄
+
+                                            </a>
+                                        }
+                                    }
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+
 </div>
+```

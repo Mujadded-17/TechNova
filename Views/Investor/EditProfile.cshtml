@@ -114,26 +114,55 @@
 				<div class="card mb-4">
 					<div class="card-header bg-light">
 						<h5 class="mb-0">Investment Details</h5>
-					</div>
-					<div class="card-body">
-						<div class="row">
-							<div class="col-md-6 mb-3">
-								<label for="MinInvestmentAmount" class="form-label">Min Investment Amount ($)</label>
-								<input type="number" class="form-control" id="MinInvestmentAmount" asp-for="MinInvestmentAmount" step="1000" min="0" placeholder="10000">
-							</div>
-							<div class="col-md-6 mb-3">
-								<label for="MaxInvestmentAmount" class="form-label">Max Investment Amount ($)</label>
-								<input type="number" class="form-control" id="MaxInvestmentAmount" asp-for="MaxInvestmentAmount" step="1000" min="0" placeholder="1000000">
-							</div>
-						</div>
+					</div> 
+					
+<div class="card-body">
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="MinInvestmentAmount" class="form-label">
+                Min Investment Amount (BDT)
+            </label>
+            <input type="number"
+                   class="form-control"
+                   id="MinInvestmentAmount"
+                   asp-for="MinInvestmentAmount"
+                   step="1000"
+                   min="0"
+                   placeholder="10000">
+        </div>
 
-						<div class="mb-3">
-							<label for="InvestmentRange" class="form-label">Typical Investment Range ($)</label>
-							<input type="number" class="form-control" id="InvestmentRange" asp-for="InvestmentRange" step="1000" min="0" placeholder="250000">
-							<small class="text-muted">Your typical investment amount per opportunity</small>
-						</div>
-					</div>
-				</div>
+        <div class="col-md-6 mb-3">
+            <label for="MaxInvestmentAmount" class="form-label">
+                Max Investment Amount (BDT)
+            </label>
+            <input type="number"
+                   class="form-control"
+                   id="MaxInvestmentAmount"
+                   asp-for="MaxInvestmentAmount"
+                   step="1000"
+                   min="0"
+                   placeholder="1000000">
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="InvestmentRange" class="form-label">
+            Typical Investment Range (BDT)
+        </label>
+        <input type="number"
+               class="form-control"
+               id="InvestmentRange"
+               asp-for="InvestmentRange"
+               step="1000"
+               min="0"
+               placeholder="250000">
+
+        <small class="text-muted">
+            Your typical investment amount per opportunity
+        </small>
+    </div>
+
+
 
 				<!-- Notification Preferences -->
 				<div class="card mb-4">

@@ -1,4 +1,6 @@
-﻿namespace TechNova.Models
+﻿using System;
+
+namespace TechNova.Models
 {
     public class InvestmentRequest
     {
@@ -14,7 +16,12 @@
 
         public string Status { get; set; } = "Pending";
 
-        // Relationships
+        public DateTime? AcceptedDate { get; set; }
+
+        public bool InvestorPdfDownloaded { get; set; } = false;
+
+        public bool StartupPdfDownloaded { get; set; } = false;
+
         public Investor Investor { get; set; } = null!;
 
         public Startup Startup { get; set; } = null!;
