@@ -204,11 +204,16 @@ namespace TechNova.Controllers
         // MESSAGE INVESTOR
         // ============================
 
+        private const int MessagePageSize = 12;
+
         /// <summary>
-        /// Startups can search for and message investors.
+        /// Startups can search for and message investors. Uses the same
+        /// visibility rules as the Explore investor directory: an investor is
+        /// hidden only when an administrator has rejected or suspended the
+        /// account. Email verification gates sign-in, not directory visibility.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> MessageInvestor(string q = "")
+        public async Task<IActionResult> MessageInvestor(string? q, int page = 1)
         {
             var startupIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(startupIdClaim, out int startupId))
@@ -216,24 +221,33 @@ namespace TechNova.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            IQueryable<Investor> query = _context.Investors
+            var query = _context.Investors
                 .AsNoTracking()
-                .Where(i => i.EmailVerified == true); // Only show verified investors
+                .Where(i => i.VerificationStatus != "Rejected"
+                            && i.VerificationStatus != "Suspended");
 
             // Filter by search query
             if (!string.IsNullOrWhiteSpace(q))
             {
-                var search = q.ToLower().Trim();
-                query = query.Where(i => 
+                var search = q.Trim().ToLower();
+                query = query.Where(i =>
                     i.Name.ToLower().Contains(search) ||
-                    i.CompanyName.ToLower().Contains(search) ||
-                    i.Bio.ToLower().Contains(search) ||
-                    i.InvestedIndustries.ToLower().Contains(search));
+                    (i.CompanyName != null && i.CompanyName.ToLower().Contains(search)) ||
+                    (i.Bio != null && i.Bio.ToLower().Contains(search)) ||
+                    (i.InvestedIndustries != null && i.InvestedIndustries.ToLower().Contains(search)));
             }
+
+            var total = await query.CountAsync();
+            if (page < 1) page = 1;
+
+            ViewBag.Total = total;
+            ViewBag.Page = page;
+            ViewBag.PageCount = Math.Max(1, (int)Math.Ceiling(total / (double)MessagePageSize));
 
             var investors = await query
                 .OrderBy(i => i.Name)
-                .Take(50)
+                .Skip((page - 1) * MessagePageSize)
+                .Take(MessagePageSize)
                 .ToListAsync();
 
             // Get existing threads to know which investors we're already talking to

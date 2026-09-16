@@ -3,6 +3,9 @@
 	ViewData["Title"] = "Message an Investor";
 	var existing = ViewBag.ExistingThreads as List<int> ?? new List<int>();
 	var query = (string?)ViewBag.Query;
+	var total = (int)ViewBag.Total;
+	var page = (int)ViewBag.Page;
+	var pageCount = (int)ViewBag.PageCount;
 }
 
 <div class="mb-3">
@@ -11,7 +14,7 @@
 
 <div class="page-head">
 	<h1>Message an Investor</h1>
-	<p>Connect with investors who might be interested in your startup.</p>
+	<p>@total investor@(total == 1 ? "" : "s") available to message.</p>
 </div>
 
 <div class="card mb-3">
@@ -63,7 +66,10 @@ else
 						<!-- Header with name and verification badge -->
 						<div class="d-flex justify-content-between align-items-start gap-2 mb-2">
 							<h3 class="card-title h5 mb-0">@investor.Name</h3>
-							<span class="badge bg-success">Verified</span>
+								@if (investor.VerificationStatus == "Verified")
+							{
+								<span class="badge bg-success">Verified</span>
+							}
 						</div>
 
 						<!-- Company/Role info -->
@@ -115,4 +121,6 @@ else
 			</div>
 		}
 	</div>
+
+	<partial name="_Pager" model="@(new TechNova.Views.PagerModel(page, pageCount))" />
 }
