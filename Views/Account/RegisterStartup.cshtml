@@ -1,4 +1,4 @@
-﻿@model TechNova.Models.RegisterStartup
+@model TechNova.Models.RegisterStartup
 
 @{
     ViewData["Title"] = "Sign Up — Startup";
@@ -98,12 +98,10 @@
             </label>
             <select asp-for="BusinessStage">
                 <option value="">Select stage</option>
-                <option value="Idea">Idea Stage</option>
-                <option value="Prototype">Prototype</option>
-                <option value="MVP">MVP</option>
-                <option value="Early Stage">Early Stage</option>
-                <option value="Growth">Growth Stage</option>
-                <option value="Established">Established</option>
+                @foreach (var stage in StageOptions.BusinessStages)
+                {
+                    <option value="@stage">@stage</option>
+                }
             </select>
 
             <span asp-validation-for="BusinessStage" class="field-error"></span>

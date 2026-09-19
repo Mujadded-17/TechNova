@@ -1,5 +1,5 @@
-using System.Diagnostics.Metrics;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace TechNova.Models
 {
@@ -7,14 +7,21 @@ namespace TechNova.Models
     {
         public int StartupID { get; set; }
 
+        // Validation attributes here are deliberately schema-neutral (no
+        // StringLength/MaxLength) so they never create a pending migration.
+        [Required(ErrorMessage = "Company name is required.")]
         public string CompanyName { get; set; } = string.Empty;
 
+        [ValidateNever]
         public string Email { get; set; } = string.Empty;
 
+        [ValidateNever]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Please describe your startup.")]
         public string Description { get; set; } = string.Empty;
 
+        [Url(ErrorMessage = "Enter a valid website URL (including https://).")]
         public string? Website { get; set; }
 
         public string? LogoPath { get; set; }
@@ -23,16 +30,20 @@ namespace TechNova.Models
 
         public string? Tagline { get; set; }
 
+        [Range(1, 1_000_000_000, ErrorMessage = "Enter the amount you are raising.")]
         public decimal FundingRequired { get; set; }
 
+        [Range(0, 1_000_000_000)]
         public decimal AmountRaised { get; set; } = 0;
 
+        [Required(ErrorMessage = "Select your business stage.")]
         public string BusinessStage { get; set; } = string.Empty;
 
         public string? Industry { get; set; }
 
         public string? Location { get; set; }
 
+        [Range(1900, 2100, ErrorMessage = "Enter a valid year.")]
         public int? FoundedYear { get; set; }
 
         public string? ProblemStatement { get; set; }
@@ -45,6 +56,7 @@ namespace TechNova.Models
 
         public string? Traction { get; set; }
 
+        [Range(0, 100, ErrorMessage = "Equity must be between 0 and 100%.")]
         public decimal? EquityOffered { get; set; }
 
         public DateTime? FundingDeadline { get; set; }
@@ -53,10 +65,12 @@ namespace TechNova.Models
 
         public string? ContactPerson { get; set; }
 
+        [Range(0, 1_000_000)]
         public int? NumberOfEmployees { get; set; }
 
         public string? BusinessModel { get; set; }
 
+        [Range(0, 1_000_000_000)]
         public decimal? MinimumInvestment { get; set; }
 
         public bool IsPublished { get; set; } = false;
@@ -79,6 +93,7 @@ namespace TechNova.Models
 
         public DateTime? EmailVerificationSentAt { get; set; }
 
+        [ValidateNever]
         public string VerificationStatus { get; set; } = "Pending";
 
         public int? VerifiedByAdminID { get; set; }

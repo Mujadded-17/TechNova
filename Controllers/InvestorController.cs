@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using TechNova.Data;
 using TechNova.Filters;
 using TechNova.Models;
+using TechNova.Services;
 using System.Security.Claims;
 
 namespace TechNova.Controllers
@@ -12,10 +13,12 @@ namespace TechNova.Controllers
     public class InvestorController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly SubscriptionService _subs;
 
-        public InvestorController(ApplicationDbContext context)
+        public InvestorController(ApplicationDbContext context, SubscriptionService subs)
         {
             _context = context;
+            _subs = subs;
         }
 
         // ============================
@@ -43,9 +46,11 @@ namespace TechNova.Controllers
             // Get recent startups
             var recentStartups = await _context.Startups
                 .AsNoTracking()
-                .Where(s => s.IsPublished)
-                .OrderByDescending(s => s.UpdatedAt)
-                .Take(5)
+                .Where(s => s.IsPublished
+                            && s.VerificationStatus != "Rejected"
+                            && s.VerificationStatus != "Suspended")
+                .OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt)
+                .Take(6)
                 .ToListAsync();
 
             // Get investor's requests
@@ -57,14 +62,23 @@ namespace TechNova.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            var dashboardData = new
+            var favoriteCount = await _context.FavoriteStartups
+                .CountAsync(f => f.InvestorID == investorId);
+
+            var unread = await _context.Messages
+                .CountAsync(m => m.InvestorID == investorId && !m.IsRead && m.SenderType == "Startup");
+
+            return View(new InvestorDashboardViewModel
             {
                 Investor = investor,
                 RecentStartups = recentStartups,
-                MyRequests = myRequests
-            };
-
-            return View((object)dashboardData);
+                MyRequests = myRequests,
+                ActiveRequestCount = myRequests.Count(r => r.Status == "Pending"),
+                RequestCount = await _context.InvestmentRequests.CountAsync(r => r.InvestorID == investorId),
+                FavoriteCount = favoriteCount,
+                UnreadMessages = unread,
+                HasAccess = await _subs.HasAccessAsync(investorId)
+            });
         }
 
         // ============================
@@ -130,6 +144,19 @@ namespace TechNova.Controllers
                 return NotFound();
             }
 
+            if (model.MinInvestmentAmount.HasValue && model.MaxInvestmentAmount.HasValue &&
+                model.MinInvestmentAmount > model.MaxInvestmentAmount)
+            {
+                ModelState.AddModelError(nameof(model.MaxInvestmentAmount),
+                    "Maximum investment must be at least the minimum.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.VerificationStatus = investor.VerificationStatus;
+                return View(model);
+            }
+
             investor.Name = model.Name;
             investor.Bio = model.Bio;
             investor.CompanyName = model.CompanyName;
@@ -162,7 +189,6 @@ namespace TechNova.Controllers
             string? search,
             string? industry,
             string? location,
-            string? fundingStage,
             string? businessStage,
             decimal? minInvestment,
             decimal? maxFundingGoal,
@@ -173,7 +199,9 @@ namespace TechNova.Controllers
         {
             var query = _context.Startups
                 .AsNoTracking()
-                .Where(s => s.IsPublished);
+                .Where(s => s.IsPublished
+                            && s.VerificationStatus != "Rejected"
+                            && s.VerificationStatus != "Suspended");
 
             // Apply filters
             if (!string.IsNullOrWhiteSpace(search))
@@ -193,11 +221,6 @@ namespace TechNova.Controllers
             if (!string.IsNullOrWhiteSpace(location))
             {
                 query = query.Where(s => s.Location == location);
-            }
-
-            if (!string.IsNullOrWhiteSpace(fundingStage))
-            {
-                query = query.Where(s => s.BusinessStage == fundingStage);
             }
 
             if (!string.IsNullOrWhiteSpace(businessStage))
@@ -243,10 +266,22 @@ namespace TechNova.Controllers
 
             var startups = await query.ToListAsync();
 
+            // Which of these the signed-in investor has already saved, so the
+            // heart can render in the right state without a request per card.
+            ViewBag.SavedIds = new HashSet<int>();
+            if (User.IsInRole("Investor") &&
+                int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var investorId))
+            {
+                var ids = startups.Select(s => s.StartupID).ToList();
+                ViewBag.SavedIds = (await _context.FavoriteStartups.AsNoTracking()
+                    .Where(f => f.InvestorID == investorId && ids.Contains(f.StartupID))
+                    .Select(f => f.StartupID)
+                    .ToListAsync()).ToHashSet();
+            }
+
             ViewBag.Search = search;
             ViewBag.Industry = industry;
             ViewBag.Location = location;
-            ViewBag.FundingStage = fundingStage;
             ViewBag.BusinessStage = businessStage;
             ViewBag.MinInvestment = minInvestment;
             ViewBag.MaxFundingGoal = maxFundingGoal;
@@ -292,10 +327,26 @@ namespace TechNova.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var startup = await _context.Startups.FindAsync(startupId);
+            // Only published startups accept requests — same rule as the directory.
+            var startup = await _context.Startups
+                .FirstOrDefaultAsync(s => s.StartupID == startupId && s.IsPublished);
             if (startup == null)
             {
                 return NotFound();
+            }
+
+            // Server-side bounds: the form's min/max are advisory only.
+            if (investmentAmount <= 0 || investmentAmount > 1_000_000_000m)
+            {
+                TempData["Error"] = "Enter an investment amount greater than zero.";
+                return RedirectToAction("Startup", "Explore", new { id = startupId });
+            }
+
+            if (startup.MinimumInvestment.HasValue && investmentAmount < startup.MinimumInvestment.Value)
+            {
+                TempData["Error"] =
+                    $"{startup.CompanyName} asks for a minimum of ${startup.MinimumInvestment.Value:N0}.";
+                return RedirectToAction("Startup", "Explore", new { id = startupId });
             }
 
             // Check if request already exists
@@ -305,7 +356,7 @@ namespace TechNova.Controllers
             if (existingRequest != null)
             {
                 TempData["Error"] = "You have already submitted a request to this startup.";
-                return RedirectToAction("Discover");
+                return RedirectToAction("Startup", "Explore", new { id = startupId });
             }
 
             var request = new InvestmentRequest
@@ -318,9 +369,28 @@ namespace TechNova.Controllers
             };
 
             _context.InvestmentRequests.Add(request);
+
+            // There is no note column on the request; the note goes into the
+            // conversation instead, where the founders will actually read it.
+            message = message?.Trim();
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                if (message.Length > 1000) message = message[..1000];
+
+                _context.Messages.Add(new Message
+                {
+                    StartupID = startupId,
+                    InvestorID = investorId,
+                    SenderType = "Investor",
+                    Content = $"Investment request for ${investmentAmount:N0}: {message}",
+                    Timestamp = DateTime.UtcNow,
+                    IsRead = false
+                });
+            }
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Investment request submitted successfully.";
+            TempData["Success"] = $"Your request to invest in {startup.CompanyName} has been sent.";
             return RedirectToAction("MyRequests");
         }
 
@@ -349,7 +419,12 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleFavorite(int startupId)
+        /// <summary>
+        /// Save or unsave a startup. Called two ways: as a fetch() from the
+        /// Discover/Favorites cards (returns JSON) and as a plain form post
+        /// from the startup page (redirects back via returnUrl).
+        /// </summary>
+        public async Task<IActionResult> ToggleFavorite(int startupId, string? returnUrl)
         {
             var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(investorIdClaim, out int investorId))
@@ -360,33 +435,41 @@ namespace TechNova.Controllers
             var favorite = await _context.FavoriteStartups
                 .FirstOrDefaultAsync(f => f.InvestorID == investorId && f.StartupID == startupId);
 
+            string action;
+
             if (favorite != null)
             {
-                // Remove favorite
                 _context.FavoriteStartups.Remove(favorite);
                 await _context.SaveChangesAsync();
-                return Ok(new { success = true, action = "removed" });
+                action = "removed";
             }
             else
             {
-                // Add favorite
                 var startup = await _context.Startups.FindAsync(startupId);
                 if (startup == null)
                 {
                     return NotFound();
                 }
 
-                favorite = new FavoriteStartup
+                _context.FavoriteStartups.Add(new FavoriteStartup
                 {
                     InvestorID = investorId,
                     StartupID = startupId,
                     SavedAt = DateTime.UtcNow
-                };
-
-                _context.FavoriteStartups.Add(favorite);
+                });
                 await _context.SaveChangesAsync();
-                return Ok(new { success = true, action = "added" });
+                action = "added";
             }
+
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                TempData["Success"] = action == "added"
+                    ? "Saved to your list."
+                    : "Removed from your saved startups.";
+                return Redirect(returnUrl!);
+            }
+
+            return Ok(new { success = true, action });
         }
 
         // ============================

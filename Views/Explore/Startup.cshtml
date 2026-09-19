@@ -1,4 +1,4 @@
-﻿@model TechNova.Models.Startup
+@model TechNova.Models.Startup
 @using TechNova.Models
 @{
     ViewData["Title"] = Model.CompanyName;
@@ -7,6 +7,8 @@
     var deck = ViewBag.Deck as PitchDeck;
 
     var isInvestor = User.IsInRole("Investor");
+    var isSaved = ViewBag.IsSaved as bool? ?? false;
+    var existingRequest = ViewBag.ExistingRequest as InvestmentRequest;
     var isOwner = User.IsInRole("Startup")
                   && User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                      == Model.StartupID.ToString();
@@ -55,7 +57,7 @@
         <div class="stat-strip">
             <div>
                 <span class="stat-label">Seeking</span>
-                <span class="stat-value">@Model.FundingRequired.ToString("N0")</span>
+                <span class="stat-value">$@Model.FundingRequired.ToString("N0")</span>
             </div>
 
             @if (Model.EquityOffered.HasValue)
@@ -90,6 +92,29 @@
                    asp-controller="Message" asp-action="Thread" asp-route-id="@Model.StartupID">
                     Message founders
                 </a>
+
+                @if (existingRequest == null)
+                {
+                    <button type="button" class="btn btn-success btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#requestModal">
+                        Request to invest
+                    </button>
+                }
+                else
+                {
+                    <span class="btn btn-outline-success btn-sm disabled" aria-disabled="true">
+                        Request sent &middot; @existingRequest.Status
+                    </span>
+                }
+
+                <form method="post" asp-controller="Investor" asp-action="ToggleFavorite" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="startupId" value="@Model.StartupID" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Startup", "Explore", new { id = Model.StartupID })" />
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        @(isSaved ? "Saved ♥ — remove" : "Save ♡")
+                    </button>
+                </form>
             }
             else if (!User.Identity!.IsAuthenticated)
             {
@@ -226,14 +251,14 @@
 
                 <div class="pay-row">
                     <span>Seeking</span>
-                    <strong>@Model.FundingRequired.ToString("N0")</strong>
+                    <strong>$@Model.FundingRequired.ToString("N0")</strong>
                 </div>
 
                 @if (Model.MinimumInvestment.HasValue)
                 {
                     <div class="pay-row">
                         <span>Minimum ticket</span>
-                        <strong>@Model.MinimumInvestment.Value.ToString("N0")</strong>
+                        <strong>$@Model.MinimumInvestment.Value.ToString("N0")</strong>
                     </div>
                 }
 
@@ -241,7 +266,7 @@
                 {
                     <div class="pay-row">
                         <span>Raised so far</span>
-                        <strong>@Model.AmountRaised.ToString("N0")</strong>
+                        <strong>$@Model.AmountRaised.ToString("N0")</strong>
                     </div>
                 }
 
@@ -260,8 +285,53 @@
 
 </div>
 
+@if (isInvestor && existingRequest == null)
+{
+    <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post" asp-controller="Investor" asp-action="CreateRequest">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="startupId" value="@Model.StartupID" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="requestModalLabel">Request to invest in @Model.CompanyName</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        The founders will see your request and can accept or decline it.
+                        You can follow up in Messages.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="investmentAmount" class="form-label">Amount you'd like to invest (USD)</label>
+                        <input type="number" class="form-control" id="investmentAmount" name="investmentAmount"
+                               min="@(Model.MinimumInvestment ?? 1)" step="1000" required
+                               placeholder="@((Model.MinimumInvestment ?? 10000m).ToString("0"))" />
+                        @if (Model.MinimumInvestment.HasValue)
+                        {
+                            <div class="form-text">Minimum ticket: $@Model.MinimumInvestment.Value.ToString("N0")</div>
+                        }
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="requestMessage" class="form-label">Note to the founders <span class="text-muted">(optional)</span></label>
+                        <textarea class="form-control" id="requestMessage" name="message" rows="3" maxlength="1000"
+                                  placeholder="Why you're interested, what you bring beyond capital…"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" data-submit-once>Send request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
 @section Scripts {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .startup-posts-feed {
             background: #fff;
@@ -477,7 +547,7 @@
 
             photos.forEach((photo, index) => {
                 html += `
-                    <div class="photo-item" title="${photo.caption || ''}">
+                    <div class="photo-item" title="${escapeHtml(photo.caption || '')}">
                         <img src="${photo.filePath}" alt="Post photo" loading="lazy" />
                         ${photoCount > 4 && index === 3 ? `<div class="media-count-overlay">+${photoCount - 4}</div>` : ''}
                     </div>

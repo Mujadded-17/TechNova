@@ -1,4 +1,4 @@
-﻿@model List<TechNova.Models.Startup>
+@model List<TechNova.Models.Startup>
 @{
     ViewData["Title"] = "Explore Startups";
 
@@ -137,7 +137,7 @@ else
                         <div class="dir-foot">
                             <span>
                                 <span class="dir-label">Seeking</span>
-                                <span class="dir-amount">@s.FundingRequired.ToString("N0")</span>
+                                <span class="dir-amount">$@s.FundingRequired.ToString("N0")</span>
                             </span>
                             <span class="dir-go">View &rarr;</span>
                         </div>

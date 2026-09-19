@@ -12,15 +12,17 @@ namespace TechNova.Services
 
     public class MediaUploadService : IMediaUploadService
     {
-        private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly StoragePaths _storage;
+        private readonly ILogger<MediaUploadService> _logger;
         private readonly long _maxPhotoSize = 10 * 1024 * 1024; // 10MB
         private readonly long _maxVideoSize = 100 * 1024 * 1024; // 100MB
         private readonly string[] _allowedPhotoExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-        private readonly string[] _allowedVideoExtensions = { ".mp4", ".webm", ".avi", ".mov", ".mkv" };
+        private readonly string[] _allowedVideoExtensions = { ".mp4", ".webm", ".mov" };
 
-        public MediaUploadService(IWebHostEnvironment hostEnvironment)
+        public MediaUploadService(StoragePaths storage, ILogger<MediaUploadService> logger)
         {
-            _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _logger = logger;
         }
 
         public async Task<(bool success, string message, string? filePath)> UploadPhotoAsync(IFormFile file, int startupId)
@@ -66,12 +68,13 @@ namespace TechNova.Services
                     await file.CopyToAsync(stream);
                 }
 
-                var webPath = $"/startup-media/{fileName}";
+                var webPath = $"{StoragePaths.MediaRequestPath}/{fileName}";
                 return (true, "Photo uploaded successfully.", webPath);
             }
             catch (Exception ex)
             {
-                return (false, $"Error uploading file: {ex.Message}", null);
+                _logger.LogError(ex, "Media upload failed for startup {StartupId}.", startupId);
+                return (false, "The file could not be saved. Please try again.", null);
             }
         }
 
@@ -118,12 +121,13 @@ namespace TechNova.Services
                     await file.CopyToAsync(stream);
                 }
 
-                var webPath = $"/startup-media/{fileName}";
+                var webPath = $"{StoragePaths.MediaRequestPath}/{fileName}";
                 return (true, "Video uploaded successfully.", webPath);
             }
             catch (Exception ex)
             {
-                return (false, $"Error uploading file: {ex.Message}", null);
+                _logger.LogError(ex, "Media upload failed for startup {StartupId}.", startupId);
+                return (false, "The file could not be saved. Please try again.", null);
             }
         }
 
@@ -136,9 +140,9 @@ namespace TechNova.Services
                     return false;
                 }
 
-                var fullPath = Path.Combine(_hostEnvironment.WebRootPath, filePath.TrimStart('/'));
+                var fullPath = _storage.ResolveMediaFile(filePath);
 
-                if (File.Exists(fullPath))
+                if (fullPath != null && File.Exists(fullPath))
                 {
                     File.Delete(fullPath);
                     return true;
@@ -148,14 +152,14 @@ namespace TechNova.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting file: {ex.Message}");
+                _logger.LogWarning(ex, "Could not delete media file {Path}.", filePath);
                 return false;
             }
         }
 
         public string GetMediaDirectory()
         {
-            return Path.Combine(_hostEnvironment.WebRootPath, "startup-media");
+            return _storage.MediaRoot;
         }
 
         private string GenerateSafeFileName(string originalFileName, int startupId, string fileType)

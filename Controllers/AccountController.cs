@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using TechNova.Data;
@@ -28,10 +29,12 @@ namespace TechNova.Controllers
 
         public AccountController(
             ApplicationDbContext context,
-            IEmailSender email)
+            IEmailSender email,
+            EmailVerificationService verification)
         {
             _context = context;
             _email = email;
+            _verification = verification;
             _passwordHasher = new PasswordHasher<object>();
         }
 
@@ -46,17 +49,28 @@ namespace TechNova.Controllers
         // ============================
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl)
         {
+            // Already signed in — no reason to show the form again.
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToDashboard();
+            }
+
+            ViewBag.ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> Login(
             string email,
-            string password)
+            string password,
+            string? returnUrl)
         {
+            ViewBag.ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
+
             if (string.IsNullOrWhiteSpace(email) ||
                 string.IsNullOrWhiteSpace(password))
             {
@@ -82,7 +96,7 @@ namespace TechNova.Controllers
                     "Admin",
                     admin.Name);
 
-                return RedirectToAction("Dashboard", "Admin");
+                return RedirectAfterLogin(returnUrl, "Admin");
             }
 
             // ----------------------------
@@ -130,7 +144,7 @@ namespace TechNova.Controllers
                     "Startup",
                     startup.CompanyName);
 
-                return RedirectToAction("Dashboard", "Startup");
+                return RedirectAfterLogin(returnUrl, "Startup");
             }
 
             // ----------------------------
@@ -178,7 +192,7 @@ namespace TechNova.Controllers
                     "Investor",
                     investor.Name);
 
-                return RedirectToAction("Dashboard", "Investor");
+                return RedirectAfterLogin(returnUrl, "Investor");
             }
 
             ViewBag.Error = "Invalid email or password.";
@@ -197,6 +211,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> RegisterStartup(
             RegisterStartup model)
         {
@@ -257,6 +272,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> RegisterInvestor(
             RegisterInvestor model)
         {
@@ -336,6 +352,7 @@ namespace TechNova.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("auth")]
         [ActionName(nameof(ResendVerification))]
         public async Task<IActionResult> ResendVerificationPost(string email)
         {
@@ -378,6 +395,28 @@ namespace TechNova.Controllers
             return View();
         }
 
+
+        // ============================
+        // POST-LOGIN ROUTING
+        // ============================
+
+        private IActionResult RedirectAfterLogin(string? returnUrl, string role)
+        {
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl!);
+            }
+
+            return RedirectToAction("Dashboard", role);
+        }
+
+        private IActionResult RedirectToDashboard()
+        {
+            if (User.IsInRole("Admin")) return RedirectToAction("Dashboard", "Admin");
+            if (User.IsInRole("Startup")) return RedirectToAction("Dashboard", "Startup");
+            if (User.IsInRole("Investor")) return RedirectToAction("Dashboard", "Investor");
+            return RedirectToAction("Index", "Home");
+        }
 
         // ============================
         // PASSWORD VERIFICATION

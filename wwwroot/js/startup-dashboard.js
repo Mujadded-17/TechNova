@@ -23,7 +23,8 @@
 	// State
 	const state = {
 		posts: [],
-		pendingPhotos: []
+		pendingPhotos: [],
+		editingPostId: null
 	};
 
 	// DOM Elements
@@ -31,9 +32,7 @@
 		postBtn: document.getElementById('postBtn'),
 		postContentInput: document.getElementById('postContentInput'),
 		postPhotoBtn: document.getElementById('postPhotoBtn'),
-		postVideoBtn: document.getElementById('postVideoBtn'),
 		photoFileInput: document.getElementById('photoFileInput'),
-		videoFileInput: document.getElementById('videoFileInput'),
 		postModal: document.getElementById('postModal'),
 		postModalContent: document.getElementById('postModalContent'),
 		closePostModal: document.getElementById('closePostModal'),
@@ -44,9 +43,12 @@
 		photoPreview: document.getElementById('photoPreview'),
 		photoPreviewContainer: document.getElementById('photoPreviewContainer'),
 		photoGallery: document.getElementById('photoGallery'),
-		photoGallerySection: document.getElementById('photoGallerySection'),
-		uploadPhotoBtn: document.getElementById('uploadPhotoBtn')
+		photoGallerySection: document.getElementById('photoGallerySection')
 	};
+
+	// Rendered by the view; a static script cannot read the Razor model.
+	const companyName = elements.postsFeed.dataset.company || '';
+	const logoPath = elements.postsFeed.dataset.logo || '';
 
 	// Initialize
 	function init() {
@@ -56,34 +58,51 @@
 
 	// Event Listeners
 	function attachEventListeners() {
-		elements.postBtn.addEventListener('click', () => openPostModal());
+		// The inline box is a shortcut: whatever was typed there is carried
+		// into the modal rather than silently dropped.
+		elements.postBtn.addEventListener('click', () => openPostModal(elements.postContentInput.value));
+		elements.postContentInput.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') { e.preventDefault(); openPostModal(elements.postContentInput.value); }
+		});
 		elements.openCreatePost.addEventListener('click', () => openPostModal());
-		elements.postPhotoBtn.addEventListener('click', () => elements.photoFileInput.click());
-		elements.postVideoBtn.addEventListener('click', () => elements.videoFileInput.click());
+		elements.postPhotoBtn.addEventListener('click', () => {
+			openPostModal(elements.postContentInput.value);
+			elements.photoFileInput.click();
+		});
 		elements.photoFileInput.addEventListener('change', handlePhotoSelection);
-		elements.videoFileInput.addEventListener('change', handleVideoSelection);
 		elements.closePostModal.addEventListener('click', closePostModal);
 		elements.cancelPostModal.addEventListener('click', closePostModal);
 		elements.submitPost.addEventListener('click', submitPost);
-		elements.uploadPhotoBtn.addEventListener('click', () => elements.photoFileInput.click());
+		elements.postModal.addEventListener('click', (e) => {
+			if (e.target === elements.postModal) closePostModal();
+		});
 
 		// Keyboard shortcuts
 		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape') {
+			if (e.key === 'Escape' && elements.postModal.classList.contains('active')) {
 				closePostModal();
 			}
 		});
 	}
 
 	// Post Modal Functions
-	function openPostModal() {
+	function openPostModal(prefill) {
+		if (typeof prefill === 'string' && prefill.trim() && !state.editingPostId) {
+			elements.postModalContent.value = prefill;
+		}
 		elements.postModal.classList.add('active');
+		elements.postModal.setAttribute('aria-hidden', 'false');
 		elements.postModalContent.focus();
 	}
 
 	function closePostModal() {
 		elements.postModal.classList.remove('active');
+		elements.postModal.setAttribute('aria-hidden', 'true');
 		elements.postModalContent.value = '';
+		elements.postContentInput.value = '';
+		state.editingPostId = null;
+		elements.submitPost.textContent = 'Post';
+		document.querySelector('#postModal .edit-modal-header h3').textContent = 'Create post';
 		clearPendingPhotos();
 	}
 
@@ -91,6 +110,14 @@
 	function handlePhotoSelection(e) {
 		const files = Array.from(e.target.files);
 		files.forEach(file => {
+			if (!file.type.startsWith('image/')) {
+				showNotification(`${file.name} is not an image.`, 'error');
+				return;
+			}
+			if (file.size > 10 * 1024 * 1024) {
+				showNotification(`${file.name} is larger than 10 MB.`, 'error');
+				return;
+			}
 			const reader = new FileReader();
 			reader.onload = (event) => {
 				state.pendingPhotos.push({
@@ -101,15 +128,6 @@
 			};
 			reader.readAsDataURL(file);
 		});
-		e.target.value = '';
-	}
-
-	function handleVideoSelection(e) {
-		const file = e.target.files[0];
-		if (file) {
-			console.log('Video selected:', file.name);
-			// Video upload will be handled separately after post creation
-		}
 		e.target.value = '';
 	}
 
@@ -153,30 +171,48 @@
 		const content = elements.postModalContent.value.trim();
 
 		if (!content) {
-			alert('Please enter some content for your post');
+			showNotification('Write something before posting.', 'error');
+			elements.postModalContent.focus();
 			return;
 		}
 
+		if (content.length > 5000) {
+			showNotification('Posts are limited to 5,000 characters.', 'error');
+			return;
+		}
+
+		const editing = state.editingPostId;
+
 		try {
 			elements.submitPost.disabled = true;
-			elements.submitPost.textContent = 'Posting...';
+			elements.submitPost.textContent = editing ? 'Saving...' : 'Posting...';
 
-			// Create the post
-			const createResponse = await fetch(config.endpoints.createPost, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				},
-				body: `content=${encodeURIComponent(content)}&__RequestVerificationToken=${encodeURIComponent(getCSRFToken())}`
-			});
+			let postId = editing;
 
-			if (!createResponse.ok) {
-				const errorText = await createResponse.text();
-				throw new Error(`Failed to create post: ${createResponse.status} - ${errorText}`);
+			if (editing) {
+				const editResponse = await fetch(config.endpoints.editPost, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: `postId=${encodeURIComponent(editing)}&content=${encodeURIComponent(content)}&__RequestVerificationToken=${encodeURIComponent(getCSRFToken())}`
+				});
+
+				if (!editResponse.ok) {
+					throw new Error('edit');
+				}
+			} else {
+				const createResponse = await fetch(config.endpoints.createPost, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: `content=${encodeURIComponent(content)}&__RequestVerificationToken=${encodeURIComponent(getCSRFToken())}`
+				});
+
+				if (!createResponse.ok) {
+					throw new Error('create');
+				}
+
+				const postData = await createResponse.json();
+				postId = postData.postId;
 			}
-
-			const postData = await createResponse.json();
-			const postId = postData.postId;
 
 			// Upload attached photos
 			if (state.pendingPhotos.length > 0) {
@@ -193,20 +229,20 @@
 					});
 
 					if (!uploadResponse.ok) {
-						console.error(`Failed to upload photo: ${uploadResponse.status}`);
+						const reason = await uploadResponse.text().catch(() => '');
+						showNotification(reason || 'One of the photos could not be uploaded.', 'error');
 					}
 				}
 			}
 
 			closePostModal();
 			loadFeed();
-			showNotification('Post created successfully!', 'success');
+			showNotification(editing ? 'Post updated.' : 'Post published.', 'success');
 		} catch (error) {
-			console.error('Error creating post:', error);
-			showNotification(`Failed to create post: ${error.message}`, 'error');
+			showNotification(editing ? 'Could not save your changes. Please try again.' : 'Could not publish the post. Please try again.', 'error');
 		} finally {
 			elements.submitPost.disabled = false;
-			elements.submitPost.textContent = 'Post';
+			if (!state.editingPostId) elements.submitPost.textContent = 'Post';
 		}
 	}
 
@@ -221,9 +257,16 @@
 			const posts = await response.json();
 			state.posts = posts;
 			renderFeed(posts);
-			loadPhotos();
+			renderPhotos(posts);
 		} catch (error) {
-			console.error('Error loading feed:', error);
+			elements.postsFeed.innerHTML = `
+				<div class="empty-state">
+					<div class="empty-state-title">Couldn't load your updates</div>
+					<div class="empty-state-text">Check your connection and <a href="#" data-retry-feed>try again</a>.</div>
+				</div>
+			`;
+			const retry = elements.postsFeed.querySelector('[data-retry-feed]');
+			if (retry) retry.addEventListener('click', (e) => { e.preventDefault(); loadFeed(); });
 		}
 	}
 
@@ -232,7 +275,6 @@
 		if (!posts || posts.length === 0) {
 			elements.postsFeed.innerHTML = `
 				<div class="empty-state">
-					<div class="empty-state-icon">📝</div>
 					<div class="empty-state-title">No posts yet</div>
 					<div class="empty-state-text">Share your first startup update to get started</div>
 				</div>
@@ -251,31 +293,35 @@
 		const timeAgo = getTimeAgo(date);
 		const photos = post.photos || [];
 
+		const edited = post.updatedAt ? ' · edited' : '';
+		const avatar = logoPath
+			? `<img class="post-avatar" src="${escapeHtml(logoPath)}" alt="" />`
+			: `<div class="post-avatar" aria-hidden="true"></div>`;
+
 		return `
-			<div class="feed-post fade-in" data-post-id="${post.postID}">
+			<article class="feed-post fade-in" data-post-id="${post.postID}">
 				<div class="post-header">
 					<div class="post-author-info">
-						<div class="post-avatar"></div>
+						${avatar}
 						<div>
-							<h4>@Model.CompanyName</h4>
-							<p class="post-time">${timeAgo}</p>
+							<h4>${escapeHtml(companyName)}</h4>
+							<p class="post-time">${timeAgo}${edited}</p>
 						</div>
 					</div>
-					<button type="button" class="post-menu-btn" data-post-id="${post.postID}">⋮</button>
 				</div>
 				<div class="post-content">${escapeHtml(post.content)}</div>
 				${photos.length > 0 ? `
 					<div class="post-media">
 						${photos.map(photo => `
-							<img src="${photo.filePath}" alt="Photo" />
+							<img src="${escapeHtml(photo.filePath)}" alt="${escapeHtml(photo.caption || 'Post photo')}" loading="lazy" />
 						`).join('')}
 					</div>
 				` : ''}
 				<div class="post-footer">
-					<button type="button" class="edit-post-btn" data-post-id="${post.postID}">✏️ Edit</button>
-					<button type="button" class="delete-post-btn" data-post-id="${post.postID}">🗑️ Delete</button>
+					<button type="button" class="edit-post-btn" data-post-id="${post.postID}">Edit</button>
+					<button type="button" class="delete-post-btn" data-post-id="${post.postID}">Delete</button>
 				</div>
-			</div>
+			</article>
 		`;
 	}
 
@@ -304,10 +350,11 @@
 
 	// Edit Post
 	function editPost(post) {
+		state.editingPostId = post.postID;
 		elements.postModalContent.value = post.content;
+		elements.submitPost.textContent = 'Save changes';
+		document.querySelector('#postModal .edit-modal-header h3').textContent = 'Edit post';
 		openPostModal();
-		elements.submitPost.dataset.postId = post.postID;
-		elements.submitPost.textContent = 'Update Post';
 	}
 
 	// Delete Post
@@ -326,22 +373,15 @@
 			}
 
 			loadFeed();
-			showNotification('Post deleted successfully', 'success');
+			showNotification('Post deleted.', 'success');
 		} catch (error) {
-			console.error('Error deleting post:', error);
-			showNotification('Failed to delete post', 'error');
+			showNotification('Could not delete the post. Please try again.', 'error');
 		}
 	}
 
-	// Load and Render Photos
-	async function loadPhotos() {
+	// Render the photo gallery from the posts already loaded — no second request.
+	function renderPhotos(posts) {
 		try {
-			const response = await fetch(config.endpoints.getFeed);
-			if (!response.ok) {
-				throw new Error('Failed to load photos');
-			}
-
-			const posts = await response.json();
 			let allPhotos = [];
 
 			// Collect all photos from posts
@@ -359,17 +399,16 @@
 			elements.photoGallerySection.style.display = 'block';
 			elements.photoGallery.innerHTML = allPhotos.map(photo => `
 				<div class="gallery-item" data-photo-id="${photo.photoID}">
-					<img src="${photo.filePath}" alt="${photo.caption || 'Gallery photo'}" />
+					<img src="${escapeHtml(photo.filePath)}" alt="${escapeHtml(photo.caption || 'Gallery photo')}" loading="lazy" />
 					<div class="gallery-item-overlay">
-						<button type="button" class="edit-photo-btn" data-photo-id="${photo.photoID}" title="Edit">✏️</button>
-						<button type="button" class="delete-photo-btn" data-photo-id="${photo.photoID}" title="Delete">🗑️</button>
+						<button type="button" class="delete-photo-btn" data-photo-id="${photo.photoID}" title="Delete photo" aria-label="Delete photo">Delete</button>
 					</div>
 				</div>
 			`).join('');
 
 			attachPhotoEventListeners();
 		} catch (error) {
-			console.error('Error loading photos:', error);
+			elements.photoGallerySection.style.display = 'none';
 		}
 	}
 
@@ -384,14 +423,6 @@
 			});
 		});
 
-		document.querySelectorAll('.edit-photo-btn').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				e.preventDefault();
-				const photoId = btn.dataset.photoId;
-				prompt('Enter new caption for this photo:', '');
-				// Implement caption editing if needed
-			});
-		});
 	}
 
 	// Delete Photo
@@ -409,16 +440,16 @@
 				throw new Error('Failed to delete photo');
 			}
 
-			loadPhotos();
-			showNotification('Photo deleted successfully', 'success');
+			loadFeed();
+			showNotification('Photo deleted.', 'success');
 		} catch (error) {
-			console.error('Error deleting photo:', error);
-			showNotification('Failed to delete photo', 'error');
+			showNotification('Could not delete the photo. Please try again.', 'error');
 		}
 	}
 
 	// Utilities
 	function escapeHtml(text) {
+		text = text == null ? '' : String(text);
 		const map = {
 			'&': '&amp;',
 			'<': '&lt;',
@@ -448,26 +479,13 @@
 
 	function showNotification(message, type = 'info') {
 		const notification = document.createElement('div');
-		notification.style.cssText = `
-			position: fixed;
-			top: 20px;
-			right: 20px;
-			background: ${type === 'success' ? '#0f7a5c' : '#c0392b'};
-			color: white;
-			padding: 1rem 1.5rem;
-			border-radius: 8px;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-			z-index: 10000;
-			animation: slideIn 0.3s ease-out;
-			font-weight: 500;
-		`;
+		notification.className = `alert ${type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info'} app-toast`;
+		notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
 		notification.textContent = message;
 		document.body.appendChild(notification);
 
-		setTimeout(() => {
-			notification.style.animation = 'fadeOut 0.3s ease-out';
-			setTimeout(() => notification.remove(), 300);
-		}, 3000);
+		setTimeout(() => notification.classList.add('app-toast--hide'), 2600);
+		setTimeout(() => notification.remove(), 3000);
 	}
 
 	// Start the app

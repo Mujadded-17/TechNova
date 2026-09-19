@@ -286,6 +286,7 @@ namespace TechNova.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NfcCardRequestID"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("ApprovedAt")
@@ -1097,7 +1098,7 @@ namespace TechNova.Migrations
             modelBuilder.Entity("TechNova.Models.Video", b =>
                 {
                     b.HasOne("TechNova.Models.Post", "Post")
-                        .WithMany()
+                        .WithMany("Videos")
                         .HasForeignKey("PostID")
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -1131,6 +1132,8 @@ namespace TechNova.Migrations
             modelBuilder.Entity("TechNova.Models.Post", b =>
                 {
                     b.Navigation("Photos");
+
+                    b.Navigation("Videos");
                 });
 
             modelBuilder.Entity("TechNova.Models.Startup", b =>

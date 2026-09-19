@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -129,6 +130,21 @@ namespace TechNova.Controllers
                 .Where(d => d.StartupID == id && d.IsPrimary)
                 .FirstOrDefaultAsync();
 
+            // Investor-specific state so the page can show "Saved" and
+            // "Request sent" instead of offering the action twice.
+            ViewBag.IsSaved = false;
+            ViewBag.ExistingRequest = null;
+
+            if (User.IsInRole("Investor") &&
+                int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var investorId))
+            {
+                ViewBag.IsSaved = await _context.FavoriteStartups
+                    .AnyAsync(f => f.InvestorID == investorId && f.StartupID == id);
+
+                ViewBag.ExistingRequest = await _context.InvestmentRequests.AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.InvestorID == investorId && r.StartupID == id);
+            }
+
             return View(startup);
         }
 
@@ -141,9 +157,10 @@ namespace TechNova.Controllers
         [Authorize]
         public async Task<IActionResult> Investors(string? q, string? preference, int page = 1)
         {
+            // Only approved investors are listed to founders; a pending
+            // account has not been vetted yet and cannot sign in anyway.
             var query = _context.Investors.AsNoTracking()
-                .Where(i => i.VerificationStatus != "Rejected"
-                            && i.VerificationStatus != "Suspended");
+                .Where(i => i.VerificationStatus == "Verified");
 
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -191,8 +208,7 @@ namespace TechNova.Controllers
         {
             var investor = await _context.Investors.AsNoTracking()
                 .FirstOrDefaultAsync(i => i.InvestorID == id
-                                          && i.VerificationStatus != "Rejected"
-                                          && i.VerificationStatus != "Suspended");
+                                          && i.VerificationStatus == "Verified");
 
             if (investor == null) return NotFound();
 

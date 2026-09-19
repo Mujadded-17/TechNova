@@ -44,9 +44,20 @@ namespace TechNova.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error(int? code)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // Reached either from UseExceptionHandler (no code) or from
+            // UseStatusCodePagesWithReExecute, which passes the status through.
+            if (code.HasValue)
+            {
+                Response.StatusCode = code.Value;
+            }
+
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                StatusCode = code
+            });
         }
     }
 }

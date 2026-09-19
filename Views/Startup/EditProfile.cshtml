@@ -2,7 +2,7 @@
 
 @{
 	ViewData["Title"] = "Edit Startup Profile";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+	Layout = "_Layout";
 }
 
 <div class="container mt-5 mb-5">
@@ -12,6 +12,7 @@
 
 			<form method="post" asp-action="EditProfile" asp-controller="Startup" class="needs-validation" enctype="multipart/form-data">
 				@Html.AntiForgeryToken()
+				<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 				@Html.HiddenFor(m => m.StartupID)
 
 				<!-- Basic Information -->
@@ -102,14 +103,16 @@
 							</div>
 							<div class="col-md-6 mb-3">
 								<label for="BusinessStage" class="form-label">Business Stage</label>
-								<select class="form-select" id="BusinessStage" asp-for="BusinessStage">
+								<select class="form-select" id="BusinessStage" asp-for="BusinessStage" required>
 									<option value="">Select stage...</option>
-									<option value="Pre-Seed">Pre-Seed</option>
-									<option value="Seed">Seed</option>
-									<option value="Series A">Series A</option>
-									<option value="Series B">Series B</option>
-									<option value="Series C">Series C</option>
-									<option value="Growth">Growth</option>
+									@foreach (var stage in StageOptions.BusinessStages)
+									{
+										<option value="@stage">@stage</option>
+									}
+									@if (!string.IsNullOrEmpty(Model.BusinessStage) && !StageOptions.BusinessStages.Contains(Model.BusinessStage))
+									{
+										<option value="@Model.BusinessStage">@Model.BusinessStage</option>
+									}
 								</select>
 							</div>
 						</div>
@@ -221,7 +224,7 @@
 				</div>
 
 				<!-- Publish Settings -->
-				<div class="card mb-4">
+				<div class="card mb-4" id="publish">
 					<div class="card-header bg-light">
 						<h5 class="mb-0">Publish Settings</h5>
 					</div>
@@ -258,3 +261,7 @@
 		color: #0a0c0e;
 	}
 </style>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

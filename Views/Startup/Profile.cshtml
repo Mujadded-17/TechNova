@@ -2,7 +2,7 @@
 
 @{
 	ViewData["Title"] = $"{Model.CompanyName} - Startup Profile";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+	Layout = "_Layout";
 }
 
 <link rel="stylesheet" href="~/css/facebook-style.css" />
@@ -68,7 +68,6 @@
 		<!-- Posts Feed -->
 		<div id="postsFeed" class="startup-feed">
 			<div class="empty-state">
-				<div class="empty-state-icon">📝</div>
 				<div class="empty-state-title">No posts yet</div>
 				<div class="empty-state-text">This startup hasn't shared any updates</div>
 			</div>
@@ -95,11 +94,11 @@
 				<div class="startup-stats">
 					<div class="stat-item">
 						<span class="stat-label">Funding Goal</span>
-						<span class="stat-value">${@Model.FundingRequired:N0}</span>
+						<span class="stat-value">$@Model.FundingRequired.ToString("N0")</span>
 					</div>
 					<div class="stat-item">
 						<span class="stat-label">Amount Raised</span>
-						<span class="stat-value text-success">${@Model.AmountRaised:N0}</span>
+						<span class="stat-value text-success">$@Model.AmountRaised.ToString("N0")</span>
 					</div>
 					<div class="stat-item">
 						<span class="stat-label">Progress</span>
@@ -195,7 +194,7 @@
 					{
 						<div class="info-row">
 							<span class="info-label">Min Investment</span>
-							<span class="info-value">${@Model.MinimumInvestment:N0}</span>
+							<span class="info-value">$@Model.MinimumInvestment.Value.ToString("N0")</span>
 						</div>
 					}
 				</div>
@@ -236,7 +235,7 @@
 		<!-- Contact CTA -->
 		<div class="sidebar-widget">
 			<button type="button" class="btn btn-primary" style="width: 100%; font-weight: 600; padding: 0.75rem;" data-bs-toggle="modal" data-bs-target="#contactModal">
-				💬 Request Information
+				Request information
 			</button>
 		</div>
 	</div>

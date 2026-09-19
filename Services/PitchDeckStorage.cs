@@ -18,12 +18,12 @@ namespace TechNova.Services
     {
         public const long MaxBytes = 15 * 1024 * 1024;   // 15 MB
 
-        private readonly IWebHostEnvironment _env;
+        private readonly StoragePaths _storage;
         private readonly ILogger<PitchDeckStorage> _logger;
 
-        public PitchDeckStorage(IWebHostEnvironment env, ILogger<PitchDeckStorage> logger)
+        public PitchDeckStorage(StoragePaths storage, ILogger<PitchDeckStorage> logger)
         {
-            _env = env;
+            _storage = storage;
             _logger = logger;
         }
 
@@ -37,7 +37,7 @@ namespace TechNova.Services
 
         public static string AllowedDescription => "PDF, PPT or PPTX, up to 15 MB";
 
-        private string Root => Path.Combine(_env.ContentRootPath, "App_Data", "pitch-decks");
+        private string Root => _storage.PitchDeckRoot;
 
 
         public record Validation(bool Ok, string? Error, string ContentType = "");

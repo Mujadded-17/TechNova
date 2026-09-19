@@ -1,17 +1,23 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+
 namespace TechNova.Models
 {
     public class Investor
     {
         public int InvestorID { get; set; }
 
+        [Required(ErrorMessage = "Your name is required.")]
         public string Name { get; set; } = string.Empty;
 
         public string? CompanyName { get; set; }
 
+        [ValidateNever]
         public string Email { get; set; } = string.Empty;
 
         public string? Phone { get; set; }
 
+        [ValidateNever]
         public string PasswordHash { get; set; } = string.Empty;
 
         public string? Bio { get; set; }
@@ -20,10 +26,13 @@ namespace TechNova.Models
 
         public string? Preference { get; set; }
 
+        [Range(0, 1_000_000_000)]
         public decimal? InvestmentRange { get; set; }
 
+        [Range(0, 1_000_000_000)]
         public decimal? MinInvestmentAmount { get; set; }
 
+        [Range(0, 1_000_000_000)]
         public decimal? MaxInvestmentAmount { get; set; }
 
         public string? InvestorType { get; set; } // Angel, VC, Institution, etc.
@@ -32,6 +41,7 @@ namespace TechNova.Models
 
         public string? Location { get; set; }
 
+        [Url(ErrorMessage = "Enter a valid website URL (including https://).")]
         public string? Website { get; set; }
 
         public bool ReceiveNotifications { get; set; } = true;
@@ -54,6 +64,7 @@ namespace TechNova.Models
 
         public DateTime? EmailVerificationSentAt { get; set; }
 
+        [ValidateNever]
         public string VerificationStatus { get; set; } = "Pending";
 
         public int? VerifiedByAdminID { get; set; }

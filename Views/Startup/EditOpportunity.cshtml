@@ -2,7 +2,7 @@
 
 @{
 	ViewData["Title"] = "Edit Investment Opportunity";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+	Layout = "_Layout";
 }
 
 <div class="container mt-5 mb-5">
@@ -12,6 +12,7 @@
 
 			<form method="post" asp-action="EditOpportunity" asp-controller="Startup" class="needs-validation">
 				@Html.AntiForgeryToken()
+				<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 				@Html.HiddenFor(m => m.OpportunityID)
 				@Html.HiddenFor(m => m.StartupID)
 
@@ -179,3 +180,7 @@
 		color: #0a0c0e;
 	}
 </style>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

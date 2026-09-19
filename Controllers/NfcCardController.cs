@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
@@ -14,13 +14,16 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<NfcCardController> _logger;
 
         public NfcCardController(
             ApplicationDbContext context,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<NfcCardController> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -179,7 +182,9 @@ namespace TechNova.Controllers
 
             if (string.IsNullOrWhiteSpace(StripeConfiguration.ApiKey))
             {
-                return BadRequest("Stripe SecretKey is not configured.");
+                TempData["Error"] =
+                    "Card payments aren't available right now. Please try again later.";
+                return RedirectToAction(nameof(Index));
             }
 
             // Create Stripe Checkout Session
@@ -246,7 +251,20 @@ namespace TechNova.Controllers
 
             var service = new SessionService();
 
-            var session = await service.CreateAsync(options);
+            Session session;
+            try
+            {
+                session = await service.CreateAsync(options);
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe checkout session creation failed for request {Id}.",
+                    request.NfcCardRequestID);
+
+                TempData["Error"] =
+                    "We couldn't start the payment. Please try again in a moment.";
+                return RedirectToAction(nameof(Index));
+            }
 
             // Save Stripe session ID
             request.StripeSessionID = session.Id;
@@ -257,9 +275,62 @@ namespace TechNova.Controllers
             return Redirect(session.Url);
         }
 
+        /// <summary>
+        /// Stripe sends the customer back here after checkout. The webhook is
+        /// the source of truth, but it only fires if it has been pointed at
+        /// this deployment — so the session is also checked directly, which
+        /// makes the flow complete even when the webhook is not configured.
+        /// </summary>
         [HttpGet]
-        public IActionResult PaymentSuccess(string? session_id)
+        public async Task<IActionResult> PaymentSuccess(string? session_id)
         {
+            if (string.IsNullOrWhiteSpace(session_id) ||
+                !int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var request = await _context.NfcCardRequests
+                .FirstOrDefaultAsync(n => n.StripeSessionID == session_id && n.UserID == userId);
+
+            if (request == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (request.PaymentStatus != "Paid")
+            {
+                StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
+
+                try
+                {
+                    var session = await new SessionService().GetAsync(session_id);
+
+                    if (session.PaymentStatus == "paid")
+                    {
+                        request.PaymentStatus = "Paid";
+                        request.RequestStatus = "PendingAdminApproval";
+                        request.PaidAt = DateTime.UtcNow;
+
+                        if (!string.IsNullOrWhiteSpace(session.PaymentIntentId))
+                        {
+                            request.StripePaymentIntentID = session.PaymentIntentId;
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch (StripeException ex)
+                {
+                    _logger.LogWarning(ex, "Could not verify Stripe session {Session}.", session_id);
+                }
+            }
+
+            TempData[request.PaymentStatus == "Paid" ? "Success" : "Error"] =
+                request.PaymentStatus == "Paid"
+                    ? "Payment received. Your card request is now waiting for admin approval."
+                    : "We haven't received confirmation of your payment yet. It can take a minute — refresh shortly.";
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -276,7 +347,8 @@ namespace TechNova.Controllers
 
             if (string.IsNullOrWhiteSpace(webhookSecret))
             {
-                return BadRequest("Stripe WebhookSecret is not configured.");
+                _logger.LogWarning("Stripe webhook received but Stripe:WebhookSecret is not configured.");
+                return BadRequest();
             }
 
             try

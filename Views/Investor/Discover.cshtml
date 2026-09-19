@@ -2,12 +2,27 @@
 
 @{
 	ViewData["Title"] = "Discover Startups";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+	Layout = "_Layout";
 
-	var fundingStages = new[] { "Pre-Seed", "Seed", "Series A", "Series B" };
-	var businessStages = new[] { "Pre-Launch", "MVP", "Early Growth", "Scaling" };
-	var sortOptions = new[] { "newest", "oldest", "lowest-min-investment", "highest-funding-goal", "most-funded", "recently-updated" };
-	var sortLabels = new[] { "Newest", "Oldest", "Lowest Min Investment", "Highest Funding Goal", "Most Funded", "Recently Updated" };
+	var isInvestor = User.IsInRole("Investor");
+	var savedIds = ViewBag.SavedIds as HashSet<int> ?? new HashSet<int>();
+	var currentStage = ViewBag.BusinessStage as string ?? "";
+	var currentSort = ViewBag.SortBy as string ?? "newest";
+
+	var sortOptions = new (string Value, string Label)[]
+	{
+		("newest", "Newest"),
+		("oldest", "Oldest"),
+		("lowest-min-investment", "Lowest min investment"),
+		("highest-funding-goal", "Highest funding goal"),
+		("most-funded", "Most funded"),
+		("recently-updated", "Recently updated")
+	};
+}
+
+@if (isInvestor)
+{
+	<form id="antiForgeryForm" class="d-none">@Html.AntiForgeryToken()</form>
 }
 
 <div class="container mt-5">
@@ -43,26 +58,28 @@
 						</div>
 
 						<div class="row">
-							<div class="col-md-3 mb-3">
-								<label for="fundingStage" class="form-label">Funding Stage</label>
-								<select class="form-select" id="fundingStage" name="fundingStage">
-									<option value="">All stages</option>
-								</select>
-							</div>
-							<div class="col-md-3 mb-3">
-								<label for="businessStage" class="form-label">Business Stage</label>
+							<div class="col-md-4 mb-3">
+								<label for="businessStage" class="form-label">Stage</label>
 								<select class="form-select" id="businessStage" name="businessStage">
 									<option value="">All stages</option>
+									@foreach (var stage in StageOptions.BusinessStages)
+									{
+										<option value="@stage" selected="@(stage == currentStage)">@stage</option>
+									}
 								</select>
 							</div>
-							<div class="col-md-3 mb-3">
+							<div class="col-md-4 mb-3">
 								<label for="minInvestment" class="form-label">Min Investment ($)</label>
 								<input type="number" class="form-control" id="minInvestment" name="minInvestment" 
 									   value="@ViewBag.MinInvestment" step="1000" placeholder="10000">
 							</div>
-							<div class="col-md-3 mb-3">
+							<div class="col-md-4 mb-3">
 								<label for="sortBy" class="form-label">Sort By</label>
 								<select class="form-select" id="sortBy" name="sortBy">
+									@foreach (var opt in sortOptions)
+									{
+										<option value="@opt.Value" selected="@(opt.Value == currentSort)">@opt.Label</option>
+									}
 								</select>
 							</div>
 						</div>
@@ -106,11 +123,18 @@
 												@startup.Industry @(string.IsNullOrEmpty(startup.Industry) ? "" : "•") @startup.Location
 											</p>
 										</div>
-										<button class="btn btn-sm btn-outline-primary favorite-btn" 
-												data-startup-id="@startup.StartupID" 
-												onclick="toggleFavorite(@startup.StartupID)">
-											♡
-										</button>
+										@if (isInvestor)
+										{
+											var saved = savedIds.Contains(startup.StartupID);
+											<button type="button"
+													class="btn btn-sm favorite-btn @(saved ? "favorited" : "")"
+													data-startup-id="@startup.StartupID"
+													aria-pressed="@(saved ? "true" : "false")"
+													aria-label="@(saved ? "Remove from saved" : "Save startup")"
+													title="@(saved ? "Remove from saved" : "Save startup")">
+												@(saved ? "♥" : "♡")
+											</button>
+										}
 									</div>
 
 									<p class="card-text small mb-3">
@@ -124,17 +148,17 @@
 									<div class="startup-info mb-3">
 										<div class="info-row">
 											<span class="label">Funding Goal:</span>
-											<span class="value">${@startup.FundingRequired:N0}</span>
+											<span class="value">$@startup.FundingRequired.ToString("N0")</span>
 										</div>
 										<div class="info-row">
 											<span class="label">Raised:</span>
-											<span class="value">${@startup.AmountRaised:N0}</span>
+											<span class="value">$@startup.AmountRaised.ToString("N0")</span>
 										</div>
 										@if (startup.MinimumInvestment.HasValue)
 										{
 											<div class="info-row">
 												<span class="label">Min Investment:</span>
-												<span class="value">${@startup.MinimumInvestment:N0}</span>
+												<span class="value">$@startup.MinimumInvestment.Value.ToString("N0")</span>
 											</div>
 										}
 										@if (startup.EquityOffered.HasValue)
@@ -147,7 +171,7 @@
 									</div>
 
 									<div class="d-grid gap-2">
-										<a href="@Url.Action("Profile", "Startup", new { id = startup.StartupID })" 
+										<a href="@Url.Action("Startup", "Explore", new { id = startup.StartupID })"
 										   class="btn btn-primary btn-sm">
 											View Profile
 										</a>
@@ -209,73 +233,6 @@
 	}
 </style>
 
-<script>
-	const fundingStages = ['Pre-Seed', 'Seed', 'Series A', 'Series B'];
-	const businessStages = ['Pre-Launch', 'MVP', 'Early Growth', 'Scaling'];
-	const sortOptions = [
-		{ value: 'newest', label: 'Newest' },
-		{ value: 'oldest', label: 'Oldest' },
-		{ value: 'lowest-min-investment', label: 'Lowest Min Investment' },
-		{ value: 'highest-funding-goal', label: 'Highest Funding Goal' },
-		{ value: 'most-funded', label: 'Most Funded' },
-		{ value: 'recently-updated', label: 'Recently Updated' }
-	];
-
-	const fundingStageSelect = document.getElementById('fundingStage');
-	const businessStageSelect = document.getElementById('businessStage');
-	const sortBySelect = document.getElementById('sortBy');
-
-	const currentFundingStage = '@ViewBag.FundingStage';
-	const currentBusinessStage = '@ViewBag.BusinessStage';
-	const currentSortBy = '@ViewBag.SortBy' || 'newest';
-
-	fundingStages.forEach(stage => {
-		const option = document.createElement('option');
-		option.value = stage;
-		option.textContent = stage;
-		if (stage === currentFundingStage) option.selected = true;
-		fundingStageSelect.appendChild(option);
-	});
-
-	businessStages.forEach(stage => {
-		const option = document.createElement('option');
-		option.value = stage;
-		option.textContent = stage;
-		if (stage === currentBusinessStage) option.selected = true;
-		businessStageSelect.appendChild(option);
-	});
-
-	sortOptions.forEach(opt => {
-		const option = document.createElement('option');
-		option.value = opt.value;
-		option.textContent = opt.label;
-		if (opt.value === currentSortBy) option.selected = true;
-		sortBySelect.appendChild(option);
-	});
-
-	async function toggleFavorite(startupId) {
-		try {
-			const response = await fetch('@Url.Action("ToggleFavorite", "Investor")', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ startupId: startupId })
-			});
-
-			const data = await response.json();
-			if (data.success) {
-				const btn = document.querySelector(`[data-startup-id="${startupId}"]`);
-				if (data.action === 'added') {
-					btn.classList.add('favorited');
-					btn.textContent = '♥';
-				} else {
-					btn.classList.remove('favorited');
-					btn.textContent = '♡';
-				}
-			}
-		} catch (error) {
-			console.error('Error:', error);
-		}
-	}
-</script>
+@section Scripts {
+	<script src="~/js/favorites.js" asp-append-version="true"></script>
+}

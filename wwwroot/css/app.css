@@ -1361,3 +1361,37 @@ a {
     .profile-hero__avatar { width: 62px; height: 62px; font-size: 19px; }
     .deck-item > span:last-child { width: 100%; }
 }
+
+/* ---------------------------------------------------------------
+   Validation summary: the tag helper always renders the element,
+   so hide it until it actually carries errors.
+   --------------------------------------------------------------- */
+.validation-summary-valid { display: none; }
+.validation-summary-errors ul { margin: 0; padding-left: 18px; }
+
+/* ---------------------------------------------------------------
+   Lightweight toast used by the small fetch()-driven interactions
+   (save/unsave, feed). Positioned so it never covers the navbar.
+   --------------------------------------------------------------- */
+.app-toast {
+    position: fixed;
+    top: 84px;
+    right: 20px;
+    z-index: 1080;
+    min-width: 240px;
+    max-width: calc(100vw - 40px);
+    box-shadow: 0 8px 24px rgba(10, 12, 14, .14);
+    transition: opacity .3s ease, transform .3s ease;
+}
+.app-toast--hide { opacity: 0; transform: translateY(-6px); }
+
+/* ---------------------------------------------------------------
+   Dashboard stat tiles
+   --------------------------------------------------------------- */
+.stat-card { color: inherit; transition: box-shadow .2s ease, transform .2s ease; }
+.stat-card:hover { box-shadow: 0 8px 20px rgba(10, 12, 14, .08); transform: translateY(-2px); color: inherit; }
+.stat-card__label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.stat-card__value { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.2; margin: 4px 0; }
+.stat-card__hint { font-size: 12px; color: var(--muted-soft); }
+.dir-card { color: inherit; }
+.dir-card:hover { color: inherit; box-shadow: 0 8px 20px rgba(10, 12, 14, .08); }

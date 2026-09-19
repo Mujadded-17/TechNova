@@ -25,6 +25,7 @@
       class="auth-form">
 
     @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
 
     <div class="field">
         <label for="email">Email</label>
@@ -48,7 +49,7 @@
                required />
     </div>
 
-    <button type="submit" class="btn btn--brand auth-submit">
+    <button type="submit" class="btn btn--brand auth-submit" data-submit-once>
         Sign In
         <svg class="ico ico--sm btn__arrow"><use href="#i-arrow-right" /></svg>
     </button>

@@ -260,6 +260,8 @@
 	height: 40px;
 	border-radius: 50%;
 	background: var(--brand-tint);
+	object-fit: cover;
+	flex: 0 0 auto;
 }
 
 .post-author-details h4 {

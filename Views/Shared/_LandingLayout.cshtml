@@ -9,8 +9,6 @@
     <meta name="description"
           content="Tech Nova connects ambitious startups with investors who are actively looking for the next opportunity." />
 
-    <script type="importmap"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;450;500;550;600;650;700&display=swap"
@@ -125,10 +123,10 @@
 
             <nav class="nav__links" aria-label="Primary">
                 <a asp-controller="Explore" asp-action="Startups">Discover Startups</a>
-                <a href="#for-startups">For Startups</a>
-                <a href="#for-investors">For Investors</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="#about">About</a>
+                <a href="@Url.Action("Index", "Home")#for-startups">For Startups</a>
+                <a href="@Url.Action("Index", "Home")#for-investors">For Investors</a>
+                <a href="@Url.Action("Index", "Home")#how-it-works">How It Works</a>
+                <a href="@Url.Action("Index", "Home")#about">About</a>
             </nav>
 
             <div class="nav__actions">
@@ -201,10 +199,10 @@
 
     <div class="nav__drawer" id="navDrawer">
         <a asp-controller="Explore" asp-action="Startups">Discover Startups</a>
-        <a href="#for-startups">For Startups</a>
-        <a href="#for-investors">For Investors</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#about">About</a>
+        <a href="@Url.Action("Index", "Home")#for-startups">For Startups</a>
+        <a href="@Url.Action("Index", "Home")#for-investors">For Investors</a>
+        <a href="@Url.Action("Index", "Home")#how-it-works">How It Works</a>
+        <a href="@Url.Action("Index", "Home")#about">About</a>
         <a asp-controller="Account" asp-action="Login">Log In</a>
 
         <a class="btn btn--brand" asp-controller="Account" asp-action="RegisterStartup">
@@ -240,28 +238,26 @@
                     <h4>Platform</h4>
                     <ul>
                         <li><a asp-controller="Explore" asp-action="Startups">Discover Startups</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#for-startups">For Startups</a></li>
-                        <li><a href="#for-investors">For Investors</a></li>
+                        <li><a href="@Url.Action("Index", "Home")#how-it-works">How It Works</a></li>
+                        <li><a href="@Url.Action("Index", "Home")#for-startups">For Startups</a></li>
+                        <li><a href="@Url.Action("Index", "Home")#for-investors">For Investors</a></li>
                     </ul>
                 </div>
 
                 <div>
                     <h4>Company</h4>
                     <ul>
-                        <li><a href="#about">About</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="@Url.Action("Index", "Home")#about">About</a></li>
                         <li><a asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4>Resources</h4>
+                    <h4>Get started</h4>
                     <ul>
-                        <li><a href="#startup-guide">Startup Guide</a></li>
-                        <li><a href="#investor-guide">Investor Guide</a></li>
-                        <li><a href="#faqs">FAQs</a></li>
+                        <li><a asp-controller="Account" asp-action="RegisterStartup">Register a startup</a></li>
+                        <li><a asp-controller="Account" asp-action="RegisterInvestor">Join as an investor</a></li>
+                        <li><a asp-controller="Account" asp-action="Login">Sign in</a></li>
                     </ul>
                 </div>
 

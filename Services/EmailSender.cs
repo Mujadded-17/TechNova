@@ -82,18 +82,17 @@ namespace TechNova.Services
     public class DevEmailSender : IEmailSender
     {
         private readonly ILogger<DevEmailSender> _logger;
-        private readonly IWebHostEnvironment _env;
+        private readonly StoragePaths _storage;
 
-        public DevEmailSender(ILogger<DevEmailSender> logger, IWebHostEnvironment env)
+        public DevEmailSender(ILogger<DevEmailSender> logger, StoragePaths storage)
         {
             _logger = logger;
-            _env = env;
+            _storage = storage;
         }
 
         public async Task SendAsync(string toEmail, string toName, string subject, string htmlBody)
         {
-            var dir = Path.Combine(_env.ContentRootPath, "App_Data", "sent-emails");
-            Directory.CreateDirectory(dir);
+            var dir = _storage.EnsureCreated(_storage.SentEmailRoot);
 
             var file = Path.Combine(
                 dir,

@@ -13,11 +13,16 @@ namespace TechNova.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMediaUploadService _mediaUploadService;
+        private readonly StoragePaths _storage;
 
-        public StartupController(ApplicationDbContext context, IMediaUploadService mediaUploadService)
+        public StartupController(
+            ApplicationDbContext context,
+            IMediaUploadService mediaUploadService,
+            StoragePaths storage)
         {
             _context = context;
             _mediaUploadService = mediaUploadService;
+            _storage = storage;
         }
 
         // ============================
@@ -55,7 +60,9 @@ namespace TechNova.Controllers
         {
             var startup = await _context.Startups
                 .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.StartupID == id && s.IsPublished);
+                .FirstOrDefaultAsync(s => s.StartupID == id && s.IsPublished
+                                          && s.VerificationStatus != "Rejected"
+                                          && s.VerificationStatus != "Suspended");
 
             if (startup == null)
             {
@@ -103,6 +110,22 @@ namespace TechNova.Controllers
             if (startup == null)
             {
                 return NotFound();
+            }
+
+            // The entity is bound directly, so the fields the form never posts
+            // (email, password hash, status) must not fail validation.
+            foreach (var key in new[] { "Email", "PasswordHash", "VerificationStatus" })
+            {
+                ModelState.Remove(key);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Keep the stored images/status visible on the re-rendered form.
+                model.LogoPath = startup.LogoPath;
+                model.CoverImagePath = startup.CoverImagePath;
+                model.VerificationStatus = startup.VerificationStatus;
+                return View(model);
             }
 
             // Handle logo upload
@@ -182,19 +205,21 @@ namespace TechNova.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // Admin approval is the gate for who can be contacted. (EmailVerified
+            // is never set for new accounts, so filtering on it left this empty.)
             IQueryable<Investor> query = _context.Investors
                 .AsNoTracking()
-                .Where(i => i.EmailVerified == true); // Only show verified investors
+                .Where(i => i.VerificationStatus == "Verified");
 
             // Filter by search query
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var search = q.ToLower().Trim();
-                query = query.Where(i => 
+                query = query.Where(i =>
                     i.Name.ToLower().Contains(search) ||
-                    i.CompanyName.ToLower().Contains(search) ||
-                    i.Bio.ToLower().Contains(search) ||
-                    i.InvestedIndustries.ToLower().Contains(search));
+                    (i.CompanyName != null && i.CompanyName.ToLower().Contains(search)) ||
+                    (i.Bio != null && i.Bio.ToLower().Contains(search)) ||
+                    (i.InvestedIndustries != null && i.InvestedIndustries.ToLower().Contains(search)));
             }
 
             var investors = await query
@@ -384,6 +409,8 @@ namespace TechNova.Controllers
             return View(requests);
         }
 
+        private static readonly string[] RequestStatuses = { "Pending", "Accepted", "Rejected" };
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRequestStatus(int requestId, string status)
@@ -392,6 +419,12 @@ namespace TechNova.Controllers
             if (!int.TryParse(startupIdClaim, out int startupId))
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            if (string.IsNullOrWhiteSpace(status) || !RequestStatuses.Contains(status))
+            {
+                TempData["Error"] = "That status isn't valid.";
+                return RedirectToAction("InvestmentRequests");
             }
 
             var request = await _context.InvestmentRequests
@@ -482,10 +515,15 @@ namespace TechNova.Controllers
                 return BadRequest("Post content is required.");
             }
 
+            if (content.Length > 5000)
+            {
+                return BadRequest("Posts are limited to 5,000 characters.");
+            }
+
             var post = new Post
             {
                 StartupID = startupId,
-                Content = content,
+                Content = content.Trim(),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -511,15 +549,25 @@ namespace TechNova.Controllers
                 return Unauthorized();
             }
 
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return BadRequest("Post content is required.");
+            }
+
+            if (content.Length > 5000)
+            {
+                return BadRequest("Posts are limited to 5,000 characters.");
+            }
+
             var post = await _context.Posts
-                .FirstOrDefaultAsync(p => p.PostID == postId && p.StartupID == startupId);
+                .FirstOrDefaultAsync(p => p.PostID == postId && p.StartupID == startupId && !p.IsDeleted);
 
             if (post == null)
             {
                 return NotFound();
             }
 
-            post.Content = content;
+            post.Content = content.Trim();
             post.UpdatedAt = DateTime.UtcNow;
 
             _context.Posts.Update(post);
@@ -586,12 +634,32 @@ namespace TechNova.Controllers
                 return BadRequest("File size exceeds 10MB limit.");
             }
 
-            // Create media directory if it doesn't exist
-            var mediaDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "startup-media");
-            if (!Directory.Exists(mediaDir))
+            if (!(file.ContentType ?? "").StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             {
-                Directory.CreateDirectory(mediaDir);
+                return BadRequest("Only image files are allowed.");
             }
+
+            // A photo may only be attached to one of the caller's own posts;
+            // otherwise a forged postId would plant an image in another
+            // startup's public feed.
+            if (postId.HasValue)
+            {
+                var ownsPost = await _context.Posts.AnyAsync(p =>
+                    p.PostID == postId.Value && p.StartupID == startupId && !p.IsDeleted);
+
+                if (!ownsPost)
+                {
+                    return BadRequest("That post doesn't exist.");
+                }
+            }
+
+            if (caption != null && caption.Length > 255)
+            {
+                caption = caption[..255];
+            }
+
+            // Create media directory if it doesn't exist
+            var mediaDir = _storage.EnsureCreated(_storage.MediaRoot);
 
             var fileName = $"{startupId}_{DateTime.UtcNow.Ticks}{ext}";
             var filePath = Path.Combine(mediaDir, fileName);
@@ -605,7 +673,7 @@ namespace TechNova.Controllers
             {
                 StartupID = startupId,
                 PostID = postId,
-                FilePath = $"/startup-media/{fileName}",
+                FilePath = $"{StoragePaths.MediaRequestPath}/{fileName}",
                 Caption = caption,
                 MimeType = file.ContentType,
                 FileSizeBytes = file.Length,
@@ -665,8 +733,8 @@ namespace TechNova.Controllers
             // Delete the file
             if (!string.IsNullOrEmpty(photo.FilePath))
             {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", photo.FilePath.TrimStart('/'));
-                if (System.IO.File.Exists(filePath))
+                var filePath = _storage.ResolveMediaFile(photo.FilePath);
+                if (filePath != null && System.IO.File.Exists(filePath))
                 {
                     System.IO.File.Delete(filePath);
                 }
@@ -700,11 +768,12 @@ namespace TechNova.Controllers
                 return BadRequest("File is required.");
             }
 
-            var allowedExtensions = new[] { ".mp4", ".webm", ".avi", ".mov", ".mkv" };
+            // Only formats browsers can actually play inline.
+            var allowedExtensions = new[] { ".mp4", ".webm", ".mov" };
             var ext = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(ext))
             {
-                return BadRequest("Invalid file type. Only video files are allowed.");
+                return BadRequest("Invalid file type. Upload an MP4, WebM or MOV video.");
             }
 
             if (file.Length > 100 * 1024 * 1024) // 100MB
@@ -712,12 +781,13 @@ namespace TechNova.Controllers
                 return BadRequest("File size exceeds 100MB limit.");
             }
 
-            // Create media directory if it doesn't exist
-            var mediaDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "startup-media");
-            if (!Directory.Exists(mediaDir))
+            if (!(file.ContentType ?? "").StartsWith("video/", StringComparison.OrdinalIgnoreCase))
             {
-                Directory.CreateDirectory(mediaDir);
+                return BadRequest("Only video files are allowed.");
             }
+
+            // Create media directory if it doesn't exist
+            var mediaDir = _storage.EnsureCreated(_storage.MediaRoot);
 
             var fileName = $"video_{startupId}_{DateTime.UtcNow.Ticks}{ext}";
             var filePath = Path.Combine(mediaDir, fileName);
@@ -730,7 +800,7 @@ namespace TechNova.Controllers
             var video = new Video
             {
                 StartupID = startupId,
-                FilePath = $"/startup-media/{fileName}",
+                FilePath = $"{StoragePaths.MediaRequestPath}/{fileName}",
                 Title = title,
                 Description = description,
                 MimeType = file.ContentType,
@@ -792,8 +862,8 @@ namespace TechNova.Controllers
             // Delete the file
             if (!string.IsNullOrEmpty(video.FilePath))
             {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", video.FilePath.TrimStart('/'));
-                if (System.IO.File.Exists(filePath))
+                var filePath = _storage.ResolveMediaFile(video.FilePath);
+                if (filePath != null && System.IO.File.Exists(filePath))
                 {
                     System.IO.File.Delete(filePath);
                 }

@@ -60,11 +60,13 @@ namespace TechNova.Data
 
             await context.SaveChangesAsync();
 
+            // The password is deliberately not logged: hosted log streams are
+            // shared and retained. In development the default is documented
+            // on this class; anywhere else it came from AdminSeed:Password.
             logger.LogWarning(
-                "Seeded the first admin account: {Email} / {Password} — " +
-                "change this password before deploying anywhere.",
-                email,
-                password);
+                "Seeded the first admin account: {Email}. " +
+                "Change its password after the first sign-in.",
+                email);
         }
     }
 }

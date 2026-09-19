@@ -7,20 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Stripe.net" Version="52.4.1" />
-    <!--<PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.11" />-->
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Tests\Controllers\" />
-    <Folder Include="Tests\Services\" />
-    <Folder Include="ViewModals\" />
+    <!-- Local-only secrets. Kept out of the image by .dockerignore, and out
+         of any publish output by this, so a stray `dotnet publish` cannot
+         ship developer credentials. -->
+    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 
 @{
 	ViewData["Title"] = $"{Model.CompanyName} Dashboard";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+	Layout = "_Layout";
 }
 
 <!-- Hidden form for CSRF token -->
@@ -10,7 +10,24 @@
 	@Html.AntiForgeryToken()
 </form>
 
-<link rel="stylesheet" href="~/css/facebook-style.css" />
+<link rel="stylesheet" href="~/css/facebook-style.css" asp-append-version="true" />
+
+@if (!Model.IsPublished)
+{
+	<div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+		<span>
+			<strong>Your profile is not public yet.</strong>
+			Investors can't find you in the directory until you publish it.
+		</span>
+		<a href="@Url.Action("EditProfile", "Startup")#publish" class="btn btn-sm btn-warning">Publish profile</a>
+	</div>
+}
+else if (Model.VerificationStatus != "Verified")
+{
+	<div class="alert alert-info" role="status">
+		Your profile is published. It will be marked <strong>Verified</strong> once an administrator reviews your account.
+	</div>
+}
 
 <!-- Hero Section with Cover Image -->
 <div class="startup-hero">
@@ -49,15 +66,18 @@
 				}
 			</div>
 			<div class="startup-quick-actions">
-				<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary">
-					Edit Profile
-				</a>
-				<a href="@Url.Action("MessageInvestor", "Startup")" class="btn btn-outline-success">
-					💬 Message Investor
-				</a>
 				<button type="button" class="btn btn-primary" id="openCreatePost">
-					Create Post
+					Create post
 				</button>
+				<a href="@Url.Action("EditProfile", "Startup")" class="btn btn-outline-primary">
+					Edit profile
+				</a>
+				@if (Model.IsPublished)
+				{
+					<a href="@Url.Action("Startup", "Explore", new { id = Model.StartupID })" class="btn btn-outline-secondary">
+						View public page
+					</a>
+				}
 			</div>
 		</div>
 	</div>
@@ -79,16 +99,14 @@
 				<input type="text" class="create-post-input" id="postContentInput" placeholder="Share a startup update...">
 			</div>
 			<div class="create-post-actions">
-				<button type="button" id="postPhotoBtn" title="Add Photo">📷 Photo</button>
-				<button type="button" id="postVideoBtn" title="Add Video">🎥 Video</button>
+				<button type="button" id="postPhotoBtn" title="Add photos">Add photos</button>
 				<button type="button" id="postBtn" class="btn btn-primary" style="flex: 0 0 auto; width: auto; color: white; background: var(--brand);">Post</button>
 			</div>
 		</div>
 
 		<!-- Posts Feed -->
-		<div id="postsFeed" class="startup-feed">
+		<div id="postsFeed" class="startup-feed" data-company="@Model.CompanyName" data-logo="@Model.LogoPath">
 			<div class="empty-state">
-				<div class="empty-state-icon">📝</div>
 				<div class="empty-state-title">No posts yet</div>
 				<div class="empty-state-text">Share your first startup update to get started</div>
 			</div>
@@ -98,7 +116,6 @@
 		<div class="photo-gallery" id="photoGallerySection" style="display: none;">
 			<div class="gallery-header">
 				<h3>Photos</h3>
-				<button type="button" class="btn btn-sm btn-primary" id="uploadPhotoBtn">+ Upload</button>
 			</div>
 			<div id="photoGallery" class="gallery-grid">
 				<!-- Photos will be dynamically loaded here -->
@@ -114,11 +131,11 @@
 			<div class="startup-stats">
 				<div class="stat-item">
 					<span class="stat-label">Funding Goal</span>
-					<span class="stat-value">${@Model.FundingRequired:N0}</span>
+					<span class="stat-value">$@Model.FundingRequired.ToString("N0")</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">Amount Raised</span>
-					<span class="stat-value text-success">${@Model.AmountRaised:N0}</span>
+					<span class="stat-value text-success">$@Model.AmountRaised.ToString("N0")</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">Progress</span>
@@ -131,11 +148,8 @@
 				</div>
 			</div>
 			<div style="margin-top: 1rem;">
-				<div class="progress" style="height: 8px;">
-					@{
-						var progressPercent = Model.FundingRequired > 0 ? (int)((Model.AmountRaised / Model.FundingRequired) * 100) : 0;
-					}
-					<div class="progress-bar bg-success" style="width: @progressPercent%"></div>
+				<div class="progress" style="height: 8px;" role="progressbar" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">
+					<div class="progress-bar bg-success" style="width: @Math.Min(progress, 100)%"></div>
 				</div>
 			</div>
 		</div>
@@ -222,7 +236,7 @@
 					{
 						<div class="info-row">
 							<span class="info-label">Min Investment</span>
-							<span class="info-value">${@Model.MinimumInvestment:N0}</span>
+							<span class="info-value">$@Model.MinimumInvestment.Value.ToString("N0")</span>
 						</div>
 					}
 				</div>
@@ -272,4 +286,4 @@
 <input type="file" id="photoFileInput" accept="image/*" style="display: none;" multiple />
 <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
 
-<script src="~/js/startup-dashboard.js"></script>
+<script src="~/js/startup-dashboard.js" asp-append-version="true"></script>

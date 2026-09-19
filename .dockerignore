@@ -1,0 +1,24 @@
+# Build output — the image builds its own.
+bin/
+obj/
+
+# Local tooling and IDE state
+.vs/
+.idea/
+.git/
+.gitignore
+*.user
+*.suo
+*.rsuser
+
+# Local secrets must never reach the image; they come from the environment.
+appsettings.Development.json
+.env
+
+# Local runtime data
+App_Data/
+*.log
+.mailmap
+
+# Docs
+*.md

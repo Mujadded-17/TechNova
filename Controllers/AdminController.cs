@@ -21,15 +21,18 @@ namespace TechNova.Controllers
         private readonly ApplicationDbContext _context;
         private readonly SubscriptionService _subs;
         private readonly IEmailSender _email;
+        private readonly StoragePaths _storage;
 
         public AdminController(
-    ApplicationDbContext context,
-    SubscriptionService subs,
-    IEmailSender email)
+            ApplicationDbContext context,
+            SubscriptionService subs,
+            IEmailSender email,
+            StoragePaths storage)
         {
             _context = context;
             _subs = subs;
             _email = email;
+            _storage = storage;
         }
 
         // Allowed VerificationStatus values.
@@ -265,6 +268,24 @@ namespace TechNova.Controllers
 
             var name = startup.CompanyName;
 
+            // Photos and Videos reference the startup with NoAction (a second
+            // cascade path through Post is not allowed by SQL Server), so they
+            // have to go first or the delete fails with a FK error. Files on
+            // disk are removed alongside the rows.
+            var photos = await _context.Photos.Where(p => p.StartupID == id).ToListAsync();
+            var videos = await _context.Videos.Where(v => v.StartupID == id).ToListAsync();
+
+            foreach (var path in photos.Select(p => p.FilePath).Concat(videos.Select(v => v.FilePath)))
+            {
+                var full = _storage.ResolveMediaFile(path);
+                if (full != null && System.IO.File.Exists(full))
+                {
+                    try { System.IO.File.Delete(full); } catch (IOException) { /* best effort */ }
+                }
+            }
+
+            _context.Photos.RemoveRange(photos);
+            _context.Videos.RemoveRange(videos);
             _context.Startups.Remove(startup);
             await _context.SaveChangesAsync();
 

@@ -1,0 +1,54 @@
+# Render blueprint. Import this from the Render dashboard ("New > Blueprint")
+# and it provisions the service, the disk, and the environment-variable slots.
+#
+# Note: the database is NOT defined here. Render has no managed SQL Server,
+# so TechNovaDb is hosted elsewhere (Azure SQL or similar) and reached through
+# ConnectionStrings__DefaultConnection below.
+services:
+  - type: web
+    name: technova
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # A disk pins the service to one instance, so keep the count at one.
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /healthz
+
+    # Uploaded photos, videos and pitch decks. Without this they are wiped
+    # on every deploy. Storage__Root in the Dockerfile points here.
+    disk:
+      name: technova-data
+      mountPath: /var/data
+      sizeGB: 1
+
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+
+      # Schema is applied on boot so a deploy and its migrations stay together.
+      - key: Database__MigrateOnStartup
+        value: "true"
+
+      # --- set these in the dashboard; never commit their values ---
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: AdminSeed__Email
+        sync: false
+      - key: AdminSeed__Password
+        sync: false
+      - key: Email__Smtp__Host
+        sync: false
+      - key: Email__Smtp__Port
+        sync: false
+      - key: Email__Smtp__User
+        sync: false
+      - key: Email__Smtp__Password
+        sync: false
+      - key: Email__FromAddress
+        sync: false
+      - key: Stripe__SecretKey
+        sync: false
+      - key: Stripe__PublishableKey
+        sync: false
+      - key: Stripe__WebhookSecret
+        sync: false

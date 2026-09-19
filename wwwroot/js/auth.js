@@ -10,7 +10,30 @@
         return '<svg class="ico ico--sm"><use href="#i-' + name + '" /></svg>';
     }
 
+    function guardForms() {
+        // One submit per click: the auth pages have no client-side
+        // validation library, so the guard is released if the browser
+        // blocks the submit (e.g. a required field is empty).
+        document.addEventListener("submit", function (e) {
+            var form = e.target;
+            if (!(form instanceof HTMLFormElement)) return;
+            if (e.defaultPrevented) return;   // client-side validation blocked it
+            if (form.dataset.submitting === "true") { e.preventDefault(); return; }
+            form.dataset.submitting = "true";
+
+            var buttons = form.querySelectorAll('button[type="submit"]');
+            Array.prototype.forEach.call(buttons, function (btn) { btn.disabled = true; });
+
+            setTimeout(function () {
+                form.dataset.submitting = "false";
+                Array.prototype.forEach.call(buttons, function (btn) { btn.disabled = false; });
+            }, 8000);
+        });
+    }
+
     function init() {
+        guardForms();
+
         var fields = document.querySelectorAll(".field--password");
 
         Array.prototype.forEach.call(fields, function (field) {

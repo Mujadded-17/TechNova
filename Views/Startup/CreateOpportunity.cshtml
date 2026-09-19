@@ -2,7 +2,7 @@
 
 @{
 	ViewData["Title"] = "Create Investment Opportunity";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+	Layout = "_Layout";
 }
 
 <div class="container mt-5 mb-5">
@@ -12,6 +12,7 @@
 
 			<form method="post" asp-action="CreateOpportunity" asp-controller="Startup" class="needs-validation">
 				@Html.AntiForgeryToken()
+				<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
 				<!-- Basic Information -->
 				<div class="card mb-4">
@@ -177,3 +178,7 @@
 		color: #0a0c0e;
 	}
 </style>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}
