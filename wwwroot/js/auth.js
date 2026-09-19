@@ -22,7 +22,12 @@
             form.dataset.submitting = "true";
 
             var buttons = form.querySelectorAll('button[type="submit"]');
-            Array.prototype.forEach.call(buttons, function (btn) { btn.disabled = true; });
+
+            // Defer disabling until after the form is serialised, so a submit
+            // button's name/value is never dropped from the request.
+            setTimeout(function () {
+                Array.prototype.forEach.call(buttons, function (btn) { btn.disabled = true; });
+            }, 0);
 
             setTimeout(function () {
                 form.dataset.submitting = "false";

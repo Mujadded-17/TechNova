@@ -18,14 +18,33 @@
 
             form.dataset.submitting = "true";
 
+            // A form can carry several submit buttons that mean different things
+            // (e.g. the admin Verify / Suspend actions share name="status"). The
+            // browser only submits the clicked one's value, and a *disabled*
+            // control is dropped entirely \u2014 so preserve the submitter's value in
+            // a hidden field, and disable only on the next tick, after the form
+            // has been serialised for submission.
+            var submitter = e.submitter;
+            if (submitter && submitter.name) {
+                var keep = document.createElement("input");
+                keep.type = "hidden";
+                keep.name = submitter.name;
+                keep.value = submitter.value;
+                keep.setAttribute("data-guard-keep", "");
+                form.appendChild(keep);
+            }
+
             var buttons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-            Array.prototype.forEach.call(buttons, function (btn) {
-                btn.disabled = true;
-                if (btn.tagName === "BUTTON" && !btn.dataset.keepLabel) {
-                    btn.dataset.originalLabel = btn.innerHTML;
-                    btn.innerHTML = btn.dataset.busyLabel || "Please wait\u2026";
-                }
-            });
+
+            setTimeout(function () {
+                Array.prototype.forEach.call(buttons, function (btn) {
+                    btn.disabled = true;
+                    if (btn.tagName === "BUTTON" && btn === submitter && !btn.dataset.keepLabel) {
+                        btn.dataset.originalLabel = btn.innerHTML;
+                        btn.innerHTML = btn.dataset.busyLabel || "Please wait\u2026";
+                    }
+                });
+            }, 0);
 
             // If the browser stays on the page (validation error, back nav) release the lock.
             setTimeout(function () {
@@ -34,6 +53,8 @@
                     btn.disabled = false;
                     if (btn.dataset.originalLabel) btn.innerHTML = btn.dataset.originalLabel;
                 });
+                var kept = form.querySelector('input[data-guard-keep]');
+                if (kept) kept.remove();
             }, 8000);
         });
     }
