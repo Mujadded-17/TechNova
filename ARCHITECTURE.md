@@ -179,4 +179,3 @@ Load Balancer
 	File Share (startup-media/)
 ```
 
-**Note**: Stateless design enables horizontal scaling.
