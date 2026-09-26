@@ -1,257 +1,295 @@
 @model List<TechNova.Models.Message>
 
 @{
-    ViewData["Title"] = (string)ViewBag.CounterpartyName;
+	ViewData["Title"] = (string)ViewBag.CounterpartyName;
 
-    var existingRequest = ViewBag.ExistingInvestmentRequest
-        as TechNova.Models.InvestmentRequest;
+	var existingRequest = ViewBag.ExistingInvestmentRequest
+		as TechNova.Models.InvestmentRequest;
 
-    var isStartup = (bool)ViewBag.IsStartup;
+	var isStartup = (bool)ViewBag.IsStartup;
 
-    var myType = isStartup ? "Startup" : "Investor";
+	var myType = isStartup ? "Startup" : "Investor";
 
-    var counterId = (int)ViewBag.CounterpartyId;
+	var counterId = (int)ViewBag.CounterpartyId;
 
-    var counterName = (string)ViewBag.CounterpartyName;
+	var counterName = (string)ViewBag.CounterpartyName;
 
-    var counterSub = ViewBag.CounterpartySub as string;
+	var counterSub = ViewBag.CounterpartySub as string;
 
-    var initials = string.Concat(
-        counterName
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Take(2)
-            .Select(w => w[0]));
+	var initials = string.Concat(
+		counterName
+			.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+			.Take(2)
+			.Select(w => w[0]));
 
-    string statusBadge = "bg-secondary";
+	string statusBadge = "bg-secondary";
 
-    if (existingRequest != null)
-    {
-        statusBadge = existingRequest.Status switch
-        {
-            "Pending" => "bg-warning text-dark",
-            "Accepted" => "bg-success",
-            "Rejected" => "bg-danger",
-            _ => "bg-secondary"
-        };
-    }
+	if (existingRequest != null)
+	{
+		statusBadge = existingRequest.Status switch
+		{
+			"Pending" => "bg-warning text-dark",
+			"Accepted" => "bg-success",
+			"Rejected" => "bg-danger",
+			_ => "bg-secondary"
+		};
+	}
 }
 
 <div class="mb-3">
-    <a asp-action="Index" class="back-link">&larr; All messages</a>
+	<a asp-action="Index" class="back-link">&larr; All messages</a>
 </div>
 
 @if (TempData["MessageError"] != null)
 {
-    <div class="alert alert-danger">@TempData["MessageError"]</div>
+	<div class="alert alert-danger">@TempData["MessageError"]</div>
 }
 
 <div class="card thread-card">
 
-    <div class="card-header thread-header">
-        <span class="thread-avatar">@initials</span>
-        <span class="thread-id">
-            <strong class="thread-name">@counterName</strong>
-            @if (!string.IsNullOrEmpty(counterSub))
-            {
-                <span class="thread-sub">@counterSub</span>
-            }
-        </span>
-    </div>
+	<div class="card-header thread-header">
+		<span class="thread-avatar">@initials</span>
+		<span class="thread-id">
+			<strong class="thread-name">@counterName</strong>
+			@if (!string.IsNullOrEmpty(counterSub))
+			{
+				<span class="thread-sub">@counterSub</span>
+			}
+		</span>
+	</div>
 
-    <div class="thread-scroll" id="threadScroll">
+	<div class="thread-scroll" id="threadScroll">
 
-        @if (!Model.Any())
-        {
-            <p class="thread-empty">
-                No messages yet. Say hello and start the conversation.
-            </p>
-        }
-        else
-        {
-            DateTime? lastDay = null;
+		@if (!Model.Any())
+		{
+			<p class="thread-empty">
+				No messages yet. Say hello and start the conversation.
+			</p>
+		}
+		else
+		{
+			DateTime? lastDay = null;
 
-            foreach (var m in Model)
-            {
-                var day = m.Timestamp.ToLocalTime().Date;
+			foreach (var m in Model)
+			{
+				var day = m.Timestamp.ToLocalTime().Date;
 
-                if (lastDay != day)
-                {
-                    lastDay = day;
-                    <div class="thread-day"><span>@day.ToString("dd MMMM yyyy")</span></div>
-                }
+				if (lastDay != day)
+				{
+					lastDay = day;
+					<div class="thread-day"><span>@day.ToString("dd MMMM yyyy")</span></div>
+				}
 
-                var mine = m.SenderType == myType;
+				var mine = m.SenderType == myType;
 
-                <div class="msg @(mine ? "msg--mine" : "msg--theirs")">
-                    <div class="msg__bubble">@m.Content<time class="msg__time" datetime="@m.Timestamp.ToString("o")">@m.Timestamp.ToLocalTime().ToString("hh:mm tt")</time></div>
-                </div>
-            }
-        }
+				<div class="msg @(mine ? "msg--mine" : "msg--theirs")">
+					<div class="msg__bubble">@m.Content<time class="msg__time" datetime="@m.Timestamp.ToString("o")">@m.Timestamp.ToLocalTime().ToString("hh:mm tt")</time></div>
+				</div>
+			}
+		}
 
-    </div>
+	</div>
 
-    @* INVESTOR — no request yet: slim strip + expandable form *@
-    @if (!isStartup && existingRequest == null)
-    {
-        <div class="request-strip">
-            <button type="button" class="btn btn-sm btn-outline-primary" id="showInvestmentRequest">
-                Request investment
-            </button>
-        </div>
+	@* INVESTOR — no request yet: slim strip + expandable form *@
+	@if (!isStartup && existingRequest == null)
+	{
+		<div class="request-strip">
+			<button type="button" class="btn btn-sm btn-outline-primary" id="showInvestmentRequest">
+				Request investment
+			</button>
+		</div>
 
-        <div class="request-form-panel" id="investmentRequestForm" style="display:none;">
-            <form asp-controller="Message" asp-action="CreateInvestmentRequest" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="startupId" value="@counterId" />
+		<div class="request-form-panel" id="investmentRequestForm" style="display:none;">
+			<form asp-controller="Message" asp-action="CreateInvestmentRequest" method="post">
+				@Html.AntiForgeryToken()
+				<input type="hidden" name="startupId" value="@counterId" />
 
-                <h5>Request for investment</h5>
-                <p class="request-form-note">
-                    Enter the final investment amount agreed upon during your discussion.
-                </p>
+				<h5>Request for investment</h5>
+				<p class="request-form-note">
+					Enter the final investment amount agreed upon during your discussion.
+				</p>
 
-                <div class="request-form-grid">
-                    <div>
-                        <label class="form-label" for="investmentAmount">Final amount (BDT)</label>
-                        <input type="number" class="form-control" id="investmentAmount"
-                               name="investmentAmount" min="1" step="0.01" required
-                               placeholder="Enter agreed amount in BDT" />
-                    </div>
-                    <div>
-                        <label class="form-label" for="investmentMessage">
-                            Message <span class="text-muted fw-normal">(optional)</span>
-                        </label>
-                        <textarea class="form-control" id="investmentMessage" name="message"
-                                  rows="2" maxlength="4000"
-                                  placeholder="Add a final note about the agreement&hellip;"></textarea>
-                    </div>
-                </div>
+				<div class="request-form-grid">
+					<div>
+						<label class="form-label" for="investmentAmount">Final amount (BDT)</label>
+						<input type="number" class="form-control" id="investmentAmount"
+							   name="investmentAmount" min="1" step="0.01" required
+							   placeholder="Enter agreed amount in BDT" />
+					</div>
+					<div>
+						<label class="form-label" for="investmentMessage">
+							Message <span class="text-muted fw-normal">(optional)</span>
+						</label>
+						<textarea class="form-control" id="investmentMessage" name="message"
+								  rows="2" maxlength="4000"
+								  placeholder="Add a final note about the agreement…"></textarea>
+					</div>
+				</div>
 
-                <div class="request-form-actions">
-                    <button type="submit" class="btn btn-primary btn-sm">Submit request</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="cancelInvestmentRequest">Cancel</button>
-                </div>
-            </form>
-        </div>
-    }
+				<div class="request-form-actions">
+					<button type="submit" class="btn btn-primary btn-sm">Submit request</button>
+					<button type="button" class="btn btn-outline-secondary btn-sm" id="cancelInvestmentRequest">Cancel</button>
+				</div>
+			</form>
+		</div>
+	}
 
-    @* INVESTOR — request already sent: compact status panel *@
-    @if (!isStartup && existingRequest != null)
-    {
-        <div class="request-panel">
-            <div class="request-info">
-                <span class="request-title">Investment request</span>
-                <span class="request-amount">&#2547;@existingRequest.InvestmentAmount.ToString("N0")</span>
-            </div>
-            <div class="request-actions">
-                @if (existingRequest.Status == "Accepted" && !existingRequest.InvestorPdfDownloaded)
-                {
-                    <a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
-                       asp-route-requestId="@existingRequest.RequestID" target="_blank"
-                       class="btn btn-sm btn-success">
-                        PDF confirmation
-                    </a>
-                }
-                else if (existingRequest.Status == "Accepted")
-                {
-                    <a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
-                       asp-route-requestId="@existingRequest.RequestID" target="_blank"
-                       class="btn btn-sm btn-outline-primary" title="View investment confirmation PDF">
-                        View PDF
-                    </a>
-                }
-                <span class="badge @statusBadge">@existingRequest.Status</span>
-            </div>
-        </div>
-    }
+	@* INVESTOR — request already sent: compact status panel *@
+	@if (!isStartup && existingRequest != null)
+	{
+		<div class="request-panel">
+			<div class="request-info">
+				<span class="request-title">Investment request</span>
+				<span class="request-amount">&#2547;@existingRequest.InvestmentAmount.ToString("N0")</span>
+			</div>
+			<div class="request-actions">
+				@if (existingRequest.Status == "Accepted" && !existingRequest.InvestorPdfDownloaded)
+				{
+					<a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
+					   asp-route-requestId="@existingRequest.RequestID" target="_blank"
+					   class="btn btn-sm btn-success">
+						PDF confirmation
+					</a>
+				}
+				else if (existingRequest.Status == "Accepted")
+				{
+					<a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
+					   asp-route-requestId="@existingRequest.RequestID" target="_blank"
+					   class="btn btn-sm btn-outline-primary" title="View investment confirmation PDF">
+						View PDF
+					</a>
+				}
+				<span class="badge @statusBadge">@existingRequest.Status</span>
+			</div>
+		</div>
+	}
 
-    @* STARTUP — review the request: compact status panel *@
-    @if (isStartup && existingRequest != null)
-    {
-        <div class="request-panel">
-            <div class="request-info">
-                <span class="request-title">Investment request</span>
-                <span class="request-amount">&#2547;@existingRequest.InvestmentAmount.ToString("N0")</span>
-                <span class="request-date">Requested @(existingRequest.RequestDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm"))</span>
-            </div>
-            <div class="request-actions">
-                @if (existingRequest.Status == "Pending")
-                {
-                    <form asp-controller="Startup" asp-action="UpdateRequestStatus" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="requestId" value="@existingRequest.RequestID" />
-                        <input type="hidden" name="status" value="Accepted" />
-                        <input type="hidden" name="returnToThread" value="true" />
-                        <button type="submit" class="btn btn-sm btn-success">Accept</button>
-                    </form>
-                    <form asp-controller="Startup" asp-action="UpdateRequestStatus" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="requestId" value="@existingRequest.RequestID" />
-                        <input type="hidden" name="status" value="Rejected" />
-                        <input type="hidden" name="returnToThread" value="true" />
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
-                    </form>
-                }
-                else if (existingRequest.Status == "Accepted" && !existingRequest.StartupPdfDownloaded)
-                {
-                    <a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
-                       asp-route-requestId="@existingRequest.RequestID" target="_blank"
-                       class="btn btn-sm btn-success">
-                        PDF confirmation
-                    </a>
-                }
-                else if (existingRequest.Status == "Accepted")
-                {
-                    <a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
-                       asp-route-requestId="@existingRequest.RequestID" target="_blank"
-                       class="btn btn-sm btn-outline-primary" title="View investment confirmation PDF">
-                        View PDF
-                    </a>
-                }
-                <span class="badge @statusBadge">@existingRequest.Status</span>
-            </div>
-        </div>
-    }
+	@* STARTUP — review the request: compact status panel *@
+	@if (isStartup && existingRequest != null)
+	{
+		<div class="request-panel">
+			<div class="request-info">
+				<span class="request-title">Investment request</span>
+				<span class="request-amount">&#2547;@existingRequest.InvestmentAmount.ToString("N0")</span>
+				<span class="request-date">Requested @(existingRequest.RequestDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm"))</span>
+			</div>
+			<div class="request-actions">
+				@if (existingRequest.Status == "Pending")
+				{
+					<form asp-controller="Startup" asp-action="UpdateRequestStatus" method="post">
+						@Html.AntiForgeryToken()
+						<input type="hidden" name="requestId" value="@existingRequest.RequestID" />
+						<input type="hidden" name="newStatus" value="Accepted" />
+						<input type="hidden" name="returnToThread" value="true" />
+						<input type="hidden" name="threadCounterpartyId" value="@counterId" />
+						<button type="submit" class="btn btn-sm btn-success">Accept</button>
+					</form>
 
-    @* COMPOSER *@
-    <div class="thread-composer">
-        <form asp-action="Send" method="post">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="id" value="@counterId" />
-            <label class="visually-hidden" for="content">Message</label>
-            <textarea class="form-control" id="content" name="content" rows="2"
-                      maxlength="4000" required placeholder="Write a message&hellip;"></textarea>
-            <button type="submit" class="btn btn-primary">Send</button>
-        </form>
-    </div>
+					<form asp-controller="Startup" asp-action="UpdateRequestStatus" method="post">
+						@Html.AntiForgeryToken()
+						<input type="hidden" name="requestId" value="@existingRequest.RequestID" />
+						<input type="hidden" name="newStatus" value="Rejected" />
+						<input type="hidden" name="returnToThread" value="true" />
+						<input type="hidden" name="threadCounterpartyId" value="@counterId" />
+						<button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+					</form>
+				}
+				else if (existingRequest.Status == "Accepted")
+				{
+					<a asp-controller="Message" asp-action="DownloadInvestmentConfirmation"
+					   asp-route-requestId="@existingRequest.RequestID" target="_blank"
+					   class="btn btn-sm btn-outline-primary" title="View investment confirmation PDF">
+						View PDF
+					</a>
+				}
+				<span class="badge @statusBadge">@existingRequest.Status</span>
+			</div>
+		</div>
+	}
+
+	@* COMPOSER *@
+	<div class="thread-composer">
+		<form id="messageForm">
+			@Html.AntiForgeryToken()
+			<input type="hidden" name="id" value="@counterId" />
+			<label class="visually-hidden" for="content">Message</label>
+			<textarea class="form-control" id="content" name="content" rows="2"
+					  maxlength="4000" required placeholder="Write a message…"></textarea>
+			<button type="submit" class="btn btn-primary" id="sendBtn">Send</button>
+		</form>
+	</div>
 
 </div>
 
 @section Scripts {
-    <script>
-        (function () {
-            var sc = document.getElementById('threadScroll');
-            if (sc) { sc.scrollTop = sc.scrollHeight; }
+	<script>
+		(function () {
+			var sc = document.getElementById('threadScroll');
+			if (sc) { sc.scrollTop = sc.scrollHeight; }
 
-            var showBtn = document.getElementById('showInvestmentRequest');
-            var panel = document.getElementById('investmentRequestForm');
-            var cancelBtn = document.getElementById('cancelInvestmentRequest');
+			// Handle message form submission via AJAX
+			var messageForm = document.getElementById('messageForm');
+			if (messageForm) {
+				messageForm.addEventListener('submit', async function (e) {
+					e.preventDefault();
 
-            if (showBtn && panel) {
-                showBtn.addEventListener('click', function () {
-                    panel.style.display = '';
-                    showBtn.style.display = 'none';
+					var contentArea = document.getElementById('content');
+					var sendBtn = document.getElementById('sendBtn');
+					var content = contentArea.value.trim();
 
-                    var amount = document.getElementById('investmentAmount');
-                    if (amount) { amount.focus(); }
-                });
-            }
+					if (!content) {
+						alert('Write something before sending.');
+						return;
+					}
 
-            if (cancelBtn && panel) {
-                cancelBtn.addEventListener('click', function () {
-                    panel.style.display = 'none';
-                    if (showBtn) { showBtn.style.display = ''; }
-                });
-            }
-        })();
-    </script>
+					sendBtn.disabled = true;
+					sendBtn.textContent = 'Sending...';
+
+					try {
+						var formData = new FormData(messageForm);
+						var response = await fetch('/Message/Send', {
+							method: 'POST',
+							body: formData
+						});
+
+						if (response.ok) {
+							// Clear the textarea
+							contentArea.value = '';
+							// Reload the page to show new message
+							location.reload();
+						} else {
+							alert('Failed to send message. Please try again.');
+						}
+					} catch (error) {
+						console.error('Error sending message:', error);
+						alert('An error occurred while sending the message.');
+					} finally {
+						sendBtn.disabled = false;
+						sendBtn.textContent = 'Send';
+					}
+				});
+			}
+
+			var showBtn = document.getElementById('showInvestmentRequest');
+			var panel = document.getElementById('investmentRequestForm');
+			var cancelBtn = document.getElementById('cancelInvestmentRequest');
+
+			if (showBtn && panel) {
+				showBtn.addEventListener('click', function () {
+					panel.style.display = '';
+					showBtn.style.display = 'none';
+
+					var amount = document.getElementById('investmentAmount');
+					if (amount) { amount.focus(); }
+				});
+			}
+
+			if (cancelBtn && panel) {
+				cancelBtn.addEventListener('click', function () {
+					panel.style.display = 'none';
+					if (showBtn) { showBtn.style.display = ''; }
+				});
+			}
+		})();
+	</script>
 }
