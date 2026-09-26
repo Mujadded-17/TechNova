@@ -16,7 +16,7 @@
 <div class="startup-hero">
 	@if (!string.IsNullOrEmpty(Model.CoverImagePath))
 	{
-		<img src="@Model.CoverImagePath" alt="@Model.CompanyName Cover" class="startup-cover-image" />
+		<img src="@Model.CoverImagePath" alt="@Model.CompanyName Cover" class="startup-cover-image" id="coverPhotoClickable" style="cursor: pointer;" />
 	}
 	else
 	{
@@ -30,7 +30,7 @@
 		@if (!string.IsNullOrEmpty(Model.LogoPath))
 		{
 			<div class="startup-logo-wrapper">
-				<img src="@Model.LogoPath" alt="@Model.CompanyName Logo" class="startup-logo" />
+				<img src="@Model.LogoPath" alt="@Model.CompanyName Logo" class="startup-logo" id="logoPhotoClickable" style="cursor: pointer;" />
 			</div>
 		}
 		else
@@ -299,5 +299,26 @@
 <!-- File Upload Input (hidden) -->
 <input type="file" id="photoFileInput" accept="image/*" style="display: none;" multiple />
 <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
+
+<!-- Lightbox Modal for Full-View Photos -->
+<div id="photoLightbox" class="photo-lightbox" style="display: none;">
+	<div class="lightbox-backdrop"></div>
+	<div class="lightbox-container">
+		<button type="button" class="lightbox-close" id="lightboxClose" title="Close (ESC)">&times;</button>
+		<div class="lightbox-content">
+			<img id="lightboxImage" src="" alt="Full view photo" class="lightbox-image" />
+			<div class="lightbox-info" id="lightboxInfo">
+				<p id="lightboxCaption" class="lightbox-caption"></p>
+				<p id="lightboxCounter" class="lightbox-counter"></p>
+			</div>
+		</div>
+		<button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev" title="Previous (←)">
+			<span>&#8249;</span>
+		</button>
+		<button type="button" class="lightbox-nav lightbox-next" id="lightboxNext" title="Next (→)">
+			<span>&#8250;</span>
+		</button>
+	</div>
+</div>
 
 <script src="~/js/startup-dashboard.js"></script>
