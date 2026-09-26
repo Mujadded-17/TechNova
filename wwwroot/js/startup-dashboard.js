@@ -469,6 +469,27 @@
 						`).join('')}
 					</div>
 				` : ''}
+				<div class="post-interactions">
+					<div class="post-stats">
+						<span class="like-count" data-post-id="${post.postID}">0 likes</span>
+						<span class="comment-count" data-post-id="${post.postID}">0 comments</span>
+					</div>
+					<div class="post-actions">
+						<button type="button" class="post-action-btn like-btn" data-post-id="${post.postID}" title="Like this post">
+							<span class="like-icon">👍</span> Like
+						</button>
+						<button type="button" class="post-action-btn comment-btn" data-post-id="${post.postID}" title="Comment on this post">
+							<span class="comment-icon">💬</span> Comment
+						</button>
+					</div>
+				</div>
+				<div class="post-comments-section" data-post-id="${post.postID}" style="display: none;">
+					<div class="comments-list"></div>
+					<div class="comment-input-area">
+						<input type="text" class="comment-input" placeholder="Write a comment..." />
+						<button type="button" class="submit-comment-btn">Post</button>
+					</div>
+				</div>
 				<div class="post-footer">
 					<button type="button" class="edit-post-btn" data-post-id="${post.postID}">✏️ Edit</button>
 					<button type="button" class="delete-post-btn" data-post-id="${post.postID}">🗑️ Delete</button>
@@ -497,6 +518,51 @@
 					deletePost(postId);
 				}
 			});
+		});
+
+		// Like button handlers
+		document.querySelectorAll('.like-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				e.preventDefault();
+				const postId = btn.dataset.postId;
+				likePost(postId, btn);
+			});
+		});
+
+		// Comment button handlers
+		document.querySelectorAll('.comment-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				e.preventDefault();
+				const postId = btn.dataset.postId;
+				const commentsSection = document.querySelector(`.post-comments-section[data-post-id="${postId}"]`);
+				if (commentsSection) {
+					const isShowing = commentsSection.style.display !== 'none';
+					commentsSection.style.display = isShowing ? 'none' : 'block';
+					if (!isShowing) {
+						loadComments(postId);
+					}
+				}
+			});
+		});
+
+		// Comment submit handlers
+		document.querySelectorAll('.submit-comment-btn').forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				e.preventDefault();
+				const commentsSection = btn.closest('.post-comments-section');
+				const postId = commentsSection.dataset.postId;
+				const input = commentsSection.querySelector('.comment-input');
+				const content = input.value.trim();
+				if (content) {
+					submitComment(postId, content, input, commentsSection);
+				}
+			});
+		});
+
+		// Load like counts and comment counts on render
+		document.querySelectorAll('.feed-post').forEach(postCard => {
+			const postId = postCard.dataset.postId;
+			updatePostStats(postId);
 		});
 	}
 
@@ -852,16 +918,16 @@
 		});
 
 		// Post images
-		document.querySelectorAll('.post-media-grid img').forEach(img => {
+		document.querySelectorAll('.post-media img').forEach(img => {
 			if (img.src) {
 				img.style.cursor = 'pointer';
 				img.addEventListener('click', () => {
-					const postCard = img.closest('.post-card');
+					const postCard = img.closest('.feed-post');
 					if (postCard) {
-						const allImages = Array.from(postCard.querySelectorAll('.post-media-grid img'))
+						const allImages = Array.from(postCard.querySelectorAll('.post-media img'))
 							.filter(i => i.src)
 							.map(i => ({ src: i.src, caption: '' }));
-						const index = Array.from(postCard.querySelectorAll('.post-media-grid img')).indexOf(img);
+						const index = Array.from(postCard.querySelectorAll('.post-media img')).indexOf(img);
 						openLightbox(allImages, index);
 					}
 				});
@@ -875,6 +941,131 @@
 		await originalLoadFeed();
 		// Wait a tick for DOM to update, then attach handlers
 		setTimeout(attachPhotoClickHandlers, 0);
+	}
+
+	// ===== LIKE/COMMENT FUNCTIONS =====
+
+	async function updatePostStats(postId) {
+		try {
+			// Get like count
+			const likeResponse = await fetch(`/Startup/GetPostLikes?postId=${postId}`);
+			const likeData = await likeResponse.json();
+
+			// Get comment count
+			const commentResponse = await fetch(`/Startup/GetPostComments?postId=${postId}`);
+			const comments = await commentResponse.json();
+
+			// Update UI
+			const postCard = document.querySelector(`.feed-post[data-post-id="${postId}"]`);
+			if (postCard) {
+				const likeCountEl = postCard.querySelector('.like-count');
+				const commentCountEl = postCard.querySelector('.comment-count');
+				const likeBtn = postCard.querySelector('.like-btn');
+
+				if (likeCountEl) {
+					likeCountEl.textContent = `${likeData.likeCount} ${likeData.likeCount === 1 ? 'like' : 'likes'}`;
+				}
+				if (commentCountEl) {
+					commentCountEl.textContent = `${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}`;
+				}
+
+				// Update like button state
+				if (likeBtn) {
+					if (likeData.hasLiked) {
+						likeBtn.classList.add('liked');
+						likeBtn.style.color = '#0a66c2';
+					} else {
+						likeBtn.classList.remove('liked');
+						likeBtn.style.color = '';
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error updating post stats:', error);
+		}
+	}
+
+	async function likePost(postId, btnElement) {
+		try {
+			const response = await fetch('/Startup/LikePost', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'RequestVerificationToken': getCSRFToken()
+				},
+				body: `postId=${postId}`
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				updatePostStats(postId);
+			} else {
+				if (response.status === 401) {
+					showNotification('Please login as an investor to like posts', 'error');
+				} else {
+					showNotification('Failed to like post', 'error');
+				}
+			}
+		} catch (error) {
+			console.error('Error liking post:', error);
+			showNotification('Error liking post', 'error');
+		}
+	}
+
+	async function loadComments(postId) {
+		try {
+			const response = await fetch(`/Startup/GetPostComments?postId=${postId}`);
+			const comments = await response.json();
+
+			const postCard = document.querySelector(`.feed-post[data-post-id="${postId}"]`);
+			if (postCard) {
+				const commentsList = postCard.querySelector('.comments-list');
+				if (commentsList) {
+					commentsList.innerHTML = comments.map(comment => `
+						<div class="comment-item">
+							<strong>${escapeHtml(comment.investorName)}</strong>
+							<p>${escapeHtml(comment.content)}</p>
+							<span class="comment-time">${getTimeAgo(new Date(comment.createdAt))}</span>
+						</div>
+					`).join('');
+				}
+			}
+		} catch (error) {
+			console.error('Error loading comments:', error);
+		}
+	}
+
+	async function submitComment(postId, content, inputElement, commentsSectionElement) {
+		try {
+			const formData = new FormData();
+			formData.append('postId', postId);
+			formData.append('content', content);
+
+			const response = await fetch('/Startup/AddComment', {
+				method: 'POST',
+				headers: {
+					'RequestVerificationToken': getCSRFToken()
+				},
+				body: formData
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				inputElement.value = '';
+				loadComments(postId);
+				updatePostStats(postId);
+				showNotification('Comment posted!', 'success');
+			} else {
+				if (response.status === 401) {
+					showNotification('Please login as an investor to comment', 'error');
+				} else {
+					showNotification('Failed to post comment', 'error');
+				}
+			}
+		} catch (error) {
+			console.error('Error submitting comment:', error);
+			showNotification('Error posting comment', 'error');
+		}
 	}
 
 })();
