@@ -30,5 +30,7 @@ namespace TechNova.Models
 
         public ICollection<Photo> Photos { get; set; } = new List<Photo>();
         public ICollection<Video> Videos { get; set; } = new List<Video>();
+        public ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
+        public ICollection<PostComment> Comments { get; set; } = new List<PostComment>();
     }
 }

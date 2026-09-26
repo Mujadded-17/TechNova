@@ -27,6 +27,8 @@ namespace TechNova.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<Photo> Photos { get; set; }
         public DbSet<Video> Videos { get; set; }
+        public DbSet<PostLike> PostLikes { get; set; }
+        public DbSet<PostComment> PostComments { get; set; }
 
         // Billing
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
