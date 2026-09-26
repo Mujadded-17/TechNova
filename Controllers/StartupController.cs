@@ -538,10 +538,15 @@ namespace TechNova.Controllers
             var startup = await _context.Startups
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.StartupID == startupId
-                    && s.IsPublished
-                    && s.ProfileVerificationStatus == "Verified");
+                    && s.IsPublished);
 
             if (startup == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow fully verified profiles to anonymous users
+            if (!User.Identity.IsAuthenticated && startup.ProfileVerificationStatus != "Verified")
             {
                 return NotFound();
             }
