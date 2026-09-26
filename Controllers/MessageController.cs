@@ -241,52 +241,51 @@ namespace TechNova.Controllers
             // ============================
 
             [HttpPost]
-        [ValidateAntiForgeryToken]
-        [RequiresSubscription]
-        public async Task<IActionResult> Send(int id, string content)
-        {
-            if (string.IsNullOrWhiteSpace(content))
+            [ValidateAntiForgeryToken]
+            [RequiresSubscription]
+            public async Task<IActionResult> Send(int id, string content)
             {
-                TempData["MessageError"] = "Write something before sending.";
-                return RedirectToAction(nameof(Thread), new { id });
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return BadRequest(new { error = "Write something before sending." });
+                }
+
+                content = content.Trim();
+
+                if (content.Length > MaxLength)
+                {
+                    content = content[..MaxLength];
+                }
+
+                var me = CurrentId;
+
+                var startupId = IsStartup ? me : id;
+                var investorId = IsStartup ? id : me;
+
+                // Re-check both sides exist so a forged id cannot create
+                // an orphan thread against a deleted account.
+                var startupOk = await _context.Startups.AnyAsync(s => s.StartupID == startupId);
+                var investorOk = await _context.Investors.AnyAsync(i => i.InvestorID == investorId);
+
+                if (!startupOk || !investorOk)
+                {
+                    return NotFound();
+                }
+
+                _context.Messages.Add(new Message
+                {
+                    StartupID = startupId,
+                    InvestorID = investorId,
+                    SenderType = IsStartup ? "Startup" : "Investor",
+                    Content = content,
+                    Timestamp = DateTime.UtcNow,
+                    IsRead = false
+                });
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Message sent successfully" });
             }
-
-            content = content.Trim();
-
-            if (content.Length > MaxLength)
-            {
-                content = content[..MaxLength];
-            }
-
-            var me = CurrentId;
-
-            var startupId = IsStartup ? me : id;
-            var investorId = IsStartup ? id : me;
-
-            // Re-check both sides exist so a forged id cannot create
-            // an orphan thread against a deleted account.
-            var startupOk = await _context.Startups.AnyAsync(s => s.StartupID == startupId);
-            var investorOk = await _context.Investors.AnyAsync(i => i.InvestorID == investorId);
-
-            if (!startupOk || !investorOk)
-            {
-                return NotFound();
-            }
-
-            _context.Messages.Add(new Message
-            {
-                StartupID = startupId,
-                InvestorID = investorId,
-                SenderType = IsStartup ? "Startup" : "Investor",
-                Content = content,
-                Timestamp = DateTime.UtcNow,
-                IsRead = false
-            });
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Thread), new { id });
-        }
 
             // ============================
             // CREATE INVESTMENT REQUEST
