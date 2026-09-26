@@ -247,27 +247,44 @@
 
 					try {
 						var formData = new FormData(messageForm);
+						console.log('Sending message with data:');
+						for (var [key, value] of formData.entries()) {
+							console.log(key + ': ' + (key === '__RequestVerificationToken' ? '***' : value));
+						}
+
 						var response = await fetch('/Message/Send', {
 							method: 'POST',
 							body: formData
 						});
 
+						console.log('Response status:', response.status);
+						console.log('Response ok:', response.ok);
+
+						var responseText = await response.text();
+						console.log('Response body:', responseText);
+
 						if (response.ok) {
 							// Clear the textarea
 							contentArea.value = '';
-							// Reload the page to show new message
-							location.reload();
+							console.log('Message sent successfully, reloading page');
+							// Wait a moment before reloading to ensure database is committed
+							setTimeout(function () {
+								location.reload();
+							}, 300);
 						} else {
-							alert('Failed to send message. Please try again.');
+							console.error('Send failed with status:', response.status);
+							alert('Failed to send message. Please try again. Status: ' + response.status);
 						}
 					} catch (error) {
 						console.error('Error sending message:', error);
-						alert('An error occurred while sending the message.');
+						alert('An error occurred while sending the message: ' + error.message);
 					} finally {
 						sendBtn.disabled = false;
 						sendBtn.textContent = 'Send';
 					}
 				});
+			} else {
+				console.error('Message form not found!');
 			}
 
 			var showBtn = document.getElementById('showInvestmentRequest');
