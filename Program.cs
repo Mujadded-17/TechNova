@@ -96,6 +96,12 @@ builder.Services.AddAntiforgery(options =>
 
 var app = builder.Build();
 
+// Apply pending database migrations
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 // Nothing ever created an administrator, so the admin half
 // of the platform was unreachable. Seed one in development only.
