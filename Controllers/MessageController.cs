@@ -242,7 +242,6 @@ namespace TechNova.Controllers
 
             [HttpPost]
             [ValidateAntiForgeryToken]
-            [RequiresSubscription]
             public async Task<IActionResult> Send(int id, string content)
             {
                 if (string.IsNullOrWhiteSpace(content))
