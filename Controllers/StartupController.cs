@@ -61,15 +61,20 @@ namespace TechNova.Controllers
         [HttpGet]
         public async Task<IActionResult> Profile(int id)
         {
+            // Public users can see verified published profiles
+            // Logged-in users (investors/startups) can see any published profile
             var startup = await _context.Startups
                 .AsNoTracking()
                 .Include(s => s.PitchDecks)
-                .FirstOrDefaultAsync(s =>
-                    s.StartupID == id &&
-                    s.IsPublished &&
-                    s.ProfileVerificationStatus == "Verified");
+                .FirstOrDefaultAsync(s => s.StartupID == id && s.IsPublished);
 
             if (startup == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow fully verified profiles to anonymous users
+            if (!User.Identity.IsAuthenticated && startup.ProfileVerificationStatus != "Verified")
             {
                 return NotFound();
             }
