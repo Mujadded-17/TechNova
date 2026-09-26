@@ -74,6 +74,9 @@ namespace TechNova.Controllers
                 return NotFound();
             }
 
+            // Store startup ID in ViewBag for use in post interactions
+            ViewBag.StartupID = id;
+
             return View(startup);
         }
         // ============================
@@ -887,6 +890,186 @@ namespace TechNova.Controllers
             video.DeletedAt = DateTime.UtcNow;
 
             _context.Videos.Update(video);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        // ============================
+        // POST INTERACTIONS (LIKE/COMMENT)
+        // ============================
+
+        /// <summary>
+        /// Toggle like on a post (investor action).
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Investor")]
+        public async Task<IActionResult> LikePost(int postId)
+        {
+            var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(investorIdClaim, out int investorId))
+            {
+                return Unauthorized();
+            }
+
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.PostID == postId);
+            if (post == null)
+            {
+                return NotFound("Post not found");
+            }
+
+            var existingLike = await _context.PostLikes.FirstOrDefaultAsync(
+                l => l.PostID == postId && l.InvestorID == investorId);
+
+            if (existingLike != null)
+            {
+                // Unlike
+                _context.PostLikes.Remove(existingLike);
+            }
+            else
+            {
+                // Like
+                var like = new PostLike
+                {
+                    PostID = postId,
+                    InvestorID = investorId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.PostLikes.Add(like);
+            }
+
+            await _context.SaveChangesAsync();
+
+            var likeCount = await _context.PostLikes.CountAsync(l => l.PostID == postId);
+            return Json(new { liked = existingLike == null, likeCount });
+        }
+
+        /// <summary>
+        /// Add a comment to a post (investor action).
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Investor")]
+        public async Task<IActionResult> AddComment(int postId, [FromForm] string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return BadRequest("Comment cannot be empty");
+            }
+
+            var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(investorIdClaim, out int investorId))
+            {
+                return Unauthorized();
+            }
+
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.PostID == postId);
+            if (post == null)
+            {
+                return NotFound("Post not found");
+            }
+
+            var comment = new PostComment
+            {
+                PostID = postId,
+                InvestorID = investorId,
+                Content = content.Substring(0, Math.Min(content.Length, 2000)),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.PostComments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            // Get investor details for response
+            var investor = await _context.Investors.AsNoTracking().FirstOrDefaultAsync(i => i.InvestorID == investorId);
+
+            return Json(new
+            {
+                commentId = comment.PostCommentID,
+                investorName = investor?.Name ?? "Anonymous",
+                content = comment.Content,
+                createdAt = comment.CreatedAt
+            });
+        }
+
+        /// <summary>
+        /// Get comments for a post.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPostComments(int postId)
+        {
+            var comments = await _context.PostComments
+                .AsNoTracking()
+                .Where(c => c.PostID == postId && !c.IsDeleted)
+                .OrderByDescending(c => c.CreatedAt)
+                .Include(c => c.Investor)
+                .Select(c => new
+                {
+                    commentId = c.PostCommentID,
+                    investorName = c.Investor!.Name,
+                    content = c.Content,
+                    createdAt = c.CreatedAt
+                })
+                .ToListAsync();
+
+            return Json(comments);
+        }
+
+        /// <summary>
+        /// Get like count for a post.
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPostLikes(int postId)
+        {
+            var likeCount = await _context.PostLikes.CountAsync(l => l.PostID == postId);
+
+            var investorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            bool hasLiked = false;
+            if (int.TryParse(investorIdClaim, out int investorId))
+            {
+                hasLiked = await _context.PostLikes.AnyAsync(l => l.PostID == postId && l.InvestorID == investorId);
+            }
+
+            return Json(new { likeCount, hasLiked });
+        }
+
+        /// <summary>
+        /// Delete a comment (investor can only delete their own, startup can delete any).
+        /// </summary>
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> DeleteComment(int commentId)
+        {
+            var comment = await _context.PostComments.FirstOrDefaultAsync(c => c.PostCommentID == commentId);
+            if (comment == null)
+            {
+                return NotFound("Comment not found");
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isStartup = User.IsInRole("Startup");
+            var isInvestor = User.IsInRole("Investor");
+
+            // Investor can only delete their own comments, Startup can delete any
+            if (isInvestor && comment.InvestorID.ToString() != userIdClaim)
+            {
+                return Forbid();
+            }
+
+            if (isStartup)
+            {
+                // Verify this is the startup's post
+                var post = await _context.Posts.FirstOrDefaultAsync(p => p.PostID == comment.PostID);
+                if (post?.StartupID.ToString() != userIdClaim)
+                {
+                    return Forbid();
+                }
+            }
+
+            comment.IsDeleted = true;
+            comment.DeletedAt = DateTime.UtcNow;
+            _context.PostComments.Update(comment);
             await _context.SaveChangesAsync();
 
             return Ok();
